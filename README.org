@@ -1,0 +1,3 @@
+The GeneNetwork database is being migrated from a relational database
+to a plain text and RDF database. This repository contains code to
+dump the relational database to plain text.
