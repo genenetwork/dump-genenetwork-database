@@ -273,6 +273,25 @@ Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
 FROM PublishXRef
 INNER JOIN InbredSet USING (InbredSetId)"))
 
+(define (tissue-short-name->id short-name)
+  (string->symbol (string-append "gn:tissue" short-name)))
+
+(define (dump-tissue db)
+  ;; The Name and TissueName fields seem to be identical. BIRN_lex_ID
+  ;; and BIRN_lex_Name are mostly NULL.
+  ;; TODO: Use standard ontology.
+  (triple 'gn:name 'rdfs:subPropertyOf 'rdfs:label)
+  (sql-for-each (match-lambda
+                  (((_ . name)
+                    (_ . short-name))
+                   ;; Hopefully the Short_Name field is distinct and
+                   ;; can be used as an identifier.
+                   (let ((id (tissue-short-name->id short-name)))
+                     (triple id 'rdf:type 'gn:tissue)
+                     (triple id 'gn:name name))))
+                db
+                "SELECT Name, Short_Name FROM Tissue"))
+
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
         (port #f)
@@ -321,3 +340,4 @@ INNER JOIN InbredSet USING (InbredSetId)"))
        (dump-phenotype db)
        (dump-publication db)
        (dump-publish-xref db)))))
+       (dump-tissue db)
