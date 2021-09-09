@@ -292,6 +292,48 @@ INNER JOIN InbredSet USING (InbredSetId)"))
                 db
                 "SELECT Name, Short_Name FROM Tissue"))
 
+;; One email ID in the Investigators table has spaces in it. This
+;; function fixes that.
+(define (fix-email-id email)
+  (string-replace-substring email " " ""))
+
+(define (investigator-email->id email)
+  (string->symbol
+   (string-append "gn:investigator"
+                  (string-replace-substring
+                   (fix-email-id email) "@" "_"))))
+
+(define (dump-investigators db)
+  (sql-for-each (lambda (alist)
+                  (let ((id (investigator-email->id (assoc-ref alist "Email"))))
+                    (triple id 'rdf:type 'foaf:Person)
+                    (scm->triples
+                     (cons (cons 'foaf:name (string-append
+                                             (assoc-ref alist "FirstName")
+                                             " " (assoc-ref alist "LastName")))
+                           (map (match-lambda
+                                  (('gn:firstName . first-name)
+                                   (cons 'foaf:givenName first-name))
+                                  (('gn:lastName . last-name)
+                                   (cons 'foaf:familyName last-name))
+                                  (('gn:phone . phone)
+                                   (cons 'foaf:phone phone))
+                                  (('gn:email . email)
+                                   (cons 'foaf:mbox (fix-email-id email)))
+                                  (('gn:url . url)
+                                   (cons 'foaf:homepage url))
+                                  (x x))
+                                (process-metadata-alist alist)))
+                     id)))
+                db
+                ;; There are a few duplicate entries. We group by
+                ;; email to deduplicate.
+                ;; TODO: Find email ID for records with none. (This is
+                ;; just one record corresponding to "Evan Williams")
+                "SELECT FirstName, LastName, Address, City, State, ZipCode, Phone, Email, Country, Url FROM Investigators
+WHERE Email != ''
+GROUP BY Email"))
+
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
         (port #f)
@@ -341,3 +383,4 @@ INNER JOIN InbredSet USING (InbredSetId)"))
        (dump-publication db)
        (dump-publish-xref db)))))
        (dump-tissue db)
+       (dump-investigators db)
