@@ -75,6 +75,11 @@
 
 ;;; Dump tables
 
+(define (delete-substrings str . substrings)
+  (fold (lambda (substring result)
+          (string-replace-substring result substring ""))
+        str
+        substrings))
 
 (define (snake->lower-camel str)
   (let ((char-list (string->list str)))
@@ -244,7 +249,7 @@ Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
                                     ;; TODO: Handle unprintable
                                     ;; characters better.
                                     (list (cons 'gn:abstract
-                                                (string-replace-substring abstract "\x01" ""))))
+                                                (delete-substrings abstract "\x01"))))
                                    (x (list x)))
                                  (process-metadata-alist alist))
                      id)))
