@@ -360,6 +360,80 @@ GROUP BY Email"))
                 db
                 "SELECT GeneChipName, Name FROM GeneChip"))
 
+(define (dump-info-files db)
+  (sql-for-each (lambda (alist)
+                  (let ((id (string-append "gn:dataset"
+                                           (number->string
+                                            (assoc-ref alist "GN_AccesionId")))))
+                    (triple id 'rdf:type 'gn:dataset)
+                    (scm->triples
+                     (filter-map (match-lambda
+                                   (('gn:gNAccesionId . accession-id)
+                                    (cons 'gn:accessionId
+                                          (string-append "GN" (number->string accession-id))))
+                                   (('gn:datasetStatusName . status)
+                                    (cons 'gn:datasetStatus
+                                          (string-downcase status)))
+                                   (('gn:binomialName . binomial-name)
+                                    (cons 'gn:datasetOfSpecies
+                                          (binomial-name->species-id binomial-name)))
+                                   (('gn:inbredSetName . inbred-set-name)
+                                    (cons 'gn:datasetOfInbredSet
+                                          (inbred-set-name->id inbred-set-name)))
+                                   (('gn:shortName . short-name)
+                                    (cons 'gn:datasetOfTissue
+                                          (tissue-short-name->id short-name)))
+                                   (('gn:email . email)
+                                    (cons 'gn:datasetOfInvestigator
+                                          (investigator-email->id email)))
+                                   (('gn:avgMethodName . (? (negate (cut string=? <> "N/A"))
+                                                            avg-method-name))
+                                    (cons 'gn:normalization
+                                          (avg-method-name->id avg-method-name)))
+                                   (('gn:geneChip . name)
+                                    (cons 'gn:datasetOfPlatform
+                                          (gene-chip-name->id name)))
+                                   (('gn:summary . summary)
+                                    ;; TODO: Why are there unprintable
+                                    ;; characters in the summary?
+                                    (cons 'gn:summary
+                                          (delete-substrings summary "\x01" "\x03")))
+                                   (('gn:aboutTissue . about-tissue)
+                                    ;; TODO: Why are there unprintable
+                                    ;; characters in the summary?
+                                    (cons 'gn:aboutTissue
+                                          (delete-substrings about-tissue "\x01" "\x03")))
+                                   (x x))
+                                 (process-metadata-alist alist))
+                     id)))
+                db
+                ;; TODO: Find email ID for records with none. (This is
+                ;; just one record corresponding to "Evan Williams")
+                ;; TODO: Double check Platforms. It doesn't seem to
+                ;; match up.
+                "SELECT GN_AccesionId, InfoPageTitle AS Name, InfoFiles.Title,
+Specifics, DatasetStatusName,
+Datasets.Summary, Datasets.GeoSeries, Datasets.AboutCases,
+Datasets.AboutPlatform, Datasets.AboutTissue, Datasets.AboutDataProcessing,
+Datasets.Notes, Datasets.ExperimentDesign, Datasets.Contributors,
+Datasets.Citation, Datasets.Acknowledgment,
+Species.FullName AS BinomialName,
+InbredSet.Name AS InbredSetName,
+Tissue.Short_Name,
+Investigators.Email,
+AvgMethod.Name AS AvgMethodName,
+GeneChip.Name AS GeneChip
+FROM InfoFiles
+LEFT JOIN Datasets USING (DatasetId)
+LEFT JOIN DatasetStatus USING (DatasetStatusId)
+LEFT JOIN Species USING (SpeciesId)
+LEFT JOIN InbredSet USING (InbredSetId)
+LEFT JOIN Tissue USING (TissueId)
+LEFT JOIN Investigators USING (InvestigatorId)
+LEFT JOIN AvgMethod USING (AvgMethodId)
+LEFT JOIN GeneChip USING (GeneChipId)
+WHERE Investigators.Email != ''"))
+
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
         (port #f)
@@ -411,4 +485,5 @@ GROUP BY Email"))
        (dump-tissue db)
        (dump-investigators db)
        (dump-avg-method db)
-       (dump-gene-chip db)))))
+       (dump-gene-chip db)
+       (dump-info-files db)))))
