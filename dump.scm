@@ -75,15 +75,6 @@
 
 ;;; Dump tables
 
-(define (camel->kebab str)
-  (call-with-output-string
-    (lambda (port)
-      (string-for-each (lambda (c)
-                         (when (and (not (zero? (port-position port)))
-                                    (char-set-contains? char-set:upper-case c))
-                           (put-char port #\-))
-                         (put-char port (char-downcase c)))
-                       str))))
 
 (define (snake->lower-camel str)
   (let ((char-list (string->list str)))
