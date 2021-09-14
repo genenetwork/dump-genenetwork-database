@@ -231,7 +231,6 @@ Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
                   (let ((id (string-append "gn:publication"
                                            (number->string (assoc-ref alist "Id")))))
                     (triple id 'rdf:type 'gn:publication)
-                    (triple 'gn:title 'rdfs:subPropertyOf 'rdfs:label)
                     (scm->triples
                      (append-map (match-lambda
                                    (('gn:id . _) '())
@@ -270,8 +269,6 @@ INNER JOIN InbredSet USING (InbredSetId)"))
 (define (dump-tissue db)
   ;; The Name and TissueName fields seem to be identical. BIRN_lex_ID
   ;; and BIRN_lex_Name are mostly NULL.
-  ;; TODO: Use standard ontology.
-  (triple 'gn:name 'rdfs:subPropertyOf 'rdfs:label)
   (sql-for-each (match-lambda
                   (((_ . name)
                     (_ . short-name))
