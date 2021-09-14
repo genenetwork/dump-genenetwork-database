@@ -21,11 +21,38 @@
              (guix packages)
              (guix utils))
 
-;; Guix's guile-dbi package is missing a native-search-paths. Add
-;; it. TODO: Contribute upstream.
+;; A better version of the guile-dbi and guile-dbd-* packages are
+;; under review upstream. See https://issues.guix.gnu.org/50476
+;; TODO: Remove these package definitions once merged upstream.
 (define guile-dbi
   (package
     (inherit guix:guile-dbi)
+    (name "guile-dbi")
+    (version "2.1.8")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/opencog/guile-dbi")
+                    (commit (string-append "guile-dbi-" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "123m4j82bi60s1v95pjh4djb7bh6zdwmljbpyg7zq8ni2gyal7lw"))))
+    (arguments
+     (substitute-keyword-arguments (package-arguments guix:guile-dbi)
+       ((#:phases phases)
+        `(modify-phases ,phases
+           (add-after 'unpack 'chdir
+             (lambda _
+               ;; The upstream Git repository contains all the code, so change
+               ;; to the directory specific to guile-dbi.
+               (chdir "guile-dbi")))))))
+    (native-inputs
+     `(("autoconf" ,autoconf)
+       ("automake" ,automake)
+       ("libtool" ,libtool)
+       ("perl" ,perl)
+       ,@(package-native-inputs guix:guile-dbi)))
     (native-search-paths
      (list (search-path-specification
             (variable "LD_LIBRARY_PATH")
@@ -33,14 +60,13 @@
 
 (define guile-dbi-bootstrap
   (package
-    (inherit guix:guile-dbi)
+    (inherit guile-dbi)
     (name "guile-dbi-bootstrap")
     (inputs '())
     (arguments
      (substitute-keyword-arguments (package-arguments guile-dbi)
        ((#:make-flags _) '(list))))))
 
-;; TODO: Contribute guile-dbd-mysql upstream.
 (define guile-dbd-mysql
   (let ((commit "e97589b6b018b206c901e4cc24db463407a4036b")
         (revision "0"))
