@@ -325,6 +325,24 @@ INNER JOIN InbredSet USING (InbredSetId)"))
 WHERE Email != ''
 GROUP BY Email"))
 
+(define (avg-method-name->id name)
+  (string->symbol
+   (string-append "gn:avgmethod"
+                  (string-replace-substring
+                   (string-downcase name) " " "_"))))
+
+(define (dump-avg-method db)
+  (sql-for-each (match-lambda
+                  (((_ . name))
+                   (let ((id (avg-method-name->id name)))
+                     (triple id 'rdf:type 'gn:avgMethod)
+                     (triple id 'gn:name name))))
+                db
+                ;; The Name and Normalization fields seem to be the
+                ;; same. Some records have Name and Normalization as
+                ;; "N/A". Remove them.
+                "SELECT Name FROM AvgMethod WHERE Name != \"N/A\""))
+
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
         (port #f)
@@ -375,3 +393,4 @@ GROUP BY Email"))
        (dump-publish-xref db)))))
        (dump-tissue db)
        (dump-investigators db)
+       (dump-avg-method db)))))
