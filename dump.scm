@@ -343,6 +343,21 @@ GROUP BY Email"))
                 ;; "N/A". Remove them.
                 "SELECT Name FROM AvgMethod WHERE Name != \"N/A\""))
 
+(define (gene-chip-name->id name)
+  (string->symbol
+   (string-replace-substring (string-append "gn:platform" name)
+                             " " "_")))
+
+(define (dump-gene-chip db)
+  (sql-for-each (match-lambda
+                  (((_ . gene-chip-name)
+                    (_ . name))
+                   (let ((id (gene-chip-name->id name)))
+                     (triple id 'rdf:type 'gn:platform)
+                     (triple id 'gn:name gene-chip-name))))
+                db
+                "SELECT GeneChipName, Name FROM GeneChip"))
+
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
         (port #f)
@@ -393,4 +408,5 @@ GROUP BY Email"))
        (dump-publish-xref db)))))
        (dump-tissue db)
        (dump-investigators db)
-       (dump-avg-method db)))))
+       (dump-avg-method db)
+       (dump-gene-chip db)))))
