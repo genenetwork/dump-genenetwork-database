@@ -403,6 +403,9 @@ GROUP BY Email"))
                                     ;; characters in the summary?
                                     (cons 'gn:aboutTissue
                                           (delete-substrings about-tissue "\x01" "\x03")))
+                                   (('gn:geoSeries . geo-series)
+                                    (and (not (string-prefix-ci? "no geo series" geo-series))
+                                         (cons 'gn:geoSeries geo-series)))
                                    (x x))
                                  (process-metadata-alist alist))
                      id)))
