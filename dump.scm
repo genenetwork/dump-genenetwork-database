@@ -331,7 +331,9 @@ GROUP BY Email"))
   (string->symbol
    (string-append "gn:avgmethod"
                   (string-replace-substring
-                   (string-downcase name) " " "_"))))
+                   (string-replace-substring
+                    (string-downcase name) " " "_")
+                   "/" "_"))))
 
 (define (dump-avg-method db)
   (sql-for-each (match-lambda
@@ -341,9 +343,11 @@ GROUP BY Email"))
                      (triple id 'gn:name name))))
                 db
                 ;; The Name and Normalization fields seem to be the
-                ;; same. Some records have Name and Normalization as
-                ;; "N/A". Remove them.
-                "SELECT Name FROM AvgMethod WHERE Name != \"N/A\""))
+                ;; same. Dump only the Name field.
+                ;;
+                ;; There are two records with Name as
+                ;; "N/A". Deduplicate.
+                "SELECT DISTINCT Name FROM AvgMethod"))
 
 (define (gene-chip-name->id name)
   (string->symbol
@@ -386,8 +390,7 @@ GROUP BY Email"))
                                    (('gn:email . email)
                                     (cons 'gn:datasetOfInvestigator
                                           (investigator-email->id email)))
-                                   (('gn:avgMethodName . (? (negate (cut string=? <> "N/A"))
-                                                            avg-method-name))
+                                   (('gn:avgMethodName . avg-method-name)
                                     (cons 'gn:normalization
                                           (avg-method-name->id avg-method-name)))
                                    (('gn:geneChip . name)
