@@ -415,7 +415,7 @@ GROUP BY Email"))
                 ;; just one record corresponding to "Evan Williams")
                 ;; TODO: Double check Platforms. It doesn't seem to
                 ;; match up.
-                "SELECT GN_AccesionId, InfoPageTitle AS Name, InfoFiles.Title,
+                "SELECT GN_AccesionId, InfoFileTitle AS Name, InfoFiles.Title,
 Specifics, DatasetStatusName,
 Datasets.DatasetName AS DatasetGroup, Datasets.Summary, Datasets.GeoSeries, Datasets.AboutCases,
 Datasets.AboutPlatform, Datasets.AboutTissue, Datasets.AboutDataProcessing,
