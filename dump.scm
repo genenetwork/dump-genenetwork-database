@@ -175,9 +175,11 @@
                 db
                 "SELECT Species.FullName, Strain.Name, Strain.Name2, Strain.Symbol, Strain.Alias FROM Strain JOIN Species ON Strain.SpeciesId = Species.SpeciesId"))
 
+;; TODO: This function is unused. Remove if not required.
 (define (mapping-method-name->id name)
   (string->symbol (string-append "gn:mappingMethod" name)))
 
+;; TODO: This function is unused. Remove if not required.
 (define (dump-mapping-method db)
   (sql-for-each (match-lambda
                   (((_ . name))
@@ -198,18 +200,14 @@
                                    (('gn:binomialName . binomial-name)
                                     (cons 'gn:inbredSetOfSpecies
                                           (binomial-name->species-id binomial-name)))
-                                   (('gn:mappingMethodName . mapping-method-name)
-                                    (cons 'gn:inbredSetMappingMethod
-                                          (mapping-method-name->id mapping-method-name)))
                                    (x x))
                                  (process-metadata-alist alist))
                      id)))
                 db
                 "SELECT InbredSet.Name, InbredSet.FullName, GeneticType, Family,
-Species.FullName AS BinomialName, MappingMethod.Name AS MappingMethodName
+Species.FullName AS BinomialName
 FROM InbredSet
-INNER JOIN Species USING (SpeciesId)
-INNER JOIN MappingMethod ON InbredSet.MappingMethodId = MappingMethod.Id"))
+INNER JOIN Species USING (SpeciesId)"))
 
 (define (phenotype-id->id id)
   (string->symbol (string-append "gn:phenotype" (number->string id))))
