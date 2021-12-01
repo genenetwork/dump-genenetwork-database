@@ -388,6 +388,13 @@ GROUP BY Email"))
                                    (('gn:email . email)
                                     (cons 'gn:datasetOfInvestigator
                                           (investigator-email->id email)))
+                                   (('gn:avgMethodId . avg-method-id)
+                                    ;; If avg-method-id is 0, a
+                                    ;; non-existent method, assume
+                                    ;; N/A.
+                                    (and (zero? avg-method-id)
+                                         (cons 'gn:normalization
+                                               (avg-method-name->id "N/A"))))
                                    (('gn:avgMethodName . avg-method-name)
                                     (cons 'gn:normalization
                                           (avg-method-name->id avg-method-name)))
@@ -425,7 +432,7 @@ Species.FullName AS BinomialName,
 InbredSet.Name AS InbredSetName,
 Tissue.Short_Name,
 Investigators.Email,
-AvgMethod.Name AS AvgMethodName,
+AvgMethodId, AvgMethod.Name AS AvgMethodName,
 GeneChip.Name AS GeneChip
 FROM InfoFiles
 LEFT JOIN Datasets USING (DatasetId)
