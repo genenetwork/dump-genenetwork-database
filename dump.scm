@@ -417,7 +417,7 @@ GROUP BY Email"))
                 ;; match up.
                 "SELECT GN_AccesionId, InfoPageTitle AS Name, InfoFiles.Title,
 Specifics, DatasetStatusName,
-Datasets.Summary, Datasets.GeoSeries, Datasets.AboutCases,
+Datasets.DatasetName AS DatasetGroup, Datasets.Summary, Datasets.GeoSeries, Datasets.AboutCases,
 Datasets.AboutPlatform, Datasets.AboutTissue, Datasets.AboutDataProcessing,
 Datasets.Notes, Datasets.ExperimentDesign, Datasets.Contributors,
 Datasets.Citation, Datasets.Acknowledgment,
