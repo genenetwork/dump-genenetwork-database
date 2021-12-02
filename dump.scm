@@ -292,12 +292,21 @@ INNER JOIN InbredSet USING (InbredSetId)"))
 (define (fix-email-id email)
   (string-delete #\space email))
 
-(define (investigator-email->id email)
-  (string->identifier "investigator" (fix-email-id email)))
+(define (investigator-attributes->id first-name last-name email)
+  ;; There is just one record corresponding to "Evan Williams" which
+  ;; does not have an email ID. To accommodate that record, we
+  ;; construct the investigator ID from not just the email ID, but
+  ;; also the first and the last names. It would be preferable to just
+  ;; find Evan Williams' email ID and insert it into the database.
+  (string->identifier "investigator"
+                      (string-join (list first-name last-name (fix-email-id email))
+                                   "_")))
 
 (define (dump-investigators db)
   (sql-for-each (lambda (alist)
-                  (let ((id (investigator-email->id (assoc-ref alist "Email"))))
+                  (let ((id (investigator-attributes->id (assoc-ref alist "FirstName")
+                                                         (assoc-ref alist "LastName")
+                                                         (assoc-ref alist "Email"))))
                     (triple id 'rdf:type 'foaf:Person)
                     (scm->triples
                      (cons (cons 'foaf:name (string-append
@@ -320,10 +329,7 @@ INNER JOIN InbredSet USING (InbredSetId)"))
                 db
                 ;; There are a few duplicate entries. We group by
                 ;; email to deduplicate.
-                ;; TODO: Find email ID for records with none. (This is
-                ;; just one record corresponding to "Evan Williams")
                 "SELECT FirstName, LastName, Address, City, State, ZipCode, Phone, Email, Country, Url FROM Investigators
-WHERE Email != ''
 GROUP BY Email"))
 
 (define avg-method-name->id
@@ -363,57 +369,62 @@ GROUP BY Email"))
                                             (assoc-ref alist "GN_AccesionId")))))
                     (triple id 'rdf:type 'gn:dataset)
                     (scm->triples
-                     (filter-map (match-lambda
-                                   (('gn:gNAccesionId . accession-id)
-                                    (cons 'gn:accessionId
-                                          (string-append "GN" (number->string accession-id))))
-                                   (('gn:datasetStatusName . status)
-                                    (cons 'gn:datasetStatus
-                                          (string-downcase status)))
-                                   (('gn:binomialName . binomial-name)
-                                    (cons 'gn:datasetOfSpecies
-                                          (binomial-name->species-id binomial-name)))
-                                   (('gn:inbredSetName . inbred-set-name)
-                                    (cons 'gn:datasetOfInbredSet
-                                          (inbred-set-name->id inbred-set-name)))
-                                   (('gn:shortName . short-name)
-                                    (cons 'gn:datasetOfTissue
-                                          (tissue-short-name->id short-name)))
-                                   (('gn:email . email)
-                                    (cons 'gn:datasetOfInvestigator
-                                          (investigator-email->id email)))
-                                   (('gn:avgMethodId . avg-method-id)
-                                    ;; If avg-method-id is 0, a
-                                    ;; non-existent method, assume
-                                    ;; N/A.
-                                    (and (zero? avg-method-id)
-                                         (cons 'gn:normalization
-                                               (avg-method-name->id "N/A"))))
-                                   (('gn:avgMethodName . avg-method-name)
-                                    (cons 'gn:normalization
-                                          (avg-method-name->id avg-method-name)))
-                                   (('gn:geneChip . name)
-                                    (cons 'gn:datasetOfPlatform
-                                          (gene-chip-name->id name)))
-                                   (('gn:summary . summary)
-                                    ;; TODO: Why are there unprintable
-                                    ;; characters in the summary?
-                                    (cons 'gn:summary
-                                          (delete-substrings summary "\x01" "\x03")))
-                                   (('gn:aboutTissue . about-tissue)
-                                    ;; TODO: Why are there unprintable
-                                    ;; characters in the summary?
-                                    (cons 'gn:aboutTissue
-                                          (delete-substrings about-tissue "\x01" "\x03")))
-                                   (('gn:geoSeries . geo-series)
-                                    (and (not (string-prefix-ci? "no geo series" geo-series))
-                                         (cons 'gn:geoSeries geo-series)))
-                                   (x x))
-                                 (process-metadata-alist alist))
+                     (cons (cons 'gn:datasetOfInvestigator
+                                 (investigator-attributes->id (assoc-ref alist "FirstName")
+                                                              (assoc-ref alist "LastName")
+                                                              (assoc-ref alist "Email")))
+                           (filter-map (match-lambda
+                                         (('gn:gNAccesionId . accession-id)
+                                          (cons 'gn:accessionId
+                                                (string-append "GN" (number->string accession-id))))
+                                         (('gn:datasetStatusName . status)
+                                          (cons 'gn:datasetStatus
+                                                (string-downcase status)))
+                                         (('gn:binomialName . binomial-name)
+                                          (cons 'gn:datasetOfSpecies
+                                                (binomial-name->species-id binomial-name)))
+                                         (('gn:inbredSetName . inbred-set-name)
+                                          (cons 'gn:datasetOfInbredSet
+                                                (inbred-set-name->id inbred-set-name)))
+                                         (('gn:shortName . short-name)
+                                          (cons 'gn:datasetOfTissue
+                                                (tissue-short-name->id short-name)))
+                                         ;; Remove first name, last name and
+                                         ;; email. We are using it outside
+                                         ;; this filter-map.
+                                         (('gn:firstName . first-name) #f)
+                                         (('gn:lastName . last-name) #f)
+                                         (('gn:email . email) #f)
+                                         (('gn:avgMethodId . avg-method-id)
+                                          ;; If avg-method-id is 0, a
+                                          ;; non-existent method, assume
+                                          ;; N/A.
+                                          (and (zero? avg-method-id)
+                                               (cons 'gn:normalization
+                                                     (avg-method-name->id "N/A"))))
+                                         (('gn:avgMethodName . avg-method-name)
+                                          (cons 'gn:normalization
+                                                (avg-method-name->id avg-method-name)))
+                                         (('gn:geneChip . name)
+                                          (cons 'gn:datasetOfPlatform
+                                                (gene-chip-name->id name)))
+                                         (('gn:summary . summary)
+                                          ;; TODO: Why are there unprintable
+                                          ;; characters in the summary?
+                                          (cons 'gn:summary
+                                                (delete-substrings summary "\x01" "\x03")))
+                                         (('gn:aboutTissue . about-tissue)
+                                          ;; TODO: Why are there unprintable
+                                          ;; characters in the summary?
+                                          (cons 'gn:aboutTissue
+                                                (delete-substrings about-tissue "\x01" "\x03")))
+                                         (('gn:geoSeries . geo-series)
+                                          (and (not (string-prefix-ci? "no geo series" geo-series))
+                                               (cons 'gn:geoSeries geo-series)))
+                                         (x x))
+                                       (process-metadata-alist alist)))
                      id)))
                 db
-                ;; TODO: Find email ID for records with none. (This is
-                ;; just one record corresponding to "Evan Williams")
                 ;; TODO: Double check Platforms. It doesn't seem to
                 ;; match up.
                 "SELECT GN_AccesionId, InfoFileTitle AS Name, InfoFiles.Title,
@@ -425,7 +436,7 @@ Datasets.Citation, Datasets.Acknowledgment,
 Species.FullName AS BinomialName,
 InbredSet.Name AS InbredSetName,
 Tissue.Short_Name,
-Investigators.Email,
+Investigators.FirstName, Investigators.LastName, Investigators.Email,
 AvgMethodId, AvgMethod.Name AS AvgMethodName,
 GeneChip.Name AS GeneChip
 FROM InfoFiles
@@ -436,8 +447,7 @@ LEFT JOIN InbredSet USING (InbredSetId)
 LEFT JOIN Tissue USING (TissueId)
 LEFT JOIN Investigators USING (InvestigatorId)
 LEFT JOIN AvgMethod USING (AvgMethodId)
-LEFT JOIN GeneChip USING (GeneChipId)
-WHERE Investigators.Email != ''"))
+LEFT JOIN GeneChip USING (GeneChipId)"))
 
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
