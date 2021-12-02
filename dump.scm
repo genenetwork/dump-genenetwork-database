@@ -82,6 +82,17 @@
         str
         substrings))
 
+(define (string->identifier prefix str)
+  "Convert STR to a turtle identifier after replacing illegal
+characters with an underscore and prefixing with gn:PREFIX."
+  (string->symbol
+   (string-append "gn:" prefix
+                  (string-map (lambda (c)
+                                (case c
+                                  ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
+                                  (else c)))
+                              (string-downcase str)))))
+
 (define (snake->lower-camel str)
   (let ((char-list (string->list str)))
     (call-with-output-string
@@ -119,9 +130,8 @@
 (define (triple subject predicate object)
   (format #t "~a ~a ~s .~%" subject predicate object))
 
-(define (binomial-name->species-id binomial-name)
-  (string->symbol
-   (string-append "gn:" (string-replace-substring binomial-name " " "_"))))
+(define binomial-name->species-id
+  (cut string->identifier "species" <>))
 
 (define (dump-species db)
   (sql-for-each (lambda (alist)
@@ -150,14 +160,7 @@
                       (_ . name2)
                       (_ . symbol)
                       (_ . alias))
-                     (let ((id
-                            ;; TODO: Ensure this identifier does not collide.
-                            (string-append "gn:"
-                                           (string-map (lambda (c)
-                                                         (case c
-                                                           ((#\/ #\< #\> #\+ #\( #\) #\space) #\_)
-                                                           (else c)))
-                                                       name))))
+                     (let ((id (string->identifier "strain" name)))
                        (triple id 'rdf:type 'gn:strain)
                        ;; The species this is a strain of
                        (triple id 'gn:strainOfSpecies
@@ -177,8 +180,8 @@
                 "SELECT Species.FullName, Strain.Name, Strain.Name2, Strain.Symbol, Strain.Alias FROM Strain JOIN Species ON Strain.SpeciesId = Species.SpeciesId"))
 
 ;; TODO: This function is unused. Remove if not required.
-(define (mapping-method-name->id name)
-  (string->symbol (string-append "gn:mappingMethod" name)))
+(define mapping-method-name->id
+  (cut string->identifier "mappingMethod" <>))
 
 ;; TODO: This function is unused. Remove if not required.
 (define (dump-mapping-method db)
@@ -189,8 +192,8 @@
                 db
                 "SELECT Name FROM MappingMethod"))
 
-(define (inbred-set-name->id name)
-  (string->symbol (string-append "gn:inbredSet" name)))
+(define inbred-set-name->id
+  (cut string->identifier "inbredSet" <>))
 
 (define (dump-inbred-set db)
   (sql-for-each (lambda (alist)
@@ -211,7 +214,7 @@ FROM InbredSet
 INNER JOIN Species USING (SpeciesId)"))
 
 (define (phenotype-id->id id)
-  (string->symbol (string-append "gn:phenotype" (number->string id))))
+  (string->identifier "phenotype" (number->string id)))
 
 (define (dump-phenotype db)
   (sql-for-each (lambda (alist)
@@ -267,8 +270,8 @@ Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
 FROM PublishXRef
 INNER JOIN InbredSet USING (InbredSetId)"))
 
-(define (tissue-short-name->id short-name)
-  (string->symbol (string-append "gn:tissue" short-name)))
+(define tissue-short-name->id
+  (cut string->identifier "tissue" <>))
 
 (define (dump-tissue db)
   ;; The Name and TissueName fields seem to be identical. BIRN_lex_ID
@@ -290,10 +293,7 @@ INNER JOIN InbredSet USING (InbredSetId)"))
   (string-replace-substring email " " ""))
 
 (define (investigator-email->id email)
-  (string->symbol
-   (string-append "gn:investigator"
-                  (string-replace-substring
-                   (fix-email-id email) "@" "_"))))
+  (string->identifier "investigator" (fix-email-id email)))
 
 (define (dump-investigators db)
   (sql-for-each (lambda (alist)
@@ -326,13 +326,8 @@ INNER JOIN InbredSet USING (InbredSetId)"))
 WHERE Email != ''
 GROUP BY Email"))
 
-(define (avg-method-name->id name)
-  (string->symbol
-   (string-append "gn:avgmethod"
-                  (string-replace-substring
-                   (string-replace-substring
-                    (string-downcase name) " " "_")
-                   "/" "_"))))
+(define avg-method-name->id
+  (cut string->identifier "avgmethod" <>))
 
 (define (dump-avg-method db)
   (sql-for-each (match-lambda
@@ -348,10 +343,8 @@ GROUP BY Email"))
                 ;; "N/A". Deduplicate.
                 "SELECT DISTINCT Name FROM AvgMethod"))
 
-(define (gene-chip-name->id name)
-  (string->symbol
-   (string-replace-substring (string-append "gn:platform" name)
-                             " " "_")))
+(define gene-chip-name->id
+  (cut string->identifier "platform" <>))
 
 (define (dump-gene-chip db)
   (sql-for-each (match-lambda
