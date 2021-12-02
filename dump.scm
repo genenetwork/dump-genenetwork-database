@@ -290,7 +290,7 @@ INNER JOIN InbredSet USING (InbredSetId)"))
 ;; One email ID in the Investigators table has spaces in it. This
 ;; function fixes that.
 (define (fix-email-id email)
-  (string-replace-substring email " " ""))
+  (string-delete #\space email))
 
 (define (investigator-email->id email)
   (string->identifier "investigator" (fix-email-id email)))
