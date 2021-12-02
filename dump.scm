@@ -76,6 +76,7 @@
 ;;; Dump tables
 
 (define (delete-substrings str . substrings)
+  "Delete SUBSTRINGS, a list of strings, from STR."
   (fold (lambda (substring result)
           (string-replace-substring result substring ""))
         str
