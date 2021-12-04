@@ -107,10 +107,6 @@ characters with an underscore and prefixing with gn:PREFIX."
              (drop char-list 1)
              char-list)))))
 
-(define (camel->lower-camel str)
-  (string-append (string-downcase (substring str 0 1))
-                 (substring str 1)))
-
 (define (string-blank? str)
   "Return non-#f if STR consists only of whitespace characters."
   (string-every char-set:whitespace str))
@@ -129,9 +125,7 @@ characters with an underscore and prefixing with gn:PREFIX."
   (match-lambda
     ((key . value)
      (cons (string->symbol
-            (string-append
-             "gn:" (camel->lower-camel
-                    (snake->lower-camel key))))
+            (string-append "gn:" (snake->lower-camel key)))
            value))
     (x (error "malformed alist element" x))))
 
