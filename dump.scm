@@ -41,9 +41,9 @@
 
 (define (get-tables-from-comments db)
   (sql-map (match-lambda
-                  ((("TableName" . table)) table))
-                db
-                "SELECT TableName FROM TableComments"))
+             ((("TableName" . table)) table))
+           db
+           "SELECT TableName FROM TableComments"))
 
 (define (dump-table-fields db table)
   (format #t "* ~a~%" table)
@@ -52,16 +52,16 @@
     ((("Comment" . comment))
      (format #t "~a~%" comment)))
   (sql-for-each (lambda (row)
-                       (match row
-                         ((("TableField" . table-field)
-                           ("Foreign_Key" . foreign-key)
-                           ("Annotation" . annotation))
-                          (format #t "** ~a~%" (substring table-field (1+ (string-length table))))
-                          (unless (string-null? foreign-key)
-                            (format #t "Foreign key to ~a~%" foreign-key))
-                          (unless (string-null? annotation)
-                            (display annotation)
-                            (newline)))))
+                  (match row
+                    ((("TableField" . table-field)
+                      ("Foreign_Key" . foreign-key)
+                      ("Annotation" . annotation))
+                     (format #t "** ~a~%" (substring table-field (1+ (string-length table))))
+                     (unless (string-null? foreign-key)
+                       (format #t "Foreign key to ~a~%" foreign-key))
+                     (unless (string-null? annotation)
+                       (display annotation)
+                       (newline)))))
                      db
                      (format #f "SELECT TableField, Foreign_Key, Annotation FROM TableFieldAnnotation WHERE TableField LIKE '~a.%'"
                              table))
