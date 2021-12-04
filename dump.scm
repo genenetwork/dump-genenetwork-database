@@ -178,7 +178,7 @@ characters with an underscore and prefixing with gn:PREFIX."
   (sql-for-each (lambda (row)
                   (scm->triples (map-alist row
                                   (set rdf:type 'gn:mappingMethod))
-                                (string-append "gn:mappingMethod" (assoc-ref row "Name"))))
+                                (string->identifier "mappingMethod" (assoc-ref row "Name"))))
                 db
                 "SELECT Name FROM MappingMethod"))
 
@@ -229,8 +229,8 @@ Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
                                        ;; TODO: Why are there unprintable characters?
                                        (delete-substrings (key "Abstract") "\x01"))
                                   (else=> default-metadata-proc))
-                                (string-append "gn:publication"
-                                               (number->string (assoc-ref row "Id")))))
+                                (string->identifier "publication"
+                                                    (number->string (assoc-ref row "Id")))))
                 db
                 "SELECT Id, PubMed_ID, Abstract, Authors, Title, Journal, Volume, Pages, Month, Year FROM Publication"))
 
@@ -360,8 +360,8 @@ GROUP BY Email"))
                                                        (key "GeoSeries")))
                                (key "GeoSeries")))
                      (else=> default-metadata-proc))
-                   (string-append "gn:dataset"
-                                  (number->string (assoc-ref row "GN_AccesionId")))))
+                   (string->identifier "dataset"
+                                       (number->string (assoc-ref row "GN_AccesionId")))))
                 db
                 ;; TODO: Double check Platforms. It doesn't seem to
                 ;; match up.
