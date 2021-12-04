@@ -87,7 +87,7 @@
   "Convert STR to a turtle identifier after replacing illegal
 characters with an underscore and prefixing with gn:PREFIX."
   (string->symbol
-   (string-append "gn:" prefix
+   (string-append "gn:" prefix "_"
                   (string-map (lambda (c)
                                 (case c
                                   ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
