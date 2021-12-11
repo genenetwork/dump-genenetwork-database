@@ -610,15 +610,29 @@ metric."
                      ((@@ (ccwl graphviz) graph-node)
                       (table-name table)
                       `((shape . "record")
-                        (label . ,(format #f "{~a (~a) | ~a}"
+                        (style . "filled")
+                        (fillcolor . ,(if (find (match-lambda
+                                                  ((dumped-table . _)
+                                                   (string=? (symbol->string dumped-table)
+                                                             (table-name table))))
+                                                %dumped)
+                                          "lightgrey"
+                                          "white"))
+                        (label . ,(format #f "<<table border=\"0\"><tr><td border=\"1\">~a (~a)</td></tr>~a</table>>"
                                           (table-name table)
                                           (human-units (table-size table))
-                                          (string-replace-substring
-                                           (string-replace-substring
-                                            (string-join (map column-name (table-columns table))
-                                                         "\\l" 'suffix)
-                                            "<" "\\<")
-                                           ">" "\\>"))))))
+                                          (string-join (map (lambda (column)
+                                                              (format #f "<tr><td~a>~a</td></tr>"
+                                                                      (if (member (cons (string->symbol (table-name table))
+                                                                                        (string->symbol (column-name column)))
+                                                                                  %dumped)
+                                                                          " bgcolor=\"green\""
+                                                                          "")
+                                                                      (replace-substrings
+                                                                       (column-name column)
+                                                                       '(("<" . "&lt;")
+                                                                         (">" . "&gt;")))))
+                                                            (table-columns table))))))))
                    tables)
       #:edges (append-map (lambda (table)
                             (filter-map (lambda (column)
