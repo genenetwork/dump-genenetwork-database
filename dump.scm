@@ -43,12 +43,15 @@
   (sql-map (match-lambda
              ((("TableName" . table)) table))
            db
-           "SELECT TableName FROM TableComments"))
+           (select-query ((TableComments TableName))
+                         (TableComments))))
 
 (define (dump-table-fields db table)
   (format #t "* ~a~%" table)
-  (match (sql-find db (format #f "SELECT Comment FROM TableComments WHERE TableName = '~a'"
-                                   table))
+  (match (sql-find db
+                   (select-query ((TableComments Comment))
+                                 (TableComments)
+                                 (format #f "WHERE TableName = '~a'" table)))
     ((("Comment" . comment))
      (format #t "~a~%" comment)))
   (sql-for-each (lambda (row)
@@ -62,9 +65,12 @@
                      (unless (string-null? annotation)
                        (display annotation)
                        (newline)))))
-                     db
-                     (format #f "SELECT TableField, Foreign_Key, Annotation FROM TableFieldAnnotation WHERE TableField LIKE '~a.%'"
-                             table))
+                db
+                (select-query ((TableFieldAnnotation TableField)
+                               (TableFieldAnnotation Foreign_Key)
+                               (TableFieldAnnotation Annotation))
+                              (TableFieldAnnotation)
+                              (format #f "WHERE TableField LIKE '~a.%'" table)))
   (newline))
 
 (define (dump-schema-annotations db)
@@ -147,7 +153,10 @@ characters with an underscore and prefixing with gn:PREFIX."
                                   (set gn:binomialname (key "FullName")))
                                 (binomial-name->species-id (assoc-ref row "FullName"))))
                 db
-                "SELECT SpeciesName, MenuName, FullName FROM Species"))
+                (select-query ((Species SpeciesName)
+                               (Species MenuName)
+                               (Species FullName))
+                              (Species))))
 
 (define (dump-strain db)
   (sql-for-each (lambda (row)
@@ -161,7 +170,13 @@ characters with an underscore and prefixing with gn:PREFIX."
                                   (set gn:alias (key "Alias")))
                                 (string->identifier "strain" (assoc-ref row "Name"))))
                 db
-                "SELECT Species.FullName, Strain.Name, Strain.Name2, Strain.Symbol, Strain.Alias FROM Strain JOIN Species ON Strain.SpeciesId = Species.SpeciesId"))
+                (select-query ((Species FullName)
+                               (Strain Name)
+                               (Strain Name2)
+                               (Strain Symbol)
+                               (Strain Alias))
+                              (Strain
+                               (join Species "ON Strain.SpeciesId = Species.SpeciesId")))))
 
 ;; TODO: This function is unused. Remove if not required.
 (define mapping-method-name->id
@@ -174,7 +189,8 @@ characters with an underscore and prefixing with gn:PREFIX."
                                   (set rdf:type 'gn:mappingMethod))
                                 (string->identifier "mappingMethod" (assoc-ref row "Name"))))
                 db
-                "SELECT Name FROM MappingMethod"))
+                (select-query ((MappingMethod Name))
+                              (MappingMethod))))
 
 (define inbred-set-name->id
   (cut string->identifier "inbredSet" <>))
@@ -188,10 +204,13 @@ characters with an underscore and prefixing with gn:PREFIX."
                                   (else=> default-metadata-proc))
                                 (inbred-set-name->id (assoc-ref row "Name"))))
                 db
-                "SELECT InbredSet.Name, InbredSet.FullName, GeneticType, Family,
-Species.FullName AS BinomialName
-FROM InbredSet
-INNER JOIN Species USING (SpeciesId)"))
+                (select-query ((InbredSet Name)
+                               (InbredSet FullName)
+                               (InbredSet GeneticType)
+                               (InbredSet Family)
+                               (Species FullName BinomialName))
+                              (InbredSet
+                               (inner-join Species "USING (SpeciesId)")))))
 
 (define (phenotype-id->id id)
   (string->identifier "phenotype" (number->string id)))
@@ -206,9 +225,18 @@ INNER JOIN Species USING (SpeciesId)"))
                                   (else=> default-metadata-proc))
                                 (phenotype-id->id (assoc-ref row "Id"))))
                 db
-                "SELECT Id, Pre_publication_description, Post_publication_description,
-Original_description, Units, Pre_publication_abbreviation, Post_publication_abbreviation,
-Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
+                (select-query ((Phenotype Id)
+                               (Phenotype Pre_publication_description)
+                               (Phenotype Post_publication_description)
+                               (Phenotype Original_description)
+                               (Phenotype Units)
+                               (Phenotype Pre_publication_abbreviation)
+                               (Phenotype Post_publication_abbreviation)
+                               (Phenotype Lab_code)
+                               (Phenotype Submitter)
+                               (Phenotype Owner)
+                               (Phenotype Authorized_Users))
+                              (Phenotype))))
 
 (define (dump-publication db)
   (sql-for-each (lambda (row)
@@ -226,7 +254,17 @@ Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
                                 (string->identifier "publication"
                                                     (number->string (assoc-ref row "Id")))))
                 db
-                "SELECT Id, PubMed_ID, Abstract, Authors, Title, Journal, Volume, Pages, Month, Year FROM Publication"))
+                (select-query ((Publication Id)
+                               (Publication PubMed_ID)
+                               (Publication Abstract)
+                               (Publication Authors)
+                               (Publication Title)
+                               (Publication Journal)
+                               (Publication Volume)
+                               (Publication Pages)
+                               (Publication Month)
+                               (Publication Year))
+                              (Publication))))
 
 (define (dump-publish-xref db)
   (sql-for-each (lambda (row)
@@ -234,9 +272,10 @@ Lab_code, Submitter, Owner, Authorized_Users FROM Phenotype"))
                                   (set gn:phenotypeOfSpecies (inbred-set-name->id (key "Name"))))
                                 (phenotype-id->id (assoc-ref row "PhenotypeId"))))
                 db
-                "SELECT Name, PhenotypeId
-FROM PublishXRef
-INNER JOIN InbredSet USING (InbredSetId)"))
+                (select-query ((InbredSet Name)
+                               (PublishXRef PhenotypeId))
+                              (PublishXRef
+                               (inner-join InbredSet "USING (InbredSetId)")))))
 
 (define tissue-short-name->id
   (cut string->identifier "tissue" <>))
@@ -254,7 +293,9 @@ INNER JOIN InbredSet USING (InbredSetId)"))
                                 ;; identifier.
                                 (tissue-short-name->id (assoc-ref row "Short_Name"))))
                 db
-                "SELECT Name, Short_Name FROM Tissue"))
+                (select-query ((Tissue Name)
+                               (Tissue Short_Name))
+                              (Tissue))))
 
 ;; One email ID in the Investigators table has spaces in it. This
 ;; function fixes that.
@@ -288,8 +329,18 @@ INNER JOIN InbredSet USING (InbredSetId)"))
                 db
                 ;; There are a few duplicate entries. We group by
                 ;; email to deduplicate.
-                "SELECT FirstName, LastName, Address, City, State, ZipCode, Phone, Email, Country, Url FROM Investigators
-GROUP BY Email"))
+                (select-query ((Investigators FirstName)
+                               (Investigators LastName)
+                               (Investigators Address)
+                               (Investigators City)
+                               (Investigators State)
+                               (Investigators ZipCode)
+                               (Investigators Phone)
+                               (Investigators Email)
+                               (Investigators Country)
+                               (Investigators Url))
+                              (Investigators)
+                              "GROUP BY Email")))
 
 (define avg-method-name->id
   (cut string->identifier "avgmethod" <>))
@@ -306,7 +357,8 @@ GROUP BY Email"))
                 ;;
                 ;; There are two records with Name as
                 ;; "N/A". Deduplicate.
-                "SELECT DISTINCT Name FROM AvgMethod"))
+                (select-query (distinct (AvgMethod Name))
+                              (AvgMethod))))
 
 (define gene-chip-name->id
   (cut string->identifier "platform" <>))
@@ -319,7 +371,9 @@ GROUP BY Email"))
                                   (set gn:name (key "GeneChipName")))
                                 (gene-chip-name->id (assoc-ref row "Name"))))
                 db
-                "SELECT GeneChipName, Name FROM GeneChip"))
+                (select-query ((GeneChip GeneChipName)
+                               (GeneChip Name))
+                              (GeneChip))))
 
 (define (dump-info-files db)
   (sql-for-each (lambda (row)
@@ -359,28 +413,41 @@ GROUP BY Email"))
                 db
                 ;; TODO: Double check Platforms. It doesn't seem to
                 ;; match up.
-                "SELECT GN_AccesionId, InfoFileTitle AS Name, InfoFiles.Title,
-Specifics, DatasetStatusName,
-Datasets.DatasetName AS DatasetGroup, Datasets.Summary, Datasets.GeoSeries, Datasets.AboutCases,
-Datasets.AboutPlatform, Datasets.AboutTissue, Datasets.AboutDataProcessing,
-Datasets.Notes, Datasets.ExperimentDesign, Datasets.Contributors,
-Datasets.Citation, Datasets.Acknowledgment,
-Species.FullName AS BinomialName,
-InbredSet.Name AS InbredSetName,
-Tissue.Short_Name,
-Investigators.FirstName, Investigators.LastName, Investigators.Email,
-AvgMethod.Name AS AvgMethodName,
-GeneChip.Name AS GeneChip
-FROM InfoFiles
-LEFT JOIN Datasets USING (DatasetId)
-LEFT JOIN DatasetStatus USING (DatasetStatusId)
-LEFT JOIN Species USING (SpeciesId)
-LEFT JOIN InbredSet USING (InbredSetId)
-LEFT JOIN Tissue USING (TissueId)
-LEFT JOIN Investigators USING (InvestigatorId)
-LEFT JOIN AvgMethod USING (AvgMethodId)
-LEFT JOIN GeneChip USING (GeneChipId)
-WHERE GN_AccesionId IS NOT NULL"))
+                (select-query ((InfoFiles GN_AccesionId)
+                               (InfoFiles InfoFileTitle Name)
+                               (InfoFiles Title)
+                               (InfoFiles Specifics)
+                               (DatasetStatus DatasetStatusName)
+                               (Datasets DatasetName DatasetGroup)
+                               (Datasets Summary)
+                               (Datasets GeoSeries)
+                               (Datasets AboutCases)
+                               (Datasets AboutPlatform)
+                               (Datasets AboutTissue)
+                               (Datasets AboutDataProcessing)
+                               (Datasets Notes)
+                               (Datasets ExperimentDesign)
+                               (Datasets Contributors)
+                               (Datasets Citation)
+                               (Datasets Acknowledgment)
+                               (Species FullName BinomialName)
+                               (InbredSet Name InbredSetName)
+                               (Tissue Short_Name)
+                               (Investigators FirstName)
+                               (Investigators LastName)
+                               (Investigators Email)
+                               (AvgMethod Name AvgMethodName)
+                               (GeneChip Name GeneChip))
+                              (InfoFiles
+                               (left-join Datasets "USING (DatasetId)")
+                               (left-join DatasetStatus "USING (DatasetStatusId)")
+                               (left-join Species "USING (SpeciesId)")
+                               (left-join InbredSet "USING (InbredSetId)")
+                               (left-join Tissue "USING (TissueId)")
+                               (left-join Investigators "USING (InvestigatorId)")
+                               (left-join AvgMethod "USING (AvgMethodId)")
+                               (left-join GeneChip "USING (GeneChipId)"))
+                              "WHERE GN_AccesionId IS NOT NULL")))
 
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
