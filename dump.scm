@@ -94,6 +94,15 @@
         str
         substrings))
 
+(define (replace-substrings str replacement-alist)
+  "Replace substrings in STR according to REPLACEMENT-ALIST, an
+association list mapping substrings to their replacements."
+  (fold (match-lambda*
+          (((substring . replacement) str)
+           (string-replace-substring str substring replacement)))
+        str
+        replacement-alist))
+
 (define (string->identifier prefix str)
   "Convert STR to a turtle identifier after replacing illegal
 characters with an underscore and prefixing with gn:PREFIX."
@@ -546,15 +555,18 @@ case-insensitive."
    (else
     (format #f "~a GiB" (round-quotient bytes (expt 1024 3))))))
 
-;; This wrapper function is necessary to work around a bug in (ccwl
-;; graphviz) whereby backslashes in node labels are escaped and
-;; printed as \\.
+;; This wrapper function is necessary to work around bugs in (ccwl
+;; graphviz) whereby backslashes in node labels are escaped as \\, and
+;; HTML strings are escaped incorrectly.
 (define (graph->dot graph)
   (put-string (current-output-port)
-              (string-replace-substring
+              (replace-substrings
                (call-with-output-string
                  (cut (@@ (ccwl graphviz) graph->dot) graph <>))
-               "\\\\" "\\")))
+               '(("\\\\" . "\\")
+                 ("\"<<" . "<<")
+                 (">>\"" . ">>")
+                 ("\\\"" . "\"")))))
 
 (define (trigrams str)
   "Return all trigrams in STR."
