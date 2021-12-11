@@ -4,4 +4,5 @@
 ((nil
   (indent-tabs-mode))
  (scheme-mode
-  (eval put 'map-alist 'scheme-indent-function 1)))
+  (eval put 'map-alist 'scheme-indent-function 1)
+  (eval put 'set-table-columns 'scheme-indent-function 1)))

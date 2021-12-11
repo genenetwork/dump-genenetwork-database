@@ -5,6 +5,7 @@
 
 (use-modules (rnrs io ports)
              (srfi srfi-1)
+             (srfi srfi-9 gnu)
              (srfi srfi-26)
              (ice-9 match)
              (ice-9 string-fun)
@@ -26,6 +27,10 @@
                                         (assq-ref connection-settings 'port)))
                                  ":")
                         proc)))
+
+(define %database-name
+  (assq-ref (call-with-input-file "conn.scm" read)
+            'database))
 
 (define %dump-directory
   (string-append (getenv "HOME") "/data/dump"))
@@ -478,6 +483,118 @@ characters with an underscore and prefixing with gn:PREFIX."
                           data-field table-name))
     (close-port port)))
 
+
+;;; Visualize schema
+
+(define-immutable-record-type <table>
+  (make-table name size columns)
+  table?
+  (name table-name)
+  (size table-size)
+  (columns table-columns set-table-columns))
+
+(define (tables db)
+  "Return list of all tables in DB. Each element of the returned list
+is a <table> object."
+  (map (lambda (table)
+         (set-table-columns table
+           (sql-map (cut assoc-ref <> "Field")
+                    db
+                    (format #f "SHOW COLUMNS FROM ~a" (table-name table)))))
+       (sql-map (lambda (row)
+                  (make-table (assoc-ref row "table_name")
+                              ;; FIXME: This is probably correct only for
+                              ;; MyISAM tables.
+                              (assoc-ref row "data_length")
+                              #f))
+                db
+                (select-query ((information_schema.tables table_name)
+                               (information_schema.tables data_length))
+                              (information_schema.tables)
+                              (format #f "WHERE table_schema = '~a'" %database-name)))))
+
+(define (string-remove-suffix-ci suffix str)
+  "Remove SUFFIX from STR if present. Suffix check is
+case-insensitive."
+  (if (string-suffix-ci? suffix str)
+      (substring str 0 (- (string-length str)
+                          (string-length suffix)))
+      str))
+
+(define (human-units bytes)
+  "Return number of BYTES as a string with human-readable units."
+  (cond
+   ((< bytes 1024)
+    (format #f "~a B" bytes))
+   ((< bytes (expt 1024 2))
+    (format #f "~a KiB" (round-quotient bytes 1024)))
+   ((< bytes (expt 1024 3))
+    (format #f "~a MiB" (round-quotient bytes (expt 1024 2))))
+   (else
+    (format #f "~a GiB" (round-quotient bytes (expt 1024 3))))))
+
+;; This wrapper function is necessary to work around a bug in (ccwl
+;; graphviz) whereby backslashes in node labels are escaped and
+;; printed as \\.
+(define (graph->dot graph)
+  (put-string (current-output-port)
+              (string-replace-substring
+               (call-with-output-string
+                 (cut (@@ (ccwl graphviz) graph->dot) graph <>))
+               "\\\\" "\\")))
+
+(define (dump-schema db)
+  (let ((tables (tables db)))
+    (graph->dot
+     ((@@ (ccwl graphviz) graph) 'schema
+      #:nodes (map (lambda (table)
+                     ((@@ (ccwl graphviz) graph-node)
+                      (table-name table)
+                      `((shape . "record")
+                        (label . ,(format #f "{~a (~a) | ~a}"
+                                          (table-name table)
+                                          (human-units (table-size table))
+                                          (string-replace-substring
+                                           (string-replace-substring
+                                            (string-join (table-columns table) "\\l" 'suffix)
+                                            "<" "\\<")
+                                           ">" "\\>"))))))
+                   tables)
+      #:edges (append-map (lambda (table)
+                            (filter-map (lambda (column)
+                                          (and=> (cond
+                                                  ((string-prefix-ci? "StrainId" column)
+                                                   'Strain)
+                                                  ((let ((target-table (string-remove-suffix-ci "id" column)))
+                                                     ;; Column has an "id" suffix.
+                                                     (and (string-suffix-ci? "id" column)
+                                                          ;; Column is not the original key.
+                                                          (not (string=? (table-name table) target-table))
+                                                          ;; Prefix is a table name, at least approximately.
+                                                          (or (find (lambda (table)
+                                                                      (string=? target-table (table-name table)))
+                                                                    tables)
+                                                              ;; Try deleting underscores and ignoring case.
+                                                              (find (lambda (table)
+                                                                      (string-ci=? (string-delete #\_ target-table)
+                                                                                   (string-delete #\_ (table-name table))))
+                                                                    tables)
+                                                              ;; Try pluralization.
+                                                              (let ((target-table (string-append target-table "s")))
+                                                                (and (not (string=? (table-name table) target-table))
+                                                                     (find (lambda (table)
+                                                                             (string-ci=? target-table
+                                                                                          (table-name table)))
+                                                                           tables))))))
+                                                   => table-name)
+                                                  (else #f))
+                                                 (cut cons (table-name table) <>)))
+                                        (table-columns table)))
+                          tables)))))
+
+
+;; Main function
+
 (define (prefix prefix iri)
   (format #t "@prefix ~a ~a .~%" prefix iri))
 
@@ -500,4 +617,6 @@ characters with an underscore and prefixing with gn:PREFIX."
        (dump-investigators db)
        (dump-avg-method db)
        (dump-gene-chip db)
-       (dump-info-files db)))))
+       (dump-info-files db)))
+   (with-output-to-file (string-append %dump-directory "/schema.dot")
+     (cut dump-schema db))))
