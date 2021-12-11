@@ -1,18 +1,63 @@
 ;;; Database helpers
 ;;;
-;;; These functions should have been a part of guile-dbi. Never too
-;;; late to contribute upstream!
+;;; Most of these functions should have been a part of
+;;; guile-dbi. Never too late to contribute upstream!
 
 (define-module (dump sql)
+  #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
   #:use-module (dbi dbi)
-  #:export (call-with-database
+  #:export (select-query
+            call-with-database
             sql-exec
             sql-fold
             sql-map
             sql-for-each
             sql-find))
+
+;; A half-baked macro to make SQL SELECT queries a bit more
+;; S-expression friendly
+(define-syntax select-query
+  (lambda (x)
+    (syntax-case x ()
+      ((_ fields tables raw-forms ...)
+       #`(string-append "SELECT "
+                        #,(syntax-case #'fields (distinct)
+                            ((distinct _ ...)
+                             "DISTINCT ")
+                            (_ ""))
+                        #,(string-join (filter-map (match-lambda
+                                                     ('distinct #f)
+                                                     ((table column)
+                                                      (format #f "~a.~a" table column))
+                                                     ((table column alias)
+                                                      (format #f "~a.~a AS ~a" table column alias))
+                                                     (field-spec
+                                                      (error "Invalid field specification" field-spec)))
+                                                   (syntax->datum #'fields))
+                                       ", ")
+                        " FROM "
+                        #,(string-join (map (match-lambda
+                                              ((join table condition)
+                                               (format #f "~a ~a ~a"
+                                                       (case join
+                                                         ((join) "JOIN")
+                                                         ((left-join) "LEFT JOIN")
+                                                         ((inner-join) "INNER JOIN")
+                                                         (else (error "Invalid join operator" join)))
+                                                       table condition))
+                                              ((? symbol? table)
+                                               (symbol->string table))
+                                              (table-spec
+                                               (error "Invalid table specification" table-spec)))
+                                            (syntax->datum #'tables))
+                                       " ")
+                        #,(syntax-case #'(raw-forms ...) ()
+                            (() "")
+                            (_ " "))
+                        raw-forms ...))
+      (_ (error "Invalid SQL select query" (syntax->datum x))))))
 
 (define (call-with-database backend connection-string proc)
   (let ((db #f))
