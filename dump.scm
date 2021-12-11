@@ -493,12 +493,21 @@ characters with an underscore and prefixing with gn:PREFIX."
   (size table-size)
   (columns table-columns set-table-columns))
 
+(define-immutable-record-type <column>
+  (make-column name int?)
+  column?
+  (name column-name)
+  (int? column-int?))
+
 (define (tables db)
   "Return list of all tables in DB. Each element of the returned list
 is a <table> object."
   (map (lambda (table)
          (set-table-columns table
-           (sql-map (cut assoc-ref <> "Field")
+           (sql-map (lambda (row)
+                      (make-column (assoc-ref row "Field")
+                                   (or (string-prefix? "int" (assoc-ref row "Type"))
+                                       (string-prefix? "smallint" (assoc-ref row "Type")))))
                     db
                     (format #f "SHOW COLUMNS FROM ~a" (table-name table)))))
        (sql-map (lambda (row)
@@ -543,6 +552,40 @@ case-insensitive."
                  (cut (@@ (ccwl graphviz) graph->dot) graph <>))
                "\\\\" "\\")))
 
+(define (trigrams str)
+  "Return all trigrams in STR."
+  (if (< (string-length str) 3)
+      '()
+      (map (lambda (start)
+             (substring str start (+ start 3)))
+           (iota (- (string-length str) 2)))))
+
+(define (jaccard-index set1 set2)
+  "Return the Jaccard similarity coefficient between lists SET1 and
+SET2. Similarity between null sets is defined to be 0."
+  (if (and (null? set1)
+           (null? set2))
+      0
+      (let ((length-of-intersection (length (lset-intersection equal? set1 set2))))
+        (exact->inexact
+         (/ length-of-intersection
+            (- (+ (length set1) (length set2))
+               length-of-intersection))))))
+
+(define (jaccard-string-similarity str1 str2)
+  "Return the trigram similarity between strings STR1 and STR2 as
+defined by the Jaccard index."
+  (jaccard-index (trigrams (string-downcase str1))
+                 (trigrams (string-downcase str2))))
+
+(define (jaccard-string-similar? str1 str2)
+  "Return #t if STR1 and STR2 have a trigram similarity greater than
+0.8. Else, return #f. The Jaccard index is used as the similarity
+metric."
+  (let ((similarity-threshold 0.8))
+    (> (jaccard-string-similarity str1 str2)
+       similarity-threshold)))
+
 (define (dump-schema db)
   (let ((tables (tables db)))
     (graph->dot
@@ -556,36 +599,33 @@ case-insensitive."
                                           (human-units (table-size table))
                                           (string-replace-substring
                                            (string-replace-substring
-                                            (string-join (table-columns table) "\\l" 'suffix)
+                                            (string-join (map column-name (table-columns table))
+                                                         "\\l" 'suffix)
                                             "<" "\\<")
                                            ">" "\\>"))))))
                    tables)
       #:edges (append-map (lambda (table)
                             (filter-map (lambda (column)
                                           (and=> (cond
-                                                  ((string-prefix-ci? "StrainId" column)
-                                                   'Strain)
-                                                  ((let ((target-table (string-remove-suffix-ci "id" column)))
-                                                     ;; Column has an "id" suffix.
-                                                     (and (string-suffix-ci? "id" column)
-                                                          ;; Column is not the original key.
-                                                          (not (string=? (table-name table) target-table))
-                                                          ;; Prefix is a table name, at least approximately.
-                                                          (or (find (lambda (table)
-                                                                      (string=? target-table (table-name table)))
-                                                                    tables)
-                                                              ;; Try deleting underscores and ignoring case.
-                                                              (find (lambda (table)
-                                                                      (string-ci=? (string-delete #\_ target-table)
-                                                                                   (string-delete #\_ (table-name table))))
-                                                                    tables)
-                                                              ;; Try pluralization.
-                                                              (let ((target-table (string-append target-table "s")))
-                                                                (and (not (string=? (table-name table) target-table))
-                                                                     (find (lambda (table)
-                                                                             (string-ci=? target-table
-                                                                                          (table-name table)))
-                                                                           tables))))))
+                                                  ((and (string=? (column-name column) "UserId")
+                                                        (string=? (table-name table) "UserPrivilege"))
+                                                   'User)
+                                                  ((string-ci=? (column-name column) "GenbankID")
+                                                   'Genbank)
+                                                  ((not (column-int? column)) #f)
+                                                  ((let ((string-similarity-threshold 0.8)
+                                                         (target-table
+                                                          (or (and=> (find (lambda (suffix)
+                                                                             (string-suffix-ci? suffix (column-name column)))
+                                                                           (list "id1" "id2" "_id" "id"))
+                                                                     (cut string-remove-suffix-ci <> (column-name column)))
+                                                              (column-name column))))
+                                                     (and (not (jaccard-string-similar? target-table
+                                                                                        (table-name table)))
+                                                          (find (lambda (table)
+                                                                  (jaccard-string-similar?
+                                                                   target-table (table-name table)))
+                                                                tables)))
                                                    => table-name)
                                                   (else #f))
                                                  (cut cons (table-name table) <>)))
