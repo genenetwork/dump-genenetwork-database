@@ -143,12 +143,23 @@ characters with an underscore and prefixing with gn:PREFIX."
 (define (triple subject predicate object)
   (format #t "~a ~a ~s .~%" subject predicate object))
 
+(define %dumped '())
+
 (define-syntax define-dump
   (lambda (x)
     (syntax-case x (select-query)
       ((_ name (select-query (fields ...) tables raw-forms ...) proc)
-       (define (name db)
-         (sql-for-each proc db (select-query (fields ...) tables raw-forms ...)))))))
+       #`(begin
+           (set! %dumped
+                 (append (list #,@(filter-map (lambda (field)
+                                                (syntax-case field (distinct)
+                                                  (distinct #f)
+                                                  ((table column _ ...) #'(cons 'table 'column))
+                                                  (field-spec (error "Invalid field specification" #'field-spec))))
+                                              #'(fields ...)))
+                         %dumped))
+           (define (name db)
+             (sql-for-each proc db (select-query (fields ...) tables raw-forms ...))))))))
 
 (define binomial-name->species-id
   (cut string->identifier "species" <>))
