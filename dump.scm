@@ -568,19 +568,6 @@ case-insensitive."
             color-scheme
             (1+ (min (floor-log1024 bytes) 3)))))
 
-;; This wrapper function is necessary to work around bugs in (ccwl
-;; graphviz) whereby backslashes in node labels are escaped as \\, and
-;; HTML strings are escaped incorrectly.
-(define (graph->dot graph)
-  (put-string (current-output-port)
-              (replace-substrings
-               (call-with-output-string
-                 (cut (@@ (ccwl graphviz) graph->dot) graph <>))
-               '(("\\\\" . "\\")
-                 ("\"<<" . "<<")
-                 (">>\"" . ">>")
-                 ("\\\"" . "\"")))))
-
 (define (trigrams str)
   "Return all trigrams in STR."
   (if (< (string-length str) 3)
@@ -621,9 +608,8 @@ metric."
     (cut sxml->xml tree <>)))
 
 (define (sxml->graphviz-html tree)
-  "Serialize sxml TREE to a graphviz HTML string. Return the
-serialized string."
-  (string-append "<" (sxml->xml-string tree) ">"))
+  "Convert sxml TREE to a graphviz <html-string>, and return it."
+  ((@@ (ccwl graphviz) html-string) (sxml->xml-string tree)))
 
 (define (dumped-table? table)
   "Return non-#f if TABLE has been dumped. Else, return #f."
@@ -700,7 +686,7 @@ relations in TABLES."
 
 (define (dump-schema db)
   (let ((tables (tables db)))
-    (graph->dot
+    ((@@ (ccwl graphviz) graph->dot)
      ((@@ (ccwl graphviz) graph) 'schema
       #:nodes (map table->graphviz-node tables)
       #:edges (tables->graphviz-edges tables)))))
