@@ -9,6 +9,7 @@
              (srfi srfi-26)
              (ice-9 match)
              (ice-9 string-fun)
+             (sxml simple)
              (dump sql)
              (dump utils))
 
@@ -602,6 +603,16 @@ metric."
     (> (jaccard-string-similarity str1 str2)
        similarity-threshold)))
 
+(define (sxml->xml-string tree)
+  "Serialize sxml TREE to a string. Return the serialized string."
+  (call-with-output-string
+    (cut sxml->xml tree <>)))
+
+(define (sxml->graphviz-html tree)
+  "Serialize sxml TREE to a graphviz HTML string. Return the
+serialized string."
+  (string-append "<" (sxml->xml-string tree) ">"))
+
 (define (dump-schema db)
   (let ((tables (tables db)))
     (graph->dot
@@ -618,21 +629,20 @@ metric."
                                                 %dumped)
                                           "lightgrey"
                                           "white"))
-                        (label . ,(format #f "<<table border=\"0\"><tr><td border=\"1\">~a (~a)</td></tr>~a</table>>"
-                                          (table-name table)
-                                          (human-units (table-size table))
-                                          (string-join (map (lambda (column)
-                                                              (format #f "<tr><td~a>~a</td></tr>"
-                                                                      (if (member (cons (string->symbol (table-name table))
-                                                                                        (string->symbol (column-name column)))
-                                                                                  %dumped)
-                                                                          " bgcolor=\"green\""
-                                                                          "")
-                                                                      (replace-substrings
-                                                                       (column-name column)
-                                                                       '(("<" . "&lt;")
-                                                                         (">" . "&gt;")))))
-                                                            (table-columns table))))))))
+                        (label . ,(sxml->graphviz-html
+                                   `(table (@ (border 0))
+                                           (tr (td (@ (border 1))
+                                                   ,(format #f "~a (~a)"
+                                                            (table-name table)
+                                                            (human-units (table-size table)))))
+                                           ,@(map (lambda (column)
+                                                    `(tr (td (@ ,@(if (member (cons (string->symbol (table-name table))
+                                                                                    (string->symbol (column-name column)))
+                                                                              %dumped)
+                                                                      '((bgcolor "green"))
+                                                                      '()))
+                                                             ,(column-name column))))
+                                                  (table-columns table))))))))
                    tables)
       #:edges (append-map (lambda (table)
                             (filter-map (lambda (column)
