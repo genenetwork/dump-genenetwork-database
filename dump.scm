@@ -662,38 +662,48 @@ serialized string."
                        "lightgrey" "white"))
      (label . ,(table-label table)))))
 
+(define (column->foreign-table table column all-tables)
+  "If COLUMN in TABLE is a foreign key, return the table it refers to. Else,
+return #f. ALL-TABLES is a list of all tables in the database."
+  (cond
+   ((and (string=? (column-name column) "UserId")
+         (string=? (table-name table) "UserPrivilege"))
+    'User)
+   ((string-ci=? (column-name column) "GenbankID")
+    'Genbank)
+   ((not (column-int? column)) #f)
+   ((let ((string-similarity-threshold 0.8)
+          (target-table
+           (or (and=> (find (lambda (suffix)
+                              (string-suffix-ci? suffix (column-name column)))
+                            (list "id1" "id2" "_id" "id"))
+                      (cut string-remove-suffix-ci <> (column-name column)))
+               (column-name column))))
+      (and (not (jaccard-string-similar? target-table
+                                         (table-name table)))
+           (find (lambda (table)
+                   (jaccard-string-similar?
+                    target-table (table-name table)))
+                 all-tables)))
+    => table-name)
+   (else #f)))
+
+(define (tables->graphviz-edges tables)
+  "Return the list of graphviz edges representing foreign key
+relations in TABLES."
+  (append-map (lambda (table)
+                (filter-map (lambda (column)
+                              (and=> (column->foreign-table table column tables)
+                                     (cut cons (table-name table) <>)))
+                            (table-columns table)))
+              tables))
+
 (define (dump-schema db)
   (let ((tables (tables db)))
     (graph->dot
      ((@@ (ccwl graphviz) graph) 'schema
       #:nodes (map table->graphviz-node tables)
-      #:edges (append-map (lambda (table)
-                            (filter-map (lambda (column)
-                                          (and=> (cond
-                                                  ((and (string=? (column-name column) "UserId")
-                                                        (string=? (table-name table) "UserPrivilege"))
-                                                   'User)
-                                                  ((string-ci=? (column-name column) "GenbankID")
-                                                   'Genbank)
-                                                  ((not (column-int? column)) #f)
-                                                  ((let ((string-similarity-threshold 0.8)
-                                                         (target-table
-                                                          (or (and=> (find (lambda (suffix)
-                                                                             (string-suffix-ci? suffix (column-name column)))
-                                                                           (list "id1" "id2" "_id" "id"))
-                                                                     (cut string-remove-suffix-ci <> (column-name column)))
-                                                              (column-name column))))
-                                                     (and (not (jaccard-string-similar? target-table
-                                                                                        (table-name table)))
-                                                          (find (lambda (table)
-                                                                  (jaccard-string-similar?
-                                                                   target-table (table-name table)))
-                                                                tables)))
-                                                   => table-name)
-                                                  (else #f))
-                                                 (cut cons (table-name table) <>)))
-                                        (table-columns table)))
-                          tables)))))
+      #:edges (tables->graphviz-edges tables)))))
 
 
 ;; Main function
