@@ -561,6 +561,13 @@ case-insensitive."
               ((2) "MiB")
               (else "GiB")))))
 
+(define (human-units-color bytes)
+  "Return the table header color coding for a table of size BYTES."
+  (let* ((color-scheme "purd4"))
+    (format #f "/~a/~a"
+            color-scheme
+            (1+ (min (floor-log1024 bytes) 3)))))
+
 ;; This wrapper function is necessary to work around bugs in (ccwl
 ;; graphviz) whereby backslashes in node labels are escaped as \\, and
 ;; HTML strings are escaped incorrectly.
@@ -636,7 +643,8 @@ serialized string."
                                           "white"))
                         (label . ,(sxml->graphviz-html
                                    `(table (@ (border 0))
-                                           (tr (td (@ (border 1))
+                                           (tr (td (@ (border 1)
+                                                      (bgcolor ,(human-units-color (table-size table))))
                                                    ,(format #f "~a (~a)"
                                                             (table-name table)
                                                             (human-units (table-size table)))))
