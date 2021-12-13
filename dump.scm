@@ -625,38 +625,48 @@ metric."
 serialized string."
   (string-append "<" (sxml->xml-string tree) ">"))
 
+(define (dumped-table? table)
+  "Return non-#f if TABLE has been dumped. Else, return #f."
+  (any (match-lambda
+         ((dumped-table . _)
+          (string=? (symbol->string dumped-table)
+                    (table-name table)))
+         (x (error "Malformed entry in %dumped:" x)))
+       %dumped))
+
+(define (table-label table)
+  "Return HTML string label for TABLE."
+  (sxml->graphviz-html
+   `(table (@ (border 0))
+           (tr (td (@ (border 1)
+                      (bgcolor ,(human-units-color (table-size table))))
+                   ,(format #f "~a (~a)"
+                            (table-name table)
+                            (human-units (table-size table)))))
+           ,@(map (lambda (column)
+                    `(tr (td (@ ,@(if (member (cons (string->symbol (table-name table))
+                                                    (string->symbol (column-name column)))
+                                              %dumped)
+                                      '((bgcolor "green"))
+                                      '()))
+                             ,(column-name column))))
+                  (table-columns table)))))
+
+(define (table->graphviz-node table)
+  "Convert TABLE to graphviz node, and return it."
+  ((@@ (ccwl graphviz) graph-node)
+   (table-name table)
+   `((shape . "record")
+     (style . "filled")
+     (fillcolor . ,(if (dumped-table? table)
+                       "lightgrey" "white"))
+     (label . ,(table-label table)))))
+
 (define (dump-schema db)
   (let ((tables (tables db)))
     (graph->dot
      ((@@ (ccwl graphviz) graph) 'schema
-      #:nodes (map (lambda (table)
-                     ((@@ (ccwl graphviz) graph-node)
-                      (table-name table)
-                      `((shape . "record")
-                        (style . "filled")
-                        (fillcolor . ,(if (find (match-lambda
-                                                  ((dumped-table . _)
-                                                   (string=? (symbol->string dumped-table)
-                                                             (table-name table))))
-                                                %dumped)
-                                          "lightgrey"
-                                          "white"))
-                        (label . ,(sxml->graphviz-html
-                                   `(table (@ (border 0))
-                                           (tr (td (@ (border 1)
-                                                      (bgcolor ,(human-units-color (table-size table))))
-                                                   ,(format #f "~a (~a)"
-                                                            (table-name table)
-                                                            (human-units (table-size table)))))
-                                           ,@(map (lambda (column)
-                                                    `(tr (td (@ ,@(if (member (cons (string->symbol (table-name table))
-                                                                                    (string->symbol (column-name column)))
-                                                                              %dumped)
-                                                                      '((bgcolor "green"))
-                                                                      '()))
-                                                             ,(column-name column))))
-                                                  (table-columns table))))))))
-                   tables)
+      #:nodes (map table->graphviz-node tables)
       #:edges (append-map (lambda (table)
                             (filter-map (lambda (column)
                                           (and=> (cond
