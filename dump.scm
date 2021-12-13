@@ -544,17 +544,22 @@ case-insensitive."
                           (string-length suffix)))
       str))
 
+(define (floor-log1024 x)
+  "Return the floor of the base 1024 logarithm of X."
+  (if (< x 1024)
+      0
+      (1+ (floor-log1024 (/ x 1024)))))
+
 (define (human-units bytes)
   "Return number of BYTES as a string with human-readable units."
-  (cond
-   ((< bytes 1024)
-    (format #f "~a B" bytes))
-   ((< bytes (expt 1024 2))
-    (format #f "~a KiB" (round-quotient bytes 1024)))
-   ((< bytes (expt 1024 3))
-    (format #f "~a MiB" (round-quotient bytes (expt 1024 2))))
-   (else
-    (format #f "~a GiB" (round-quotient bytes (expt 1024 3))))))
+  (let* ((integer-log (floor-log1024 bytes)))
+    (format #f "~a ~a"
+            (round-quotient bytes (expt 1024 (min integer-log 3)))
+            (case integer-log
+              ((0) "B")
+              ((1) "KiB")
+              ((2) "MiB")
+              (else "GiB")))))
 
 ;; This wrapper function is necessary to work around bugs in (ccwl
 ;; graphviz) whereby backslashes in node labels are escaped as \\, and
