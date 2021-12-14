@@ -623,7 +623,8 @@ metric."
 (define (table-label table)
   "Return HTML string label for TABLE."
   (sxml->graphviz-html
-   `(table (@ (border 0))
+   `(table (@ (cellborder 0)
+              (bgcolor ,(if (dumped-table? table) "lightgrey" "white")))
            (tr (td (@ (border 1)
                       (bgcolor ,(human-units-color (table-size table))))
                    ,(format #f "~a (~a)"
@@ -642,10 +643,7 @@ metric."
   "Convert TABLE to graphviz node, and return it."
   ((@@ (ccwl graphviz) graph-node)
    (table-name table)
-   `((shape . "record")
-     (style . "filled")
-     (fillcolor . ,(if (dumped-table? table)
-                       "lightgrey" "white"))
+   `((shape . "none")
      (label . ,(table-label table)))))
 
 (define (column->foreign-table table column all-tables)
