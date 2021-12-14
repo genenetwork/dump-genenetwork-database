@@ -187,7 +187,7 @@ characters with an underscore and prefixing with gn:PREFIX."
                     ;; Menu name (TODO: Maybe, drop this field. It can
                     ;; be inferred from the common name.)
                     (set gn:menuName (key "MenuName"))
-                    (set gn:binomialname (key "FullName")))
+                    (set gn:binomialName (key "FullName")))
                   (binomial-name->species-id (assoc-ref row "FullName")))))
 
 (define-dump dump-strain
