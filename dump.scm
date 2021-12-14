@@ -631,7 +631,8 @@ metric."
                             (table-name table)
                             (human-units (table-size table)))))
            ,@(map (lambda (column)
-                    `(tr (td (@ ,@(if (member (cons (string->symbol (table-name table))
+                    `(tr (td (@ (port ,(column-name column))
+                                ,@(if (member (cons (string->symbol (table-name table))
                                                     (string->symbol (column-name column)))
                                               %dumped)
                                       '((bgcolor "green"))
@@ -678,7 +679,11 @@ relations in TABLES."
   (append-map (lambda (table)
                 (filter-map (lambda (column)
                               (and=> (column->foreign-table table column tables)
-                                     (cut cons (table-name table) <>)))
+                                     (cut cons
+                                          ((@@ (ccwl graphviz) graph-port)
+                                           (table-name table)
+                                           (column-name column))
+                                          <>)))
                             (table-columns table)))
               tables))
 
