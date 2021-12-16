@@ -6,34 +6,58 @@
                                               'srfi:delete sym)))
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
-  #:export (map-alist))
+  #:export (translate-forms
+            collect-forms
+            map-alist))
 
-(define (key->assoc-ref alist x)
-  "Recursively translate (key k) forms in source X to (assoc-ref ALIST
-k) forms."
-  (syntax-case x (key)
-    ;; Handle key reference base case.
-    ((key k) #`(assoc-ref #,alist 'k))
+(define (translate-forms from translator x)
+  "Recursively pass (FROM ...) forms in source X to TRANSLATOR, and
+replace them with the return value."
+  (syntax-case x ()
+    ;; Handle translation base case.
+    ((head tail ...) (eq? (syntax->datum #'head)
+                          from)
+     (translator x))
     ;; Recurse.
     ((head tail ...)
-     (cons (key->assoc-ref alist #'head)
-           (map (cut key->assoc-ref alist <>)
+     (cons (translate-forms from translator #'head)
+           (map (cut translate-forms from translator <>)
                 #'(tail ...))))
     ;; Handle leaf base case.
     (leaf #'leaf)))
 
+(define (key->assoc-ref alist x)
+  "Recursively translate (key k) forms in source X to (assoc-ref ALIST
+k) forms."
+  (translate-forms 'key
+                   ;; (syntax-rules (key)
+                   ;;   ((key k) (assoc-ref alist k)))
+                   (lambda (x)
+                     (syntax-case x (key)
+                       ((key k) #`(assoc-ref #,alist 'k))))
+                   x))
+
+(define (collect-forms target x)
+  "Recursively collect (TARGET ...) forms in source X and return them
+as a list."
+  (syntax-case x ()
+    ;; Handle collection base case.
+    ((head tail ...) (eq? (syntax->datum #'head)
+                          target)
+     (list x))
+    ;; Recurse.
+    ((head tail ...)
+     (append (collect-forms target #'head)
+             (append-map (cut collect-forms target <>) #'(tail ...))))
+    ;; Handle leaf base case.
+    (leaf (list))))
+
 (define (collect-keys x)
   "Recursively collect (key k) forms from source X and return as a
 list of all K."
-  (syntax-case x (key)
-    ;; Handle key reference base case.
-    ((key k) (list #`'k))
-    ;; Recurse.
-    ((head tail ...)
-     (append (collect-keys #'head)
-             (append-map collect-keys #'(tail ...))))
-    ;; Handle leaf base case.
-    (leaf (list))))
+  (map (syntax-rules (key)
+         ((key k) 'k))
+       (collect-forms 'key x)))
 
 (define (alist-delete* alist keys)
   "Delete entries from ALIST whose key is equal (in the sense of
