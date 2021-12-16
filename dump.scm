@@ -143,72 +143,91 @@ characters with an underscore and prefixing with gn:PREFIX."
                  (triple id predicate object))))
             alist))
 
-(define default-metadata-proc
-  (match-lambda
-    ((key . value)
-     (cons (string->symbol
-            (string-append "gn:" (snake->lower-camel key)))
-           value))
-    (x (error "malformed alist element" x))))
-
 (define (triple subject predicate object)
   (format #t "~a ~a ~s .~%" subject predicate object))
+
+(define (field->key x)
+  (translate-forms 'field
+                   (lambda (x)
+                     #`(key #,(symbol->string
+                               (syntax->datum
+                                ((syntax-rules (field)
+                                   ((field table column) column)
+                                   ((field table column alias) alias))
+                                 x)))))
+                   x))
+
+(define (field->assoc-ref alist x)
+  "Recursively translate field references in source X to (assoc-ref
+ALIST field-name) forms."
+  (translate-forms 'field
+                   (lambda (x)
+                     #`(assoc-ref #,alist
+                                  #,(symbol->string
+                                     (syntax->datum
+                                      ((syntax-rules (field)
+                                         ((field table column) column)
+                                         ((field table column alias) alias))
+                                       x)))))
+                   x))
+
+(define (collect-fields x)
+  (map (syntax-rules (field)
+         ((field reference ...)
+          (reference ...)))
+       (collect-forms 'field x)))
 
 (define %dumped '())
 
 (define-syntax define-dump
   (lambda (x)
-    (syntax-case x (select-query)
-      ((_ name (select-query (fields ...) tables raw-forms ...) proc)
-       #`(begin
-           (set! %dumped
-                 (append (list #,@(filter-map (lambda (field)
-                                                (syntax-case field (distinct)
-                                                  (distinct #f)
-                                                  ((table column _ ...) #'(cons 'table 'column))
-                                                  (field-spec (error "Invalid field specification" #'field-spec))))
-                                              #'(fields ...)))
-                         %dumped))
-           (define (name db)
-             (sql-for-each proc db (select-query (fields ...) tables raw-forms ...))))))))
+    (syntax-case x (tables triples)
+      ((_ name
+          (tables tables-spec raw ...)
+          (triples subject predicates ...))
+       (let ((fields (collect-fields #'(subject predicates ...))))
+         #`(begin
+             (set! %dumped
+                   (append (list #,@(filter-map (lambda (field)
+                                                  (syntax-case field (distinct)
+                                                    (distinct #f)
+                                                    ((table column _ ...) #'(cons 'table 'column))
+                                                    (field-spec (error "Invalid field specification" #'field-spec))))
+                                                fields))
+                           %dumped))
+             (define (name db)
+               (sql-for-each
+                (lambda (row)
+                  (scm->triples
+                   (map-alist row #,@(field->key #'(predicates ...)))
+                   #,(field->assoc-ref #'row #'subject)))
+                db
+                (select-query #,fields tables-spec raw ...))))))
+      (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
 
 (define binomial-name->species-id
   (cut string->identifier "species" <>))
 
 (define-dump dump-species
-  (select-query ((Species SpeciesName)
-                 (Species MenuName)
-                 (Species FullName))
-                (Species))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (set rdf:type 'gn:species)
-                    ;; Common name
-                    (set gn:name (key "SpeciesName"))
-                    ;; Menu name (TODO: Maybe, drop this field. It can
-                    ;; be inferred from the common name.)
-                    (set gn:menuName (key "MenuName"))
-                    (set gn:binomialName (key "FullName")))
-                  (binomial-name->species-id (assoc-ref row "FullName")))))
+  (tables (Species))
+  (triples (binomial-name->species-id (field Species FullName))
+    (set rdf:type 'gn:species)
+    (set gn:name (field Species SpeciesName))
+    (set gn:menuName (field Species MenuName))
+    (set gn:binomialName (field Species FullName))))
 
 (define-dump dump-strain
-  (select-query ((Species FullName)
-                 (Strain Name)
-                 (Strain Name2)
-                 (Strain Symbol)
-                 (Strain Alias))
-                (Strain
-                 (join Species "ON Strain.SpeciesId = Species.SpeciesId")))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (set rdf:type 'gn:strain)
-                    (set gn:strainOfSpecies
-                         (binomial-name->species-id (key "FullName")))
-                    ;; Name, and maybe a second name
-                    (set gn:name (key "Name"))
-                    (set gn:name (key "Name2"))
-                    (set gn:alias (key "Alias")))
-                  (string->identifier "strain" (assoc-ref row "Name")))))
+  (tables (Strain
+           (join Species "ON Strain.SpeciesId = Species.SpeciesId")))
+  (triples (string->identifier "strain" (field Strain Name))
+    (set rdf:type 'gn:strain)
+    (set gn:strainOfSpecies
+         (binomial-name->species-id (field Species FullName)))
+    ;; Name, and maybe a second name
+    (set gn:name (field Strain Name))
+    (set gn:name (field Strain Name2))
+    (set gn:alias (field Strain Alias))
+    (set gn:symbol (field Strain Symbol))))
 
 ;; TODO: This function is unused. Remove if not required.
 (define mapping-method-name->id
@@ -216,93 +235,69 @@ characters with an underscore and prefixing with gn:PREFIX."
 
 ;; TODO: This function is unused. Remove if not required.
 (define-dump dump-mapping-method
-  (select-query ((MappingMethod Name))
-                (MappingMethod))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (set rdf:type 'gn:mappingMethod))
-                  (string->identifier "mappingMethod" (assoc-ref row "Name")))))
+  (tables (MappingMethod))
+  (triples (string->identifier "mappingMethod" (field MappingMethod Name))
+    (set rdf:type 'gn:mappingMethod)))
 
 (define inbred-set-name->id
   (cut string->identifier "inbredSet" <>))
 
 (define-dump dump-inbred-set
-  (select-query ((InbredSet Name)
-                 (InbredSet FullName)
-                 (InbredSet GeneticType)
-                 (InbredSet Family)
-                 (Species FullName BinomialName))
-                (InbredSet
-                 (inner-join Species "USING (SpeciesId)")))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (set rdf:type 'gn:phenotype)
-                    (set gn:inbredSetOfSpecies
-                         (binomial-name->species-id (key "BinomialName")))
-                    (else=> default-metadata-proc))
-                  (inbred-set-name->id (assoc-ref row "Name")))))
+  (tables (InbredSet
+           (inner-join Species "USING (SpeciesId)")))
+  (triples (inbred-set-name->id (field InbredSet Name))
+    (set rdf:type 'gn:inbredSet)
+    (set gn:fullName (field InbredSet FullName))
+    (set gn:geneticType (field InbredSet GeneticType))
+    (set gn:family (field InbredSet Family))
+    (set gn:inbredSetOfSpecies
+         (binomial-name->species-id (field Species FullName BinomialName)))))
 
 (define (phenotype-id->id id)
   (string->identifier "phenotype" (number->string id)))
 
 (define-dump dump-phenotype
-  (select-query ((Phenotype Id)
-                 (Phenotype Pre_publication_description)
-                 (Phenotype Post_publication_description)
-                 (Phenotype Original_description)
-                 (Phenotype Units)
-                 (Phenotype Pre_publication_abbreviation)
-                 (Phenotype Post_publication_abbreviation)
-                 (Phenotype Lab_code)
-                 (Phenotype Submitter)
-                 (Phenotype Owner)
-                 (Phenotype Authorized_Users))
-                (Phenotype))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (delete "Id")
-                    (set rdf:type 'gn:phenotype)
-                    (set gn:units (and (string-ci=? (key "Units") "unknown")
-                                       (key "Units")))
-                    (else=> default-metadata-proc))
-                  (phenotype-id->id (assoc-ref row "Id")))))
+  (tables (Phenotype))
+  (triples (phenotype-id->id (field Phenotype Id))
+    (set rdf:type 'gn:phenotype)
+    (set gn:prePublicationDescription (field Phenotype Pre_publication_description))
+    (set gn:postPublicationDescription (field Phenotype Post_publication_description))
+    (set gn:originalDescription (field Phenotype Original_description))
+    (set gn:prePublicationDescription (field Phenotype Pre_publication_abbreviation))
+    (set gn:postPublicationDescription (field Phenotype Post_publication_abbreviation))
+    (set gn:labCode (field Phenotype Lab_code))
+    (set gn:submitter (field Phenotype Submitter))
+    (set gn:owner (field Phenotype Owner))
+    (set gn:authorizedUsers (field Phenotype Authorized_Users))
+    (set gn:units (and (string-ci=? (field Phenotype Units) "unknown")
+                       (field Phenotype Units)))))
 
 (define-dump dump-publication
-  (select-query ((Publication Id)
-                 (Publication PubMed_ID)
-                 (Publication Abstract)
-                 (Publication Authors)
-                 (Publication Title)
-                 (Publication Journal)
-                 (Publication Volume)
-                 (Publication Pages)
-                 (Publication Month)
-                 (Publication Year))
-                (Publication))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (delete "Id")
-                    (set rdf:type 'gn:publication)
-                    (multiset gn:authors
-                              ;; The authors field is a comma
-                              ;; separated list. Split it.
-                              (map string-trim (string-split (key "Authors") #\,)))
-                    (set gn:abstract
-                         ;; TODO: Why are there unprintable characters?
-                         (delete-substrings (key "Abstract") "\x01"))
-                    (else=> default-metadata-proc))
-                  (string->identifier "publication"
-                                      (number->string (assoc-ref row "Id"))))))
+  (tables (Publication))
+  (triples (string->identifier "publication"
+                               (number->string (field Publication Id)))
+    (set rdf:type 'gn:publication)
+    (set gn:pubMedId (field Publication PubMed_ID))
+    (set gn:title (field Publication Title))
+    (set gn:journal (field Publication Journal))
+    (set gn:volume (field Publication Volume))
+    (set gn:pages (field Publication Pages))
+    (set gn:month (field Publication Month))
+    (set gn:year (field Publication Year))
+    (multiset gn:authors
+              ;; The authors field is a comma
+              ;; separated list. Split it.
+              (map string-trim (string-split (field Publication Authors) #\,)))
+    (set gn:abstract
+         ;; TODO: Why are there unprintable characters?
+         (delete-substrings (field Publication Abstract)
+                            "\x01"))))
 
 (define-dump dump-publish-xref
-  (select-query ((InbredSet Name)
-                 (PublishXRef PhenotypeId))
-                (PublishXRef
-                 (inner-join InbredSet "USING (InbredSetId)")))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (set gn:phenotypeOfSpecies (inbred-set-name->id (key "Name"))))
-                  (phenotype-id->id (assoc-ref row "PhenotypeId")))))
+  (tables (PublishXRef
+           (inner-join InbredSet "USING (InbredSetId)")))
+  (triples (phenotype-id->id (field PublishXRef PhenotypeId))
+    (set gn:phenotypeOfSpecies (inbred-set-name->id (field InbredSet Name)))))
 
 (define tissue-short-name->id
   (cut string->identifier "tissue" <>))
@@ -310,18 +305,12 @@ characters with an underscore and prefixing with gn:PREFIX."
 (define-dump dump-tissue
   ;; The Name and TissueName fields seem to be identical. BIRN_lex_ID
   ;; and BIRN_lex_Name are mostly NULL.
-  (select-query ((Tissue Name)
-                 (Tissue Short_Name))
-                (Tissue))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (delete "Short_Name")
-                    (set rdf:type 'gn:tissue)
-                    (set gn:name (key "Name")))
-                  ;; Hopefully the Short_Name field is
-                  ;; distinct and can be used as an
-                  ;; identifier.
-                  (tissue-short-name->id (assoc-ref row "Short_Name")))))
+  (tables (Tissue))
+  ;; Hopefully the Short_Name field is distinct and can be used as an
+  ;; identifier.
+  (triples (tissue-short-name->id (field Tissue Short_Name))
+    (set rdf:type 'gn:tissue)
+    (set gn:name (field Tissue Name))))
 
 ;; One email ID in the Investigators table has spaces in it. This
 ;; function fixes that.
@@ -341,31 +330,23 @@ characters with an underscore and prefixing with gn:PREFIX."
 (define-dump dump-investigators
   ;; There are a few duplicate entries. We group by email to
   ;; deduplicate.
-  (select-query ((Investigators FirstName)
-                 (Investigators LastName)
-                 (Investigators Address)
-                 (Investigators City)
-                 (Investigators State)
-                 (Investigators ZipCode)
-                 (Investigators Phone)
-                 (Investigators Email)
-                 (Investigators Country)
-                 (Investigators Url))
-                (Investigators)
-                "GROUP BY Email")
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (set rdf:type 'foaf:Person)
-                    (set foaf:name (string-append (key "FirstName") " " (key "LastName")))
-                    (set foaf:givenName (key "FirstName"))
-                    (set foaf:familyName (key "LastName"))
-                    (set foaf:phone (key "Phone"))
-                    (set foaf:mbox (fix-email-id (key "Email")))
-                    (set foaf:homepage (key "Url"))
-                    (else=> default-metadata-proc))
-                  (investigator-attributes->id (assoc-ref row "FirstName")
-                                               (assoc-ref row "LastName")
-                                               (assoc-ref row "Email")))))
+  (tables (Investigators)
+          "GROUP BY Email")
+  (triples (investigator-attributes->id (field Investigators FirstName)
+                                        (field Investigators LastName)
+                                        (field Investigators Email))
+    (set rdf:type 'foaf:Person)
+    (set foaf:name (string-append (field Investigators FirstName) " " (field Investigators LastName)))
+    (set foaf:givenName (field Investigators FirstName))
+    (set foaf:familyName (field Investigators LastName))
+    (set foaf:phone (field Investigators Phone))
+    (set foaf:mbox (fix-email-id (field Investigators Email)))
+    (set foaf:homepage (field Investigators Url))
+    (set gn:address (field Investigators Address))
+    (set gn:city (field Investigators City))
+    (set gn:state (field Investigators State))
+    (set gn:zipCode (field Investigators ZipCode))
+    (set gn:country (field Investigators Country))))
 
 (define avg-method-name->id
   (cut string->identifier "avgmethod" <>))
@@ -375,99 +356,78 @@ characters with an underscore and prefixing with gn:PREFIX."
   ;; the Name field.
   ;;
   ;; There are two records with Name as "N/A". Deduplicate.
-  (select-query (distinct (AvgMethod Name))
-                (AvgMethod))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (set rdf:type 'gn:avgMethod)
-                    (set gn:name (key "Name")))
-                  (avg-method-name->id (assoc-ref row "Name")))))
+  (tables (AvgMethod)
+          "GROUP BY Name")
+  (triples (avg-method-name->id (field AvgMethod Name))
+    (set rdf:type 'gn:avgMethod)
+    (set gn:name (field AvgMethod Name))))
 
 (define gene-chip-name->id
   (cut string->identifier "platform" <>))
 
 (define-dump dump-gene-chip
-  (select-query ((GeneChip GeneChipName)
-                 (GeneChip Name))
-                (GeneChip))
-  (lambda (row)
-    (scm->triples (map-alist row
-                    (delete "Name")
-                    (set rdf:type 'gn:platform)
-                    (set gn:name (key "GeneChipName")))
-                  (gene-chip-name->id (assoc-ref row "Name")))))
+  (tables (GeneChip))
+  (triples (gene-chip-name->id (field GeneChip Name))
+    (set rdf:type 'gn:platform)
+    (set gn:name (field GeneChip GeneChipName))))
 
+;; TODO: Double check Platforms. It doesn't seem to match up.
 (define-dump dump-info-files
-  ;; TODO: Double check Platforms. It doesn't seem to match up.
-  (select-query ((InfoFiles GN_AccesionId)
-                 (InfoFiles InfoFileTitle Name)
-                 (InfoFiles Title)
-                 (InfoFiles Specifics)
-                 (DatasetStatus DatasetStatusName)
-                 (Datasets DatasetName DatasetGroup)
-                 (Datasets Summary)
-                 (Datasets GeoSeries)
-                 (Datasets AboutCases)
-                 (Datasets AboutPlatform)
-                 (Datasets AboutTissue)
-                 (Datasets AboutDataProcessing)
-                 (Datasets Notes)
-                 (Datasets ExperimentDesign)
-                 (Datasets Contributors)
-                 (Datasets Citation)
-                 (Datasets Acknowledgment)
-                 (Species FullName BinomialName)
-                 (InbredSet Name InbredSetName)
-                 (Tissue Short_Name)
-                 (Investigators FirstName)
-                 (Investigators LastName)
-                 (Investigators Email)
-                 (AvgMethod Name AvgMethodName)
-                 (GeneChip Name GeneChip))
-                (InfoFiles
-                 (left-join Datasets "USING (DatasetId)")
-                 (left-join DatasetStatus "USING (DatasetStatusId)")
-                 (left-join Species "USING (SpeciesId)")
-                 (left-join InbredSet "USING (InbredSetId)")
-                 (left-join Tissue "USING (TissueId)")
-                 (left-join Investigators "USING (InvestigatorId)")
-                 (left-join AvgMethod "USING (AvgMethodId)")
-                 (left-join GeneChip "USING (GeneChipId)"))
-                "WHERE GN_AccesionId IS NOT NULL")
-  (lambda (row)
-    (scm->triples
-     (map-alist row
-       (set rdf:type 'gn:dataset)
-       (set gn:datasetOfInvestigator
-            (investigator-attributes->id (key "FirstName")
-                                         (key "LastName")
-                                         (key "Email")))
-       (set gn:accessionId (string-append "GN" (number->string (key "GN_AccesionId"))))
-       (set gn:datasetStatusName (string-downcase (key "DatasetStatusName")))
-       (set gn:datasetOfSpecies (binomial-name->species-id (key "BinomialName")))
-       (set gn:datasetOfInbredSet (inbred-set-name->id (key "InbredSetName")))
-       (set gn:datasetOfTissue (tissue-short-name->id (key "Short_Name")))
-       (set gn:normalization
-            (avg-method-name->id
-             ;; If AvgMethodName is NULL, assume N/A.
-             (if (string-blank? (key "AvgMethodName"))
-                 "N/A" (key "AvgMethodName"))))
-       (set gn:datasetOfPlatform (gene-chip-name->id (key "GeneChip")))
-       (set gn:summary
-            ;; TODO: Why are there unprintable characters?
-            (delete-substrings (key "Summary")
-                               "\x01" "\x03"))
-       (set gn:aboutTissue
-            ;; TODO: Why are there unprintable characters?
-            (delete-substrings (key "AboutTissue")
-                               "\x01" "\x03"))
-       (set gn:geoSeries
-            (and (not (string-prefix-ci? "no geo series"
-                                         (key "GeoSeries")))
-                 (key "GeoSeries")))
-       (else=> default-metadata-proc))
-     (string->identifier "dataset"
-                         (number->string (assoc-ref row "GN_AccesionId"))))))
+  (tables (InfoFiles
+           (left-join Datasets "USING (DatasetId)")
+           (left-join DatasetStatus "USING (DatasetStatusId)")
+           (left-join Species "USING (SpeciesId)")
+           (left-join InbredSet "USING (InbredSetId)")
+           (left-join Tissue "USING (TissueId)")
+           (left-join Investigators "USING (InvestigatorId)")
+           (left-join AvgMethod "USING (AvgMethodId)")
+           (left-join GeneChip "USING (GeneChipId)"))
+          "WHERE GN_AccesionId IS NOT NULL")
+  (triples (string->identifier "dataset"
+                               (number->string (field InfoFiles GN_AccesionId)))
+    (set rdf:type 'gn:dataset)
+    (set gn:datasetOfInvestigator
+         (investigator-attributes->id (field Investigators FirstName)
+                                      (field Investigators LastName)
+                                      (field Investigators Email)))
+    (set gn:accessionId (string-append "GN" (number->string
+                                             (field InfoFiles GN_AccesionId))))
+    (set gn:datasetStatusName (string-downcase
+                               (field DatasetStatus DatasetStatusName)))
+    (set gn:datasetOfSpecies (binomial-name->species-id
+                              (field Species FullName BinomialName)))
+    (set gn:datasetOfInbredSet (inbred-set-name->id (field InbredSet Name InbredSetName)))
+    (set gn:datasetOfTissue (tissue-short-name->id (field Tissue Short_Name)))
+    (set gn:normalization
+         (avg-method-name->id
+          ;; If AvgMethodName is NULL, assume N/A.
+          (if (string-blank? (field AvgMethod Name AvgMethodName))
+              "N/A" (field AvgMethod Name AvgMethodName))))
+    (set gn:datasetOfPlatform (gene-chip-name->id (field GeneChip Name GeneChip)))
+    (set gn:summary
+         ;; TODO: Why are there unprintable characters?
+         (delete-substrings (field Datasets Summary)
+                            "\x01" "\x03"))
+    (set gn:aboutTissue
+         ;; TODO: Why are there unprintable characters?
+         (delete-substrings (field Datasets AboutTissue)
+                            "\x01" "\x03"))
+    (set gn:geoSeries
+         (and (not (string-prefix-ci? "no geo series"
+                                      (field Datasets GeoSeries)))
+              (field Datasets GeoSeries)))
+    (set gn:name (field InfoFiles InfoFileTitle Name))
+    (set gn:title (field InfoFiles Title))
+    (set gn:specifics (field InfoFiles Specifics))
+    (set gn:datasetGroup (field Datasets DatasetName DatasetGroup))
+    (set gn:aboutCases (field Datasets AboutCases))
+    (set gn:aboutPlatform (field Datasets AboutPlatform))
+    (set gn:aboutDataProcessing (field Datasets AboutDataProcessing))
+    (set gn:notes (field Datasets Notes))
+    (set gn:experimentDesign (field Datasets ExperimentDesign))
+    (set gn:contributors (field Datasets Contributors))
+    (set gn:citation (field Datasets Citation))
+    (set gn:acknowledgment (field Datasets Acknowledgment))))
 
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
