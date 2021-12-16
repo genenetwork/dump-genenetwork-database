@@ -1,5 +1,9 @@
 (define-module (dump utils)
-  #:use-module (srfi srfi-1)
+  ;; Rename delete to srfi:delete since it somehow interferes with the
+  ;; delete verb of map-alist.
+  #:use-module ((srfi srfi-1) #:renamer (lambda (sym)
+                                          (if (eq? sym 'delete)
+                                              'srfi:delete sym)))
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
   #:export (map-alist))
