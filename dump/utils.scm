@@ -83,7 +83,9 @@ Syntax:
 
 VERB must be one of set, filter-set, multiset and delete.
 
-For the set VERB, KEY is set to the result of evaluating EXPRESSION.
+For the set VERB, KEY is set to the result of evaluating
+EXPRESSION. Multiple set verbs on the same key will result in multiple
+associations for that key.
 
 For the filter-set VERB, KEY is set to the result of evaluating
 EXPRESSION only if that result is not #f.
