@@ -216,16 +216,15 @@ ALIST field-name) forms."
                                      (list 'triple-predicate ...)
                                      (list 'triple-object ...)))
                         (_ (error "Invalid schema triples clause:" schema-triples-clause)))
-                    (sql-for-each
-                     (lambda (row)
-                       (scm->triples
-                        (map-alist row #,@(field->key #'(predicates ...)))
-                        #,(field->assoc-ref #'row #'subject)))
-                     db
-                     #,(syntax-case tables-clause (tables)
-                         ((tables tables-spec raw ...)
-                          #`(select-query #,fields tables-spec raw ...))
-                         (_ (error "Invalid tables clause:" (syntax->datum tables-clause)))))))))
+                    (sql-for-each (lambda (row)
+                                    (scm->triples
+                                     (map-alist row #,@(field->key #'(predicates ...)))
+                                     #,(field->assoc-ref #'row #'subject)))
+                                  db
+                                  #,(syntax-case tables-clause (tables)
+                                      ((tables tables-spec raw ...)
+                                       #`(select-query #,fields tables-spec raw ...))
+                                      (_ (error "Invalid tables clause:" (syntax->datum tables-clause)))))))))
            (_ (error "Invalid triples clause:" triples-clause)))))
       (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
 
