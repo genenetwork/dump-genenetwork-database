@@ -193,6 +193,8 @@ ALIST field-name) forms."
     (syntax-case x (tables schema-triples triples)
       ((_ name clauses ...)
        (let ((tables-clause (find-clause #'(clauses ...) 'tables))
+             (schema-triples-clause (or (find-clause #'(clauses ...) 'schema-triples)
+                                        #'(schema-triples)))
              (triples-clause (find-clause #'(clauses ...) 'triples)))
          (syntax-case triples-clause (triples)
            ((triples subject predicates ...)
@@ -207,6 +209,13 @@ ALIST field-name) forms."
                                                      fields))
                                 %dumped))
                   (define (name db)
+                    #,(syntax-case schema-triples-clause (schema-triples)
+                        ((schema-triples (triple-subject triple-predicate triple-object) ...)
+                         #`(for-each triple
+                                     (list 'triple-subject ...)
+                                     (list 'triple-predicate ...)
+                                     (list 'triple-object ...)))
+                        (_ (error "Invalid schema triples clause:" schema-triples-clause)))
                     (sql-for-each
                      (lambda (row)
                        (scm->triples
@@ -234,6 +243,9 @@ ALIST field-name) forms."
 (define-dump dump-strain
   (tables (Strain
            (join Species "ON Strain.SpeciesId = Species.SpeciesId")))
+  (schema-triples
+   (gn:strainOfSpecies rdfs:domain gn:strain)
+   (gn:strainOfSpecies rdfs:range gn:species))
   (triples (string->identifier "strain" (field Strain Name))
     (set rdf:type 'gn:strain)
     (set gn:strainOfSpecies
@@ -311,6 +323,9 @@ ALIST field-name) forms."
 (define-dump dump-publish-xref
   (tables (PublishXRef
            (inner-join InbredSet "USING (InbredSetId)")))
+  (schema-triples
+   (gn:phenotypeOfSpecies rdfs:domain gn:phenotype)
+   (gn:phenotypeOfSpecies rdfs:range gn:species))
   (triples (phenotype-id->id (field PublishXRef PhenotypeId))
     (set gn:phenotypeOfSpecies (inbred-set-name->id (field InbredSet Name)))))
 
@@ -398,6 +413,19 @@ ALIST field-name) forms."
            (left-join AvgMethod "USING (AvgMethodId)")
            (left-join GeneChip "USING (GeneChipId)"))
           "WHERE GN_AccesionId IS NOT NULL")
+  (schema-triples
+   (gn:datasetOfInvestigator rdfs:domain gn:dataset)
+   (gn:datasetOfInvestigator rdfs:range gn:investigator)
+   (gn:datasetOfSpecies rdfs:domain gn:dataset)
+   (gn:datasetOfSpecies rdfs:range gn:species)
+   (gn:datasetOfInbredSet rdfs:domain gn:dataset)
+   (gn:datasetOfInbredSet rdfs:range gn:inbredSet)
+   (gn:datasetOfTissue rdfs:domain gn:dataset)
+   (gn:datasetOfTissue rdfs:range gn:tissue)
+   (gn:normalization rdfs:domain gn:dataset)
+   (gn:normalization rdfs:range gn:avgMethod)
+   (gn:datasetOfPlatform rdfs:domain gn:dataset)
+   (gn:datasetOfPlatform rdfs:range gn:geneChip))
   (triples (string->identifier "dataset"
                                (number->string (field InfoFiles GN_AccesionId)))
     (set rdf:type 'gn:dataset)
@@ -647,6 +675,7 @@ relations in TABLES."
    (with-output-to-file (string-append %dump-directory "/dump.ttl")
      (lambda ()
        (prefix "rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+       (prefix "rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
        (prefix "foaf:" "<http://xmlns.com/foaf/0.1/>")
        (prefix "gn:" "<http://genenetwork.org/>")
        (newline)
