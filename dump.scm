@@ -177,32 +177,47 @@ ALIST field-name) forms."
           (reference ...)))
        (collect-forms 'field x)))
 
+(define (find-clause clauses key)
+  "Find (KEY ...) clause among CLAUSES, a list of syntax forms."
+  (find (lambda (x)
+          (syntax-case x ()
+            ((clause-key _ ...)
+             (eq? (syntax->datum #'clause-key)
+                  key))))
+        clauses))
+
 (define %dumped '())
 
 (define-syntax define-dump
   (lambda (x)
-    (syntax-case x (tables triples)
-      ((_ name
-          (tables tables-spec raw ...)
-          (triples subject predicates ...))
-       (let ((fields (collect-fields #'(subject predicates ...))))
-         #`(begin
-             (set! %dumped
-                   (append (list #,@(filter-map (lambda (field)
-                                                  (syntax-case field (distinct)
-                                                    (distinct #f)
-                                                    ((table column _ ...) #'(cons 'table 'column))
-                                                    (field-spec (error "Invalid field specification" #'field-spec))))
-                                                fields))
-                           %dumped))
-             (define (name db)
-               (sql-for-each
-                (lambda (row)
-                  (scm->triples
-                   (map-alist row #,@(field->key #'(predicates ...)))
-                   #,(field->assoc-ref #'row #'subject)))
-                db
-                (select-query #,fields tables-spec raw ...))))))
+    (syntax-case x (tables schema-triples triples)
+      ((_ name clauses ...)
+       (let ((tables-clause (find-clause #'(clauses ...) 'tables))
+             (triples-clause (find-clause #'(clauses ...) 'triples)))
+         (syntax-case triples-clause (triples)
+           ((triples subject predicates ...)
+            (let ((fields (collect-fields #'(subject predicates ...))))
+              #`(begin
+                  (set! %dumped
+                        (append (list #,@(filter-map (lambda (field)
+                                                       (syntax-case field (distinct)
+                                                         (distinct #f)
+                                                         ((table column _ ...) #'(cons 'table 'column))
+                                                         (field-spec (error "Invalid field specification" #'field-spec))))
+                                                     fields))
+                                %dumped))
+                  (define (name db)
+                    (sql-for-each
+                     (lambda (row)
+                       (scm->triples
+                        (map-alist row #,@(field->key #'(predicates ...)))
+                        #,(field->assoc-ref #'row #'subject)))
+                     db
+                     #,(syntax-case tables-clause (tables)
+                         ((tables tables-spec raw ...)
+                          #`(select-query #,fields tables-spec raw ...))
+                         (_ (error "Invalid tables clause:" (syntax->datum tables-clause)))))))))
+           (_ (error "Invalid triples clause:" triples-clause)))))
       (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
 
 (define binomial-name->species-id
