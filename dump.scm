@@ -8,9 +8,7 @@
              (srfi srfi-26)
              (ice-9 match)
              (ice-9 string-fun)
-             (sxml simple)
              (dump sql)
-             (dump string-similarity)
              (dump table)
              (dump utils))
 
@@ -501,7 +499,7 @@ ALIST field-name) forms."
     (close-port port)))
 
 
-;;; Visualize schema
+;;; Dump schema
 
 (define (tables db)
   "Return list of all tables in DB. Each element of the returned list
@@ -525,47 +523,6 @@ is a <table> object."
                               (information_schema.tables)
                               (format #f "WHERE table_schema = '~a'" %database-name)))))
 
-(define (string-remove-suffix-ci suffix str)
-  "Remove SUFFIX from STR if present. Suffix check is
-case-insensitive."
-  (if (string-suffix-ci? suffix str)
-      (substring str 0 (- (string-length str)
-                          (string-length suffix)))
-      str))
-
-(define (floor-log1024 x)
-  "Return the floor of the base 1024 logarithm of X."
-  (if (< x 1024)
-      0
-      (1+ (floor-log1024 (/ x 1024)))))
-
-(define (human-units bytes)
-  "Return number of BYTES as a string with human-readable units."
-  (let* ((integer-log (floor-log1024 bytes)))
-    (format #f "~a ~a"
-            (round-quotient bytes (expt 1024 (min integer-log 3)))
-            (case integer-log
-              ((0) "B")
-              ((1) "KiB")
-              ((2) "MiB")
-              (else "GiB")))))
-
-(define (human-units-color bytes)
-  "Return the table header color coding for a table of size BYTES."
-  (let* ((color-scheme "purd4"))
-    (format #f "/~a/~a"
-            color-scheme
-            (1+ (min (floor-log1024 bytes) 3)))))
-
-(define (sxml->xml-string tree)
-  "Serialize sxml TREE to a string. Return the serialized string."
-  (call-with-output-string
-    (cut sxml->xml tree <>)))
-
-(define (sxml->graphviz-html tree)
-  "Convert sxml TREE to a graphviz <html-string>, and return it."
-  ((@@ (ccwl graphviz) html-string) (sxml->xml-string tree)))
-
 (define (dumped-table? table)
   "Return non-#f if TABLE has been dumped. Else, return #f."
   (any (match-lambda
@@ -575,79 +532,23 @@ case-insensitive."
          (x (error "Malformed entry in %dumped:" x)))
        %dumped))
 
-(define (table-label table)
-  "Return HTML string label for TABLE."
-  (sxml->graphviz-html
-   `(table (@ (cellborder 0)
-              (bgcolor ,(if (dumped-table? table) "lightgrey" "white")))
-           (tr (td (@ (border 1)
-                      (bgcolor ,(human-units-color (table-size table))))
-                   ,(format #f "~a (~a)"
-                            (table-name table)
-                            (human-units (table-size table)))))
-           ,@(map (lambda (column)
-                    `(tr (td (@ (port ,(column-name column))
-                                ,@(if (member (cons (string->symbol (table-name table))
-                                                    (string->symbol (column-name column)))
-                                              %dumped)
-                                      '((bgcolor "green"))
-                                      '()))
-                             ,(column-name column))))
-                  (table-columns table)))))
-
-(define (table->graphviz-node table)
-  "Convert TABLE to graphviz node, and return it."
-  ((@@ (ccwl graphviz) graph-node)
-   (table-name table)
-   `((shape . "none")
-     (label . ,(table-label table)))))
-
-(define (column->foreign-table table column all-tables)
-  "If COLUMN in TABLE is a foreign key, return the table it refers to. Else,
-return #f. ALL-TABLES is a list of all tables in the database."
-  (cond
-   ((and (string=? (column-name column) "UserId")
-         (string=? (table-name table) "UserPrivilege"))
-    'User)
-   ((string-ci=? (column-name column) "GenbankID")
-    'Genbank)
-   ((not (column-int? column)) #f)
-   ((let ((string-similarity-threshold 0.8)
-          (target-table
-           (or (and=> (find (lambda (suffix)
-                              (string-suffix-ci? suffix (column-name column)))
-                            (list "id1" "id2" "_id" "id"))
-                      (cut string-remove-suffix-ci <> (column-name column)))
-               (column-name column))))
-      (and (not (jaccard-string-similar? target-table
-                                         (table-name table)))
-           (find (lambda (table)
-                   (jaccard-string-similar?
-                    target-table (table-name table)))
-                 all-tables)))
-    => table-name)
-   (else #f)))
-
-(define (tables->graphviz-edges tables)
-  "Return the list of graphviz edges representing foreign key
-relations in TABLES."
-  (append-map (lambda (table)
-                (filter-map (lambda (column)
-                              (and=> (column->foreign-table table column tables)
-                                     (cut cons
-                                          ((@@ (ccwl graphviz) graph-port)
-                                           (table-name table)
-                                           (column-name column))
-                                          <>)))
-                            (table-columns table)))
-              tables))
-
 (define (dump-schema db)
   (let ((tables (tables db)))
-    ((@@ (ccwl graphviz) graph->dot)
-     ((@@ (ccwl graphviz) graph) 'schema
-      #:nodes (map table->graphviz-node tables)
-      #:edges (tables->graphviz-edges tables)))))
+    (for-each (lambda (table)
+                (let ((table-id (string->identifier "table" (table-name table))))
+                  (triple table-id 'rdf:type 'gn:sqlTable)
+                  (triple table-id 'gn:name (table-name table))
+                  (triple table-id 'gn:hasSize (table-size table))
+                  (for-each (lambda (column)
+                              (let ((column-id (string->identifier
+                                                "field" (string-append (table-name table)
+                                                                       "__" (column-name column)))))
+                                (triple column-id 'rdf:type 'gn:sqlTableField)
+                                (triple column-id 'gn:name (column-name column))
+                                (triple column-id 'gn:sqlFieldType (column-type column))
+                                (triple table-id 'gn:hasField column-id)))
+                            (table-columns table))))
+              tables)))
 
 
 ;; Main function
@@ -675,6 +576,5 @@ relations in TABLES."
        (dump-investigators db)
        (dump-avg-method db)
        (dump-gene-chip db)
-       (dump-info-files db)))
-   (with-output-to-file (string-append %dump-directory "/schema.dot")
-     (cut dump-schema db))))
+       (dump-info-files db)
+       (dump-schema db)))))
