@@ -5,13 +5,13 @@
 
 (use-modules (rnrs io ports)
              (srfi srfi-1)
-             (srfi srfi-9 gnu)
              (srfi srfi-26)
              (ice-9 match)
              (ice-9 string-fun)
              (sxml simple)
              (dump sql)
              (dump string-similarity)
+             (dump table)
              (dump utils))
 
 
@@ -502,19 +502,6 @@ ALIST field-name) forms."
 
 
 ;;; Visualize schema
-
-(define-immutable-record-type <table>
-  (make-table name size columns)
-  table?
-  (name table-name)
-  (size table-size)
-  (columns table-columns set-table-columns))
-
-(define-immutable-record-type <column>
-  (make-column name int?)
-  column?
-  (name column-name)
-  (int? column-int?))
 
 (define (tables db)
   "Return list of all tables in DB. Each element of the returned list
