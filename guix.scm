@@ -37,4 +37,4 @@
  (list guile-3.0 guile-dbi guile-dbd-mysql
        ;; We abuse (ccwl graphviz) as a library to visualize the database
        ;; schema. Hence we need ccwl and guile-libyaml.
-       ccwl graphviz guile-libyaml))
+       ccwl graphviz guile-libyaml guile-sparql))
