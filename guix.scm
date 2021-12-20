@@ -13,7 +13,7 @@
              (guix packages))
 
 (define ccwl
-  (let ((commit "1e36c8bdc8c22dee68a3aa292c1d318bd8e0b982"))
+  (let ((commit "51c12b7e58685b70e7cfd9612dac403cf9ee845c"))
     (package
       (inherit guix:ccwl)
       (name "ccwl")
@@ -27,7 +27,7 @@
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1fcgxjxf5c7329pdd16fgz6crvg4jz84czp7kkydj99cgg2f5rkx"))))
+           "0r86bjph11y77iskcns494xcn526lbyrhfs3sfpnqv8gc0pbgnzj"))))
       (native-inputs
        `(("autoconf" ,autoconf)
          ("automake" ,automake)
