@@ -510,8 +510,7 @@ is a <table> object."
          (set-table-columns table
            (sql-map (lambda (row)
                       (make-column (assoc-ref row "Field")
-                                   (or (string-prefix? "int" (assoc-ref row "Type"))
-                                       (string-prefix? "smallint" (assoc-ref row "Type")))))
+                                   (assoc-ref row "Type")))
                     db
                     (format #f "SHOW COLUMNS FROM ~a" (table-name table)))))
        (sql-map (lambda (row)

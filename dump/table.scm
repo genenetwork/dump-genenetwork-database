@@ -7,7 +7,7 @@
             set-table-columns
             make-column
             column-name
-            column-int?))
+            column-type))
 
 (define-immutable-record-type <table>
   (make-table name size columns)
@@ -17,7 +17,7 @@
   (columns table-columns set-table-columns))
 
 (define-immutable-record-type <column>
-  (make-column name int?)
+  (make-column name type)
   column?
   (name column-name)
-  (int? column-int?))
+  (type column-type))
