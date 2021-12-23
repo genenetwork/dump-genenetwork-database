@@ -197,6 +197,10 @@ ALIST field-name) forms."
                   key))))
         clauses))
 
+(define (remove-namespace str)
+  "Remove RDF namespace prefix from STR."
+  (substring str (1+ (string-index str #\:))))
+
 (define (column-id table-name column-name)
   (string->identifier
    "field" (string-append
@@ -205,6 +209,13 @@ ALIST field-name) forms."
             (if (string=? table-name "User")
                 "user2" table-name)
             "__" column-name)))
+
+(define (dump-id dump-table predicate)
+  (symbol->string
+   (string->identifier
+    "dump"
+    (string-append
+     dump-table "_" (remove-namespace (symbol->string predicate))))))
 
 (define-syntax define-dump
   (lambda (x)
@@ -215,8 +226,8 @@ ALIST field-name) forms."
                                         #'(schema-triples)))
              (triples-clause (find-clause #'(clauses ...) 'triples)))
          (syntax-case triples-clause (triples)
-           ((triples subject predicates ...)
-            (let ((fields (collect-fields #'(subject predicates ...))))
+           ((triples subject predicate-clauses ...)
+            (let ((fields (collect-fields #'(subject predicate-clauses ...))))
               #`(define (name db)
                   #,(syntax-case schema-triples-clause (schema-triples)
                       ((schema-triples (triple-subject triple-predicate triple-object) ...)
@@ -225,9 +236,38 @@ ALIST field-name) forms."
                                    (list 'triple-predicate ...)
                                    (list 'triple-object ...)))
                       (_ (error "Invalid schema triples clause:" schema-triples-clause)))
+                  #,@(let ((dump-table (syntax-case tables-clause (tables)
+                                         ((tables (primary-table _ ...) _ ...)
+                                          (symbol->string (syntax->datum #'primary-table)))
+                                         (_ (error "Invalid tables clause:" (syntax->datum tables-clause)))))
+                           (subject-type (any (lambda (predicate)
+                                                (syntax-case predicate (rdf:type)
+                                                  ((_ rdf:type type) #'type)
+                                                  (_ #f)))
+                                              #'(predicate-clauses ...))))
+                       (map (lambda (predicate-clause)
+                              (syntax-case predicate-clause ()
+                                ((_ predicate _)
+                                 ;; Dump metadata about the dump itself.
+                                 #`(scm->triples
+                                    (map-alist '()
+                                      (set rdf:type 'gn:dump)
+                                      (set gn:createsPredicate 'predicate)
+                                      (filter-set gn:forSubjectType #,subject-type)
+                                      (multiset gn:dependsOn
+                                                '#,(map (lambda (field)
+                                                          (match (syntax->datum field)
+                                                            ((table-name column-name _ ...)
+                                                             (datum->syntax
+                                                              x (column-id (symbol->string table-name)
+                                                                           (symbol->string column-name))))))
+                                                        (collect-fields predicate-clause))))
+                                    #,(dump-id dump-table (syntax->datum #'predicate))))
+                                (_ (error "Invalid predicate clause:" predicate-clause))))
+                            #'(predicate-clauses ...)))
                   (sql-for-each (lambda (row)
                                   (scm->triples
-                                   (map-alist row #,@(field->key #'(predicates ...)))
+                                   (map-alist row #,@(field->key #'(predicate-clauses ...)))
                                    #,(field->assoc-ref #'row #'subject)))
                                 db
                                 #,(syntax-case tables-clause (tables)
