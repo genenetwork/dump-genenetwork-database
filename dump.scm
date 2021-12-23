@@ -197,6 +197,9 @@ ALIST field-name) forms."
                   key))))
         clauses))
 
+(define (column-id table-name column-name)
+  (string->identifier
+   "field" (string-append table-name "__" column-name)))
 
 (define-syntax define-dump
   (lambda (x)
@@ -600,9 +603,8 @@ is a <table> object."
                   (triple table-id 'gn:name (table-name table))
                   (triple table-id 'gn:hasSize (table-size table))
                   (for-each (lambda (column)
-                              (let ((column-id (string->identifier
-                                                "field" (string-append (table-name table)
-                                                                       "__" (column-name column)))))
+                              (let ((column-id (column-id (table-name table)
+                                                          (column-name column))))
                                 (triple column-id 'rdf:type 'gn:sqlTableField)
                                 (triple column-id 'gn:name (column-name column))
                                 (triple column-id 'gn:sqlFieldType (column-type column))
