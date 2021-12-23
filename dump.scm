@@ -249,20 +249,25 @@ ALIST field-name) forms."
                               (syntax-case predicate-clause ()
                                 ((_ predicate _)
                                  ;; Dump metadata about the dump itself.
-                                 #`(scm->triples
-                                    (map-alist '()
-                                      (set rdf:type 'gn:dump)
-                                      (set gn:createsPredicate 'predicate)
-                                      (filter-set gn:forSubjectType #,subject-type)
-                                      (multiset gn:dependsOn
-                                                '#,(map (lambda (field)
-                                                          (match (syntax->datum field)
-                                                            ((table-name column-name _ ...)
-                                                             (datum->syntax
-                                                              x (column-id (symbol->string table-name)
-                                                                           (symbol->string column-name))))))
-                                                        (collect-fields predicate-clause))))
-                                    #,(dump-id dump-table (syntax->datum #'predicate))))
+                                 #`(begin
+                                     (scm->triples
+                                      (map-alist '()
+                                        (set rdf:type 'gn:dump)
+                                        (set gn:createsPredicate 'predicate)
+                                        (filter-set gn:forSubjectType #,subject-type)
+                                        (multiset gn:dependsOn
+                                                  '#,(map (lambda (field)
+                                                            (match (syntax->datum field)
+                                                              ((table-name column-name _ ...)
+                                                               (datum->syntax
+                                                                x (column-id (symbol->string table-name)
+                                                                             (symbol->string column-name))))))
+                                                          (collect-fields predicate-clause))))
+                                      #,(dump-id dump-table (syntax->datum #'predicate)))
+                                     ;; Automatically create domain
+                                     ;; triples for predicates.
+                                     (when #,subject-type
+                                       (triple 'predicate 'rdfs:domain #,subject-type))))
                                 (_ (error "Invalid predicate clause:" predicate-clause))))
                             #'(predicate-clauses ...)))
                   (sql-for-each (lambda (row)
