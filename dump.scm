@@ -473,7 +473,7 @@ ALIST field-name) forms."
           "WHERE GN_AccesionId IS NOT NULL")
   (schema-triples
    (gn:datasetOfInvestigator rdfs:domain gn:dataset)
-   (gn:datasetOfInvestigator rdfs:range gn:investigator)
+   (gn:datasetOfInvestigator rdfs:range foaf:Person)
    (gn:datasetOfSpecies rdfs:domain gn:dataset)
    (gn:datasetOfSpecies rdfs:range gn:species)
    (gn:datasetOfInbredSet rdfs:domain gn:dataset)
