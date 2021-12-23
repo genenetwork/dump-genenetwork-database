@@ -199,7 +199,12 @@ ALIST field-name) forms."
 
 (define (column-id table-name column-name)
   (string->identifier
-   "field" (string-append table-name "__" column-name)))
+   "field" (string-append
+            ;; We downcase table names in identifiers. So, we
+            ;; distinguish between the user and User tables.
+            (if (string=? table-name "User")
+                "user2" table-name)
+            "__" column-name)))
 
 (define-syntax define-dump
   (lambda (x)
@@ -598,7 +603,14 @@ is a <table> object."
 (define (dump-schema db)
   (let ((tables (tables db)))
     (for-each (lambda (table)
-                (let ((table-id (string->identifier "table" (table-name table))))
+                (let ((table-id (string->identifier
+                                 "table"
+                                 ;; We downcase table names in
+                                 ;; identifiers. So, we distinguish
+                                 ;; between the user and User tables.
+                                 (if (string=? (table-name table) "User")
+                                     "user2"
+                                     (table-name table)))))
                   (triple table-id 'rdf:type 'gn:sqlTable)
                   (triple table-id 'gn:name (table-name table))
                   (triple table-id 'gn:hasSize (table-size table))
