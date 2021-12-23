@@ -321,7 +321,7 @@ ALIST field-name) forms."
     (set gn:pages (field Publication Pages))
     (set gn:month (field Publication Month))
     (set gn:year (field Publication Year))
-    (multiset gn:authors
+    (multiset gn:author
               ;; The authors field is a comma
               ;; separated list. Split it.
               (map string-trim (string-split (field Publication Authors) #\,)))
