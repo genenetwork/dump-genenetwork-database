@@ -142,6 +142,19 @@ characters with an underscore and prefixing with gn:PREFIX."
             alist))
 
 (define (triple subject predicate object)
+  (unless (or (string? subject)
+              (symbol? subject))
+    (error "Triple subject not a string or symbol:"
+           (list subject predicate object)))
+  (unless (or (string? predicate)
+              (symbol? predicate))
+    (error "Triple predicate not a string or symbol:"
+           (list subject predicate object)))
+  (unless (or (string? object)
+              (symbol? object)
+              (number? object))
+    (error "Triple object not a string, symbol or number:"
+           (list subject predicate object)))
   (format #t "~a ~a ~s .~%" subject predicate object))
 
 (define (field->key x)
