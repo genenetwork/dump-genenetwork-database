@@ -292,7 +292,8 @@ ALIST field-name) forms."
   (schema-triples
    (gn:fullName rdfs:range rdfs:Literal)
    (gn:geneticType rdfs:range rdfs:Literal)
-   (gn:family rdfs:range rdfs:Literal))
+   (gn:family rdfs:range rdfs:Literal)
+   (gn:inbredSetOfSpecies rdfs:range gn:species))
   (triples (inbred-set-name->id (field InbredSet Name))
     (set rdf:type 'gn:inbredSet)
     (set gn:fullName (field InbredSet FullName))
