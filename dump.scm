@@ -244,6 +244,10 @@ ALIST field-name) forms."
 
 (define-dump dump-species
   (tables (Species))
+  (schema-triples
+   (gn:name rdfs:range rdfs:Literal)
+   (gn:menuname rdfs:range rdfs:Literal)
+   (gn:binomialName rdfs:range rdfs:Literal))
   (triples (binomial-name->species-id (field Species FullName))
     (set rdf:type 'gn:species)
     (set gn:name (field Species SpeciesName))
@@ -255,7 +259,10 @@ ALIST field-name) forms."
            (join Species "ON Strain.SpeciesId = Species.SpeciesId")))
   (schema-triples
    (gn:strainOfSpecies rdfs:domain gn:strain)
-   (gn:strainOfSpecies rdfs:range gn:species))
+   (gn:strainOfSpecies rdfs:range gn:species)
+   (gn:name rdfs:range rdfs:Literal)
+   (gn:alias rdfs:range rdfs:Literal)
+   (gn:symbol rdfs:range rdfs:Literal))
   (triples (string->identifier "strain" (field Strain Name))
     (set rdf:type 'gn:strain)
     (set gn:strainOfSpecies
@@ -282,6 +289,10 @@ ALIST field-name) forms."
 (define-dump dump-inbred-set
   (tables (InbredSet
            (inner-join Species "USING (SpeciesId)")))
+  (schema-triples
+   (gn:fullName rdfs:range rdfs:Literal)
+   (gn:geneticType rdfs:range rdfs:Literal)
+   (gn:family rdfs:range rdfs:Literal))
   (triples (inbred-set-name->id (field InbredSet Name))
     (set rdf:type 'gn:inbredSet)
     (set gn:fullName (field InbredSet FullName))
@@ -295,6 +306,15 @@ ALIST field-name) forms."
 
 (define-dump dump-phenotype
   (tables (Phenotype))
+  (schema-triples
+   (gn:prePublicationDescription rdfs:range rdfs:Literal)
+   (gn:postPublicationDescription rdfs:range rdfs:Literal)
+   (gn:originalDescription rdfs:range rdfs:Literal)
+   (gn:labCode rdfs:range rdfs:Literal)
+   (gn:submitter rdfs:range rdfs:Literal)
+   (gn:owner rdfs:range rdfs:Literal)
+   (gn:authorizedUsers rdfs:range rdfs:Literal)
+   (gn:units rdfs:range rdfs:Literal))
   (triples (phenotype-id->id (field Phenotype Id))
     (set rdf:type 'gn:phenotype)
     (set gn:prePublicationDescription (field Phenotype Pre_publication_description))
@@ -309,6 +329,16 @@ ALIST field-name) forms."
 
 (define-dump dump-publication
   (tables (Publication))
+  (schema-triples
+   (gn:pubMedId rdfs:range rdfs:Literal)
+   (gn:title rdfs:range rdfs:Literal)
+   (gn:journal rdfs:range rdfs:Literal)
+   (gn:volume rdfs:range rdfs:Literal)
+   (gn:pages rdfs:range rdfs:Literal)
+   (gn:month rdfs:range rdfs:Literal)
+   (gn:year rdfs:range rdfs:Literal)
+   (gn:author rdfs:range rdfs:Literal)
+   (gn:abstract rdfs:range rdfs:Literal))
   (triples (string->identifier "publication"
                                (number->string (field Publication Id)))
     (set rdf:type 'gn:publication)
@@ -344,6 +374,8 @@ ALIST field-name) forms."
   ;; The Name and TissueName fields seem to be identical. BIRN_lex_ID
   ;; and BIRN_lex_Name are mostly NULL.
   (tables (Tissue))
+  (schema-triples
+   (gn:name rdfs:range rdfs:Literal))
   ;; Hopefully the Short_Name field is distinct and can be used as an
   ;; identifier.
   (triples (tissue-short-name->id (field Tissue Short_Name))
@@ -370,6 +402,20 @@ ALIST field-name) forms."
   ;; deduplicate.
   (tables (Investigators)
           "GROUP BY Email")
+  (schema-triples
+   ;; TODO: Are ranges required for FOAF predicates? Can they not be
+   ;; obtained from the FOAF spec?
+   (foaf:name rdfs:range rdfs:Literal)
+   (foaf:givenName rdfs:range rdfs:Literal)
+   (foaf:familyName rdfs:range rdfs:Literal)
+   (foaf:phone rdfs:range rdfs:Literal)
+   (foaf:mbox rdfs:range rdfs:Literal)
+   (foaf:homepage rdfs:range rdfs:Literal)
+   (gn:address rdfs:range rdfs:Literal)
+   (gn:city rdfs:range rdfs:Literal)
+   (gn:state rdfs:range rdfs:Literal)
+   (gn:zipCode rdfs:range rdfs:Literal)
+   (gn:country rdfs:range rdfs:Literal))
   (triples (investigator-attributes->id (field Investigators FirstName)
                                         (field Investigators LastName)
                                         (field Investigators Email))
@@ -396,6 +442,8 @@ ALIST field-name) forms."
   ;; There are two records with Name as "N/A". Deduplicate.
   (tables (AvgMethod)
           "GROUP BY Name")
+  (schema-triples
+   (gn:name rdfs:range rdfs:Literal))
   (triples (avg-method-name->id (field AvgMethod Name))
     (set rdf:type 'gn:avgMethod)
     (set gn:name (field AvgMethod Name))))
@@ -405,6 +453,8 @@ ALIST field-name) forms."
 
 (define-dump dump-gene-chip
   (tables (GeneChip))
+  (schema-triples
+   (gn:name rdfs:range rdfs:Literal))
   (triples (gene-chip-name->id (field GeneChip Name))
     (set rdf:type 'gn:platform)
     (set gn:name (field GeneChip GeneChipName))))
@@ -433,7 +483,24 @@ ALIST field-name) forms."
    (gn:normalization rdfs:domain gn:dataset)
    (gn:normalization rdfs:range gn:avgMethod)
    (gn:datasetOfPlatform rdfs:domain gn:dataset)
-   (gn:datasetOfPlatform rdfs:range gn:geneChip))
+   (gn:datasetOfPlatform rdfs:range gn:geneChip)
+   (gn:accessionId rdfs:range rdfs:Literal)
+   (gn:datasetStatusName rdfs:range rdfs:Literal)
+   (gn:summary rdfs:range rdfs:Literal)
+   (gn:aboutTissue rdfs:range rdfs:Literal)
+   (gn:geoSeries rdfs:range rdfs:Literal)
+   (gn:name rdfs:range rdfs:Literal)
+   (gn:title rdfs:range rdfs:Literal)
+   (gn:specifics rdfs:range rdfs:Literal)
+   (gn:datasetGroup rdfs:range rdfs:Literal)
+   (gn:aboutCases rdfs:range rdfs:Literal)
+   (gn:aboutPlatform rdfs:range rdfs:Literal)
+   (gn:aboutDataProcessing rdfs:range rdfs:Literal)
+   (gn:notes rdfs:range rdfs:Literal)
+   (gn:experimentDesign rdfs:range rdfs:Literal)
+   (gn:contributors rdfs:range rdfs:Literal)
+   (gn:citation rdfs:range rdfs:Literal)
+   (gn:acknowledgment rdfs:range rdfs:Literal))
   (triples (string->identifier "dataset"
                                (number->string (field InfoFiles GN_AccesionId)))
     (set rdf:type 'gn:dataset)
