@@ -197,7 +197,6 @@ ALIST field-name) forms."
                   key))))
         clauses))
 
-(define %dumped '())
 
 (define-syntax define-dump
   (lambda (x)
@@ -210,32 +209,23 @@ ALIST field-name) forms."
          (syntax-case triples-clause (triples)
            ((triples subject predicates ...)
             (let ((fields (collect-fields #'(subject predicates ...))))
-              #`(begin
-                  (set! %dumped
-                        (append (list #,@(filter-map (lambda (field)
-                                                       (syntax-case field (distinct)
-                                                         (distinct #f)
-                                                         ((table column _ ...) #'(cons 'table 'column))
-                                                         (field-spec (error "Invalid field specification" #'field-spec))))
-                                                     fields))
-                                %dumped))
-                  (define (name db)
-                    #,(syntax-case schema-triples-clause (schema-triples)
-                        ((schema-triples (triple-subject triple-predicate triple-object) ...)
-                         #`(for-each triple
-                                     (list 'triple-subject ...)
-                                     (list 'triple-predicate ...)
-                                     (list 'triple-object ...)))
-                        (_ (error "Invalid schema triples clause:" schema-triples-clause)))
-                    (sql-for-each (lambda (row)
-                                    (scm->triples
-                                     (map-alist row #,@(field->key #'(predicates ...)))
-                                     #,(field->assoc-ref #'row #'subject)))
-                                  db
-                                  #,(syntax-case tables-clause (tables)
-                                      ((tables tables-spec raw ...)
-                                       #`(select-query #,fields tables-spec raw ...))
-                                      (_ (error "Invalid tables clause:" (syntax->datum tables-clause)))))))))
+              #`(define (name db)
+                  #,(syntax-case schema-triples-clause (schema-triples)
+                      ((schema-triples (triple-subject triple-predicate triple-object) ...)
+                       #`(for-each triple
+                                   (list 'triple-subject ...)
+                                   (list 'triple-predicate ...)
+                                   (list 'triple-object ...)))
+                      (_ (error "Invalid schema triples clause:" schema-triples-clause)))
+                  (sql-for-each (lambda (row)
+                                  (scm->triples
+                                   (map-alist row #,@(field->key #'(predicates ...)))
+                                   #,(field->assoc-ref #'row #'subject)))
+                                db
+                                #,(syntax-case tables-clause (tables)
+                                    ((tables tables-spec raw ...)
+                                     #`(select-query #,fields tables-spec raw ...))
+                                    (_ (error "Invalid tables clause:" (syntax->datum tables-clause))))))))
            (_ (error "Invalid triples clause:" triples-clause)))))
       (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
 
@@ -601,15 +591,6 @@ is a <table> object."
                                (information_schema.tables data_length))
                               (information_schema.tables)
                               (format #f "WHERE table_schema = '~a'" %database-name)))))
-
-(define (dumped-table? table)
-  "Return non-#f if TABLE has been dumped. Else, return #f."
-  (any (match-lambda
-         ((dumped-table . _)
-          (string=? (symbol->string dumped-table)
-                    (table-name table)))
-         (x (error "Malformed entry in %dumped:" x)))
-       %dumped))
 
 (define (dump-schema db)
   (let ((tables (tables db)))
