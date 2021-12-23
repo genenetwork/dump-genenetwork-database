@@ -300,8 +300,6 @@ ALIST field-name) forms."
     (set gn:prePublicationDescription (field Phenotype Pre_publication_description))
     (set gn:postPublicationDescription (field Phenotype Post_publication_description))
     (set gn:originalDescription (field Phenotype Original_description))
-    (set gn:prePublicationDescription (field Phenotype Pre_publication_abbreviation))
-    (set gn:postPublicationDescription (field Phenotype Post_publication_abbreviation))
     (set gn:labCode (field Phenotype Lab_code))
     (set gn:submitter (field Phenotype Submitter))
     (set gn:owner (field Phenotype Owner))
