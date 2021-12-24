@@ -166,13 +166,23 @@ relations in TABLES."
                             (table-columns table)))
               tables))
 
-(let ((all-tables (tables)))
-  ((@@ (ccwl graphviz) graph->dot)
-   ((@@ (ccwl graphviz) graph) 'schema
-    #:nodes (map (lambda (table)
-                   ((@@ (ccwl graphviz) graph-node)
-                    (table-name table)
-                    `((shape . "none")
-                      (label . ,(table-label table)))))
-                 all-tables)
-    #:edges (foreign-key-graphviz-edges all-tables))))
+(define (write-sql-visualization port)
+  "Write a visualization of the SQL schema in graphviz dot syntax to
+PORT."
+  (let ((all-tables (tables)))
+    (graph->dot
+     (graph 'schema
+            #:nodes (map (lambda (table)
+                           (graph-node
+                            (table-name table)
+                            `((shape . "none")
+                              (label . ,(table-label table)))))
+                         all-tables)
+            #:edges (foreign-key-graphviz-edges all-tables))
+     port)))
+
+(define (main)
+  (call-with-output-file "sql.dot"
+    write-sql-visualization))
+
+(main)
