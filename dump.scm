@@ -217,69 +217,100 @@ ALIST field-name) forms."
     (string-append
      dump-table "_" (remove-namespace (symbol->string predicate))))))
 
+(define-syntax syntax-let
+  (syntax-rules ()
+    "Like match-let, but for syntax.
+
+(syntax-let ((pattern literals expression))
+  body ...)
+≡
+(syntax-case expression ()
+  (pattern literals
+   body ...))
+
+literals is optional. So,
+
+(syntax-let ((pattern expression))
+  body ...)
+≡
+(syntax-case expression ()
+  (pattern
+   body ...))
+"
+    ((_ () body ...)
+     (begin body ...))
+    ((_ ((pattern expression)
+         bindings ...)
+        body ...)
+     (syntax-case expression ()
+       (pattern
+        (syntax-let (bindings ...)
+          body ...))))
+    ((_ ((pattern literals expression)
+         bindings ...)
+        body ...)
+     (syntax-case expression literals
+       (pattern
+        (syntax-let (bindings ...)
+          body ...))))))
+
 (define-syntax define-dump
   (lambda (x)
     (syntax-case x (tables schema-triples triples)
       ((_ name clauses ...)
-       (let ((tables-clause (find-clause #'(clauses ...) 'tables))
-             (schema-triples-clause (or (find-clause #'(clauses ...) 'schema-triples)
-                                        #'(schema-triples)))
-             (triples-clause (find-clause #'(clauses ...) 'triples)))
-         (syntax-case triples-clause (triples)
-           ((triples subject predicate-clauses ...)
-            (let ((fields (collect-fields #'(subject predicate-clauses ...))))
-              #`(define (name db)
-                  #,(syntax-case schema-triples-clause (schema-triples)
-                      ((schema-triples (triple-subject triple-predicate triple-object) ...)
-                       #`(for-each triple
-                                   (list 'triple-subject ...)
-                                   (list 'triple-predicate ...)
-                                   (list 'triple-object ...)))
-                      (_ (error "Invalid schema triples clause:" schema-triples-clause)))
-                  #,@(let ((dump-table (syntax-case tables-clause (tables)
-                                         ((tables (primary-table _ ...) _ ...)
-                                          (symbol->string (syntax->datum #'primary-table)))
-                                         (_ (error "Invalid tables clause:" (syntax->datum tables-clause)))))
-                           (subject-type (any (lambda (predicate)
-                                                (syntax-case predicate (rdf:type)
-                                                  ((_ rdf:type type) #'type)
-                                                  (_ #f)))
-                                              #'(predicate-clauses ...))))
-                       (map (lambda (predicate-clause)
-                              (syntax-case predicate-clause ()
-                                ((_ predicate _)
-                                 ;; Dump metadata about the dump itself.
-                                 #`(begin
-                                     (scm->triples
-                                      (map-alist '()
-                                        (set rdf:type 'gn:dump)
-                                        (set gn:createsPredicate 'predicate)
-                                        (filter-set gn:forSubjectType #,subject-type)
-                                        (multiset gn:dependsOn
-                                                  '#,(map (lambda (field)
-                                                            (match (syntax->datum field)
-                                                              ((table-name column-name _ ...)
-                                                               (datum->syntax
-                                                                x (column-id (symbol->string table-name)
-                                                                             (symbol->string column-name))))))
-                                                          (collect-fields predicate-clause))))
-                                      #,(dump-id dump-table (syntax->datum #'predicate)))
-                                     ;; Automatically create domain
-                                     ;; triples for predicates.
-                                     (when #,subject-type
-                                       (triple 'predicate 'rdfs:domain #,subject-type))))
-                                (_ (error "Invalid predicate clause:" predicate-clause))))
-                            #'(predicate-clauses ...)))
-                  (sql-for-each (lambda (row)
-                                  (scm->triples
-                                   (map-alist row #,@(field->key #'(predicate-clauses ...)))
-                                   #,(field->assoc-ref #'row #'subject)))
-                                db
-                                #,(syntax-case tables-clause (tables)
-                                    ((tables tables-spec raw ...)
-                                     #`(select-query #,fields tables-spec raw ...))
-                                    (_ (error "Invalid tables clause:" (syntax->datum tables-clause))))))))
-           (_ (error "Invalid triples clause:" triples-clause)))))
+       (syntax-let (((tables (primary-table other-tables ...) tables-raw ...) (tables)
+                     (find-clause #'(clauses ...) 'tables))
+                    (schema-triples-clause (or (find-clause #'(clauses ...) 'schema-triples)
+                                               #'(schema-triples)))
+                    ((triples subject predicate-clauses ...) (triples)
+                     (find-clause #'(clauses ...) 'triples)))
+         #`(define (name db)
+             #,(syntax-case #'schema-triples-clause (schema-triples)
+                 ((schema-triples (triple-subject triple-predicate triple-object) ...)
+                  #`(for-each triple
+                              (list 'triple-subject ...)
+                              (list 'triple-predicate ...)
+                              (list 'triple-object ...)))
+                 (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
+             #,@(let ((dump-table (symbol->string (syntax->datum #'primary-table)))
+                      (subject-type (any (lambda (predicate)
+                                           (syntax-case predicate (rdf:type)
+                                             ((_ rdf:type type) #'type)
+                                             (_ #f)))
+                                         #'(predicate-clauses ...))))
+                  (map (lambda (predicate-clause)
+                         (syntax-case predicate-clause ()
+                           ((_ predicate _)
+                            ;; Dump metadata about the dump itself.
+                            #`(begin
+                                (scm->triples
+                                 (map-alist '()
+                                   (set rdf:type 'gn:dump)
+                                   (set gn:createsPredicate 'predicate)
+                                   (filter-set gn:forSubjectType #,subject-type)
+                                   (multiset gn:dependsOn
+                                             '#,(map (lambda (field)
+                                                       (match (syntax->datum field)
+                                                         ((table-name column-name _ ...)
+                                                          (datum->syntax
+                                                           x (column-id (symbol->string table-name)
+                                                                        (symbol->string column-name))))))
+                                                     (collect-fields predicate-clause))))
+                                 #,(dump-id dump-table (syntax->datum #'predicate)))
+                                ;; Automatically create domain triples
+                                ;; for predicates.
+                                (when #,subject-type
+                                  (triple 'predicate 'rdfs:domain #,subject-type))))
+                           (_ (error "Invalid predicate clause:" predicate-clause))))
+                       #'(predicate-clauses ...)))
+             (sql-for-each (lambda (row)
+                             (scm->triples
+                              (map-alist row #,@(field->key #'(predicate-clauses ...)))
+                              #,(field->assoc-ref #'row #'subject)))
+                           db
+                           (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                         (primary-table other-tables ...)
+                                         tables-raw ...)))))
       (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
 
 (define binomial-name->species-id
