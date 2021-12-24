@@ -21,3 +21,8 @@
   interpreted in UTF-8, they appear to have unprintable
   characters. Somehow, guess the encoding of the retrieved strings and
   compensate.
+* TODO Fix table size estimates                                  :minor:easy:
+  <2021-12-24 Fri>
+  The tables function in dump.scm estimates the table size from the
+  data_length column of the information_schema.tables table. But, this
+  is correct only for MyISAM tables. Generalize it.
