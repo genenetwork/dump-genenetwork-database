@@ -181,8 +181,98 @@ PORT."
             #:edges (foreign-key-graphviz-edges all-tables))
      port)))
 
+(define (literal-node-id domain predicate)
+  "Return the graphviz node identifier for an RDF literal node which
+is the range of PREDICATE. The domain of PREDICATE is DOMAIN."
+  (string-append "literal_node__"
+                 (basename domain)
+                 "_"
+                 (basename predicate)))
+
+(define (rdf-type-nodes)
+  "Return the list of all graphviz nodes representing types."
+  (map (match-lambda
+         ((type)
+          (graph-node (basename type)
+                      `((fillcolor . lightgreen)
+                        (style . filled)))))
+       (sparql-query-records
+        "SELECT DISTINCT ?type
+WHERE {
+  { ?predicate rdfs:domain ?type }
+  UNION
+  { ?predicate rdfs:range ?type }
+  MINUS
+  { ?predicate rdfs:range rdfs:Literal }
+}")))
+
+(define (rdf-literal-nodes)
+  "Return the list of all graphviz nodes representing literal
+properties."
+  (map (match-lambda
+         ((type predicate tables fields)
+          (graph-node
+           (literal-node-id type predicate)
+           `((shape . box)
+             (style . filled)
+             (fillcolor . gold)
+             (label . ,(basename predicate))
+             (tooltip . ,(string-join
+                          (map (lambda (table field)
+                                 (string-append table "." field))
+                               (string-split tables #\,)
+                               (string-split fields #\,))
+                          ", "))))))
+       (sparql-query-records
+        "PREFIX gn: <http://genenetwork.org/>
+SELECT ?type ?predicate GROUP_CONCAT(?tablename ; separator=\",\") GROUP_CONCAT(?fieldname ; separator=\",\")
+WHERE
+{
+  ?predicate rdfs:domain ?type ;
+             rdfs:range rdfs:Literal .
+  ?dump rdf:type gn:dump ;
+        gn:createsPredicate ?predicate ;
+        gn:forSubjectType ?type ;
+        gn:dependsOn ?field .
+  ?field rdf:type gn:sqlTableField ;
+         gn:name ?fieldname .
+  ?table rdf:type gn:sqlTable ;
+         gn:hasField ?field ;
+         gn:name ?tablename .
+} GROUP BY ?type ?predicate
+")))
+
+(define (rdf-edges)
+  "Return the list of all graphviz edges in the RDF visualization."
+  (map (match-lambda
+         ((type predicate range)
+          (if (string=? range (string-trim-both (rdfs "Literal")
+                                                (char-set #\< #\>)))
+              ;; Literal properties
+              (graph-edge (basename type)
+                          (literal-node-id type predicate))
+              ;; Relations between classes
+              (graph-edge (basename type)
+                          (basename range)))))
+       (sparql-query-records
+        (select '(type predicate range)
+                `((predicate ,(rdfs "domain") type)
+                  (predicate ,(rdfs "range") range))))))
+
+(define (write-rdf-visualization port)
+  "Write a visualization of the RDF schema in graphviz dot syntax to
+PORT."
+  (graph->dot
+   (graph 'rdf
+          #:nodes (append (rdf-type-nodes)
+                      (rdf-literal-nodes))
+          #:edges (rdf-edges))
+   port))
+
 (define (main)
   (call-with-output-file "sql.dot"
-    write-sql-visualization))
+    write-sql-visualization)
+  (call-with-output-file "rdf.dot"
+    write-rdf-visualization))
 
 (main)
