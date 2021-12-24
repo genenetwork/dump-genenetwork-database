@@ -67,14 +67,20 @@
   "Return HTML string label for TABLE."
   (sxml->graphviz-html
    `(table (@ (cellborder 0)
-              (bgcolor "white"))
+              (bgcolor ,(if (any column-dumped?
+                                 (table-columns table))
+                            "lightgrey"
+                            "white")))
            (tr (td (@ (border 1)
                       (bgcolor ,(human-units-color (table-size table))))
                    ,(format "~a (~a)"
                             (table-name table)
                             (human-units (table-size table)))))
            ,@(map (lambda (column)
-                    `(tr (td (@ (port ,(column-name column)))
+                    `(tr (td (@ (port ,(column-name column))
+                                ,@(if (column-dumped? column)
+                                      `((bgcolor "green"))
+                                      '()))
                              ,(column-name column))))
                   (table-columns table)))))
 
