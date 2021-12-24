@@ -21,6 +21,13 @@
 (define gn
   (prefix "http://genenetwork.org/"))
 
+(define graph (@@ (ccwl graphviz) graph))
+(define graph-node (@@ (ccwl graphviz) graph-node))
+(define graph-edge (@@ (ccwl graphviz) graph-edge))
+(define graph-port (@@ (ccwl graphviz) graph-port))
+(define html-string (@@ (ccwl graphviz) html-string))
+(define graph->dot (@@ (ccwl graphviz) graph->dot))
+
 (define (sparql-query-records . args)
   ;; TODO: Use the JSON query results so that types can be converted
   ;; correctly.
@@ -61,7 +68,7 @@
 
 (define (sxml->graphviz-html tree)
   "Convert sxml TREE to a graphviz <html-string>, and return it."
-  ((@@ (ccwl graphviz) html-string) (sxml->xml-string tree)))
+  (html-string (sxml->xml-string tree)))
 
 (define (table-label table)
   "Return HTML string label for TABLE."
@@ -153,9 +160,8 @@ relations in TABLES."
                 (filter-map (lambda (column)
                               (and=> (column->foreign-table table column tables)
                                      (cut cons
-                                          ((@@ (ccwl graphviz) graph-port)
-                                           (table-name table)
-                                           (column-name column))
+                                          (graph-port (table-name table)
+                                                      (column-name column))
                                           <>)))
                             (table-columns table)))
               tables))
