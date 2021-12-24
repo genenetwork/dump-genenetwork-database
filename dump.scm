@@ -256,6 +256,49 @@ literals is optional. So,
 
 (define-syntax define-dump
   (lambda (x)
+    "Define FUNCTION-NAME, a function that dumps a view of the database.
+
+define-dump consists of three order-agnostic clauses---tables,
+schema-triples and triples---in the form shown below.
+
+(define-dump function-name
+  (tables (table ...) raw-forms ...)
+  (schema-triples
+   (subject predicate object) ...)
+  (triples subject
+    (verb predicate object) ...))
+
+The tables clause specifies the database tables to be joined to
+construct the view to be dumped. TABLE must be either of the form
+TABLE-NAME or of the form (JOIN-OPERATOR TABLE-NAME
+RAW-CONDITION). TABLE-NAME must, obviously, be the name of the
+table. JOIN-OPERATOR must be one of join, left-join and
+inner-join. RAW-CONDITION should be the join condition as a raw
+string. This is usually something like
+\"USING (SpeciesId)\". RAW-FORMS are expressions that must evaluate to
+strings to be appended to the SQL query.
+
+The schema-triples clause specifies the list of triples to be written
+once when the dump starts.
+
+The triples clause specifies the triples to be dumped once for each
+row in the view. All triples have a common SUBJECT. The (verb
+predicate object) clauses are described below.
+
+VERB must either be set or multiset. For the set VERB, a single triple
+(SUBJECT PREDICATE OBJECT-VALUE) is written where OBJECT-VALUE is the
+result of evaluating OBJECT. For the multiset VERB, OBJECT must
+evaluate to a list, and a triple (SUBJECT PREDICATE
+OBJECT-VALUE-ELEMENT) is created for each element OBJECT-VALUE-ELEMENT
+of that list.
+
+The SUBJECT and OBJECT expressions in the triples clause must
+reference database fields using a (field TABLE COLUMN) clause where
+TABLE and COLUMN refer to the table and column of the field being
+referenced. Database fields can also be referenced using (field TABLE
+COLUMN ALIAS) where ALIAS is an alias for that column in the SQL
+query. Specification of ALIAS is indeed a leak in the abstraction, and
+must be remedied."
     (syntax-case x (tables schema-triples triples)
       ((_ name clauses ...)
        (syntax-let (((tables (primary-table other-tables ...) tables-raw ...) (tables)
