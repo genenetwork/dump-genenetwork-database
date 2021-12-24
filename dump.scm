@@ -1,8 +1,6 @@
 #! /usr/bin/env guile
 !#
 
-(add-to-load-path (dirname (current-filename)))
-
 (use-modules (rnrs io ports)
              (srfi srfi-1)
              (srfi srfi-26)
