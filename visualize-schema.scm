@@ -1,3 +1,6 @@
+#! /usr/bin/env guile
+!#
+
 (use-modules (rnrs io ports)
              (srfi srfi-1)
              (srfi srfi-26)
