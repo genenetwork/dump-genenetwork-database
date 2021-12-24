@@ -22,6 +22,8 @@
   (prefix "http://genenetwork.org/"))
 
 (define (sparql-query-records . args)
+  ;; TODO: Use the JSON query results so that types can be converted
+  ;; correctly.
   (query-results->list (apply sparql-query
                               (append args
                                   (list #:host "127.0.0.1"
