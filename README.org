@@ -25,7 +25,7 @@ brackets with the appropriate values.
 Then, to dump the database, run
 
 #+BEGIN_SRC shell
-  $ ./pre-inst-env guile dump.scm
+  $ ./pre-inst-env ./dump.scm
 #+END_SRC
 
 The database will be dumped to ~/data/dump/. Make sure there is enough
