@@ -2,6 +2,36 @@ The GeneNetwork database is being migrated from a relational database
 to a plain text and RDF database. This repository contains code to
 dump the relational database to plain text.
 
+* Using
+
+Drop into a development environment with
+
+#+BEGIN_SRC shell
+  $ guix shell -m guix.scm
+#+END_SRC
+
+Describe the database connection parameters in a file /conn.scm/ file
+as shown below. Take care to replace the placeholders within angle
+brackets with the appropriate values.
+
+#+BEGIN_SRC scheme
+  ((username . "<username-here>")
+   (password . "<password-here>")
+   (database . "<database-name-here>")
+   (host . "<hostname-here>")
+   (port . <port-here>))
+#+END_SRC
+
+Then, to dump the database, run
+
+#+BEGIN_SRC shell
+  $ ./pre-inst-env guile dump.scm
+#+END_SRC
+
+The database will be dumped to ~/data/dump/. Make sure there is enough
+free space! It's best to dump the database on penguin2 where disk
+space and bandwidth are not significant constraints.
+
 * Contributing
 
 See bugs and tasks in BUGS.org.
