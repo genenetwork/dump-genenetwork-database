@@ -1,0 +1,23 @@
+#+TITLE: Bugs and tasks
+
+* TODO Construct SPARQL query results from JSON instead of CSV   :minor:easy:
+  <2021-12-24 Fri>
+  sparql-query-results in visualize-schema.scm should retrieve SPARQL
+  query results in JSON instead of CSV. CSV ignores type information
+  and returns everything as a string. This results in unnecessary
+  conversions such as using string->number.
+* TODO Specification of field alias in define-dump is a leaky abstraction :wish:
+  <2021-12-24 Fri>
+  In define-dump expressions, database fields can be referenced by
+  (field TABLE COLUMN ALIAS) in addition to (field TABLE
+  COLUMN). Specification of the field alias in the first form is a
+  leak in the abstraction. There is no need for the caller to know
+  anything about field aliases. define-dump should be able to set up
+  aliases transparently.
+* TODO Guess string encodings                                         :grave:
+  <2021-12-24 Fri>
+  Over the years, strings have been stored in the database using
+  different character encodings. That is why when they are all
+  interpreted in UTF-8, they appear to have unprintable
+  characters. Somehow, guess the encoding of the retrieved strings and
+  compensate.
