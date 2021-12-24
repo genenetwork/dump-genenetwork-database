@@ -118,33 +118,27 @@ return #f. ALL-TABLES is a list of all tables in the database."
   "Return list of all tables in DB. Each element of the returned list
 is a <table> object."
   (map (match-lambda
-         ((table size)
+         ((table size fields field-types field-dumped)
           (make-table table
-                      ;; FIXME: Why is size coming out as a string?
                       (string->number size)
-                      (map (match-lambda
-                             ((field type) (make-column field type)))
-                           (sparql-query-records
-                            ;; We use format to construct the query instead of
-                            ;; select due to an outstanding bug in
-                            ;; guile-sparql. See
-                            ;; https://github.com/roelj/guile-sparql/issues/5
-                            (format
-                             "SELECT ?fieldname ?fieldtype
+                      (map make-column
+                           (string-split fields #\,)
+                           (string-split field-types #\,)
+                           (map (cut string=? <> "1")
+                                (string-split field-dumped #\,))))))
+       (sparql-query-records
+        "PREFIX gn: <http://genenetwork.org/>
+SELECT SAMPLE(?tablename) SAMPLE(?size) GROUP_CONCAT(?fieldname ; separator=\",\") GROUP_CONCAT(?fieldtype ; separator=\",\") GROUP_CONCAT(EXISTS{ ?dump rdf:type gn:dump . ?dump gn:dependsOn ?field .} ; separator=\",\")
 WHERE
 {
-  ?table <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://genenetwork.org/sqlTable> .
-  ?table <http://genenetwork.org/name> ~s .
-  ?field <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://genenetwork.org/sqlTableField> .
-  ?table <http://genenetwork.org/hasField> ?field .
-  ?field <http://genenetwork.org/name> ?fieldname .
-  ?field <http://genenetwork.org/sqlFieldType> ?fieldtype .
-}" table))))))
-       (sparql-query-records
-        (select '(tablename size)
-                `((table ,(rdf "type") ,(gn "sqlTable"))
-                  (table ,(gn "name") tablename)
-                  (table ,(gn "hasSize") size))))))
+  ?table rdf:type gn:sqlTable ;
+         gn:name ?tablename ;
+         gn:hasSize ?size ;
+         gn:hasField ?field .
+  ?field rdf:type gn:sqlTableField ;
+         gn:name ?fieldname ;
+         gn:sqlFieldType ?fieldtype .
+} GROUP BY ?table")))
 
 (define (foreign-key-graphviz-edges tables)
   "Return the list of graphviz edges representing foreign key
