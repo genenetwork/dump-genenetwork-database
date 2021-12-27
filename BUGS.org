@@ -26,3 +26,11 @@
   The tables function in dump.scm estimates the table size from the
   data_length column of the information_schema.tables table. But, this
   is correct only for MyISAM tables. Generalize it.
+* TODO Dump table and field annotations to RDF                   :minor:easy:
+  <2021-12-27 Mon>
+  The TableComments and TableFieldAnnotations tables partially
+  document the database schema. GeneNetwork 1 uses this to generate
+  [[http://gn1.genenetwork.org/webqtl/main.py?FormID=schemaShowPage]]. We
+  dump this to an org mode format in the dump-schema-annotations
+  function. Dump these tables to RDF instead so that they can be shown
+  as tooltip text in our database visualization.
