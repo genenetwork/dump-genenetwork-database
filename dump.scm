@@ -101,16 +101,17 @@ association list mapping substrings to their replacements."
         str
         replacement-alist))
 
-(define (string->identifier prefix str)
-  "Convert STR to a turtle identifier after replacing illegal
+(eval-when (expand load eval)
+  (define (string->identifier prefix str)
+    "Convert STR to a turtle identifier after replacing illegal
 characters with an underscore and prefixing with gn:PREFIX."
-  (string->symbol
-   (string-append "gn:" prefix "_"
-                  (string-map (lambda (c)
-                                (case c
-                                  ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
-                                  (else c)))
-                              (string-downcase str)))))
+    (string->symbol
+     (string-append "gn:" prefix "_"
+                    (string-map (lambda (c)
+                                  (case c
+                                    ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
+                                    (else c)))
+                                (string-downcase str))))))
 
 (define (snake->lower-camel str)
   (let ((char-list (string->list str)))
@@ -155,65 +156,66 @@ characters with an underscore and prefixing with gn:PREFIX."
            (list subject predicate object)))
   (format #t "~a ~a ~s .~%" subject predicate object))
 
-(define (field->key x)
-  (translate-forms 'field
-                   (lambda (x)
-                     #`(key #,(symbol->string
-                               (syntax->datum
-                                ((syntax-rules (field)
-                                   ((field table column) column)
-                                   ((field table column alias) alias))
-                                 x)))))
-                   x))
+(eval-when (expand load eval)
+  (define (field->key x)
+    (translate-forms 'field
+                     (lambda (x)
+                       #`(key #,(symbol->string
+                                 (syntax->datum
+                                  ((syntax-rules (field)
+                                     ((field table column) column)
+                                     ((field table column alias) alias))
+                                   x)))))
+                     x))
 
-(define (field->assoc-ref alist x)
-  "Recursively translate field references in source X to (assoc-ref
+  (define (field->assoc-ref alist x)
+    "Recursively translate field references in source X to (assoc-ref
 ALIST field-name) forms."
-  (translate-forms 'field
-                   (lambda (x)
-                     #`(assoc-ref #,alist
-                                  #,(symbol->string
-                                     (syntax->datum
-                                      ((syntax-rules (field)
-                                         ((field table column) column)
-                                         ((field table column alias) alias))
-                                       x)))))
-                   x))
+    (translate-forms 'field
+                     (lambda (x)
+                       #`(assoc-ref #,alist
+                                    #,(symbol->string
+                                       (syntax->datum
+                                        ((syntax-rules (field)
+                                           ((field table column) column)
+                                           ((field table column alias) alias))
+                                         x)))))
+                     x))
 
-(define (collect-fields x)
-  (map (syntax-rules (field)
-         ((field reference ...)
-          (reference ...)))
-       (collect-forms 'field x)))
+  (define (collect-fields x)
+    (map (syntax-rules (field)
+           ((field reference ...)
+            (reference ...)))
+         (collect-forms 'field x)))
 
-(define (find-clause clauses key)
-  "Find (KEY ...) clause among CLAUSES, a list of syntax forms."
-  (find (lambda (x)
-          (syntax-case x ()
-            ((clause-key _ ...)
-             (eq? (syntax->datum #'clause-key)
-                  key))))
-        clauses))
+  (define (find-clause clauses key)
+    "Find (KEY ...) clause among CLAUSES, a list of syntax forms."
+    (find (lambda (x)
+            (syntax-case x ()
+              ((clause-key _ ...)
+               (eq? (syntax->datum #'clause-key)
+                    key))))
+          clauses))
 
-(define (remove-namespace str)
-  "Remove RDF namespace prefix from STR."
-  (substring str (1+ (string-index str #\:))))
+  (define (remove-namespace str)
+    "Remove RDF namespace prefix from STR."
+    (substring str (1+ (string-index str #\:))))
 
-(define (column-id table-name column-name)
-  (string->identifier
-   "field" (string-append
-            ;; We downcase table names in identifiers. So, we
-            ;; distinguish between the user and User tables.
-            (if (string=? table-name "User")
-                "user2" table-name)
-            "__" column-name)))
+  (define (column-id table-name column-name)
+    (string->identifier
+     "field" (string-append
+              ;; We downcase table names in identifiers. So, we
+              ;; distinguish between the user and User tables.
+              (if (string=? table-name "User")
+                  "user2" table-name)
+              "__" column-name)))
 
-(define (dump-id dump-table predicate)
-  (symbol->string
-   (string->identifier
-    "dump"
-    (string-append
-     dump-table "_" (remove-namespace (symbol->string predicate))))))
+  (define (dump-id dump-table predicate)
+    (symbol->string
+     (string->identifier
+      "dump"
+      (string-append
+       dump-table "_" (remove-namespace (symbol->string predicate)))))))
 
 (define-syntax syntax-let
   (syntax-rules ()
