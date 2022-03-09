@@ -1,6 +1,6 @@
 ;; Drop into a development environment using
 ;;
-;; guix shell -m guix.scm
+;; guix shell
 ;;
 ;; Happy hacking!
 

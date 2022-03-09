@@ -7,7 +7,7 @@ dump the relational database to plain text.
 Drop into a development environment with
 
 #+BEGIN_SRC shell
-  $ guix shell -m guix.scm
+  $ guix shell
 #+END_SRC
 
 Describe the database connection parameters in a file /conn.scm/ file
