@@ -1,9 +1,5 @@
 (define-module (dump utils)
-  ;; Rename delete to srfi:delete since it somehow interferes with the
-  ;; delete verb of map-alist.
-  #:use-module ((srfi srfi-1) #:renamer (lambda (sym)
-                                          (if (eq? sym 'delete)
-                                              'srfi:delete sym)))
+  #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
   #:export (translate-forms
@@ -81,7 +77,7 @@ Syntax:
   (verb key expression) ...
   (else=> proc))
 
-VERB must be one of set, filter-set, multiset and delete.
+VERB must be one of set, filter-set, multiset and remove.
 
 For the set VERB, KEY is set to the result of evaluating
 EXPRESSION. Multiple set verbs on the same key will result in multiple
@@ -93,7 +89,7 @@ EXPRESSION only if that result is not #f.
 For the multiset VERB, EXPRESSION must return a list and KEY is
 associated multiple times once with each element of the returned list.
 
-For the delete VERB, KEY is discarded.
+For the remove VERB, KEY is discarded.
 
 EXPRESSIONs must reference elements of ALIST using (key k) forms where
 K is the key to be referenced from ALIST. K must not be quoted. That
@@ -121,7 +117,7 @@ Example:
   (set aal (+ (key \"foo\")
               (key bar)))
   (multiset vel (iota (* 2 (key bar))))
-  (delete foobar)
+  (remove foobar)
   (else=> (match-lambda
             ((key . value)
              (cons key (expt 2 value))))))
@@ -179,8 +175,8 @@ Example:
                                                               #'(actions ...))
                                                ;; Keys that were deleted
                                                #,@(filter-map (lambda (action)
-                                                                (syntax-case action (delete)
-                                                                  ((delete key) #''key)
+                                                                (syntax-case action (remove)
+                                                                  ((remove key) #''key)
                                                                   (_ #f)))
                                                               #'(actions ...))
                                                ;; Keys that were set

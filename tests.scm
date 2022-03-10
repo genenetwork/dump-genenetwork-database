@@ -67,7 +67,7 @@
     (set aal (+ (key "foo")
                 (key bar)))
     (multiset vel (iota (* 2 (key bar))))
-    (delete foobar)
+    (remove foobar)
     (else=> (match-lambda
               ((key . value)
                (cons key (expt 2 value)))))))
