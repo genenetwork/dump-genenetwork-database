@@ -22,15 +22,15 @@ brackets with the appropriate values.
    (port . <port-here>))
 #+END_SRC
 
-Then, to dump the database, run
+Then, to dump the database to ~/data/dump, run
 
 #+BEGIN_SRC shell
-  $ ./pre-inst-env ./dump.scm
+  $ ./pre-inst-env ./dump.scm conn.scm ~/data/dump
 #+END_SRC
 
-The database will be dumped to ~/data/dump/. Make sure there is enough
-free space! It's best to dump the database on penguin2 where disk
-space and bandwidth are not significant constraints.
+Make sure there is enough free space! It's best to dump the database
+on penguin2 where disk space and bandwidth are not significant
+constraints.
 
 * Contributing
 

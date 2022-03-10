@@ -1,7 +1,8 @@
 #! /usr/bin/env guile
 !#
 
-(use-modules (rnrs io ports)
+(use-modules (rnrs programs)
+             (rnrs io ports)
              (srfi srfi-1)
              (srfi srfi-26)
              (ice-9 match)
@@ -13,25 +14,24 @@
 
 ;;; GeneNetwork database connection parameters and dump path
 
-(define (call-with-genenetwork-database proc)
-  (let ((connection-settings (call-with-input-file "conn.scm" read)))
-    (call-with-database "mysql" (string-join
-                                 (list (assq-ref connection-settings 'username)
-                                       (assq-ref connection-settings 'password)
-                                       (assq-ref connection-settings 'database)
-                                       "tcp"
-                                       (assq-ref connection-settings 'host)
-                                       (number->string
-                                        (assq-ref connection-settings 'port)))
-                                 ":")
-                        proc)))
+(define %connection-settings
+  (call-with-input-file (list-ref (command-line) 0)
+    read))
 
-(define %database-name
-  (assq-ref (call-with-input-file "conn.scm" read)
-            'database))
+(define (call-with-genenetwork-database proc)
+  (call-with-database "mysql" (string-join
+                               (list (assq-ref %connection-settings 'username)
+                                     (assq-ref %connection-settings 'password)
+                                     (assq-ref %connection-settings 'database)
+                                     "tcp"
+                                     (assq-ref %connection-settings 'host)
+                                     (number->string
+                                      (assq-ref %connection-settings 'port)))
+                               ":")
+                      proc))
 
 (define %dump-directory
-  (string-append (getenv "HOME") "/data/dump"))
+  (list-ref (command-line) 1))
 
 (define (call-with-dump-file filename proc)
   (let ((absolute-path (string-append %dump-directory filename)))
@@ -717,7 +717,8 @@ is a <table> object."
                 (select-query ((information_schema.tables table_name)
                                (information_schema.tables data_length))
                               (information_schema.tables)
-                              (format #f "WHERE table_schema = '~a'" %database-name)))))
+                              (format #f "WHERE table_schema = '~a'"
+                                      (assq-ref %connection-settings 'database))))))
 
 (define (dump-schema db)
   (let ((tables (tables db)))
