@@ -15,7 +15,7 @@
 ;;; GeneNetwork database connection parameters and dump path
 
 (define %connection-settings
-  (call-with-input-file (list-ref (command-line) 0)
+  (call-with-input-file (list-ref (command-line) 1)
     read))
 
 (define (call-with-genenetwork-database proc)
@@ -31,7 +31,7 @@
                       proc))
 
 (define %dump-directory
-  (list-ref (command-line) 1))
+  (list-ref (command-line) 2))
 
 (define (call-with-dump-file filename proc)
   (let ((absolute-path (string-append %dump-directory filename)))
