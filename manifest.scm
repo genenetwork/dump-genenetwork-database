@@ -8,7 +8,8 @@
              ((gnu packages bioinformatics) #:prefix guix:)
              (gnu packages graphviz)
              (gnu packages guile)
-             (gnu packages guile-xyz)
+             ((gnu packages guile-xyz) #:select (guile-sparql) #:prefix guix:)
+             ((gnu packages guile-xyz) #:select (guile-dbd-mysql guile-dbi guile-libyaml))
              (guix build-system gnu)
              (guix git-download)
              ((guix licenses) #:prefix license:)
@@ -34,6 +35,13 @@
        `(("autoconf" ,autoconf)
          ("automake" ,automake)
          ,@(package-native-inputs guix:ccwl))))))
+
+;; Upstream guile-sparql tests are broken. Temporarily disable them.
+(define guile-sparql
+  (package
+    (inherit guix:guile-sparql)
+    (arguments
+     `(#:tests? #f))))
 
 (define run64
   (package
