@@ -3,14 +3,14 @@
 
 (import (ice-9 match))
 
-(define (prepend-path-env! name . values)
+(define (prepend-path-environment! name . values)
   (setenv name (string-join (append values
                                     (if (getenv name)
                                         (string-split (getenv name) #\:)
                                         '()))
                             ":")))
 
-(prepend-path-env! "GUILE_LOAD_PATH" (dirname (current-filename)))
+(prepend-path-environment! "GUILE_LOAD_PATH" (dirname (current-filename)))
 
 (match (command-line)
   ((_ command args ...)
