@@ -6,6 +6,7 @@
 
 (use-modules (gnu packages autotools)
              ((gnu packages bioinformatics) #:prefix guix:)
+             ((gnu packages databases) #:select (virtuoso-ose))
              (gnu packages graphviz)
              (gnu packages guile)
              ((gnu packages guile-xyz) #:select (guile-sparql) #:prefix guix:)
@@ -71,4 +72,5 @@
  (list guile-3.0 guile-dbi guile-dbd-mysql
        ;; We abuse (ccwl graphviz) as a library to visualize the database
        ;; schema. Hence we need ccwl and guile-libyaml.
-       ccwl graphviz guile-libyaml guile-sparql run64))
+       ccwl graphviz guile-hashing guile-libyaml guile-sparql
+       run64 virtuoso-ose))
