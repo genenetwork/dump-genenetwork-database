@@ -10,7 +10,7 @@
              (gnu packages graphviz)
              (gnu packages guile)
              ((gnu packages guile-xyz) #:select (guile-sparql) #:prefix guix:)
-             ((gnu packages guile-xyz) #:select (guile-dbd-mysql guile-dbi guile-libyaml))
+             ((gnu packages guile-xyz) #:select (guile-dbd-mysql guile-dbi guile-hashing guile-libyaml))
              (guix build-system gnu)
              (guix git-download)
              ((guix licenses) #:prefix license:)
