@@ -512,8 +512,15 @@ must be remedied."
   ;; also the first and the last names. It would be preferable to just
   ;; find Evan Williams' email ID and insert it into the database.
   (string->identifier "investigator"
-                      (string-join (list first-name last-name (fix-email-id email))
-                                   "_")))
+                      (string-join
+                       ;; Add special case for Yohan Bossé whose name
+                       ;; has unprintable characters.
+                       ;; TODO: Fix Yohan Bossé's name in the database.
+                       (let ((last-name (if (string=? first-name "Yohan")
+                                            "Bosse"
+                                            last-name)))
+                         (list first-name last-name (fix-email-id email)))
+                       "_")))
 
 (define-dump dump-investigators
   ;; There are a few duplicate entries. We group by email to
