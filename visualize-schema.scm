@@ -31,13 +31,19 @@
 (define html-string (@@ (ccwl graphviz) html-string))
 (define graph->dot (@@ (ccwl graphviz) graph->dot))
 
+(define %sparql-host
+  (make-parameter #f))
+
+(define %sparql-port
+  (make-parameter #f))
+
 (define (sparql-query-records . args)
   ;; TODO: Use the JSON query results so that types can be converted
   ;; correctly.
   (query-results->list (apply sparql-query
                               (append args
-                                  (list #:host "127.0.0.1"
-                                        #:port 8891)))
+                                      (list #:host (%sparql-host)
+                                            #:port (%sparql-port))))
                        #t))
 
 (define (floor-log1024 x)
@@ -272,10 +278,20 @@ PORT."
           #:edges (rdf-edges))
    port))
 
-(define (main)
-  (call-with-output-file "sql.dot"
-    write-sql-visualization)
-  (call-with-output-file "rdf.dot"
-    write-rdf-visualization))
+(define main
+  (match-lambda*
+    ((_ connection-settings-file)
+     (let ((connection-settings (call-with-input-file connection-settings-file
+                                  read)))
+       (parameterize ((%sparql-host (assq-ref connection-settings 'sparql-host))
+                      (%sparql-port (assq-ref connection-settings 'sparql-port)))
+         (call-with-output-file "sql.dot"
+           write-sql-visualization)
+         (call-with-output-file "rdf.dot"
+           write-rdf-visualization))))
+    ((arg0 _ ...)
+     (display (format "Usage: ~a CONNECTION-SETTINGS-FILE~%" arg0)
+              (current-error-port))
+     (exit #f))))
 
-(main)
+(apply main (command-line))
