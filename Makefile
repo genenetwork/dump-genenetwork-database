@@ -10,7 +10,7 @@ objects = $(sources:.scm=.go)
 all: $(objects)
 
 %.go: %.scm
-	$(GUILD) compile -L . -o $@ $<
+	GUILE_AUTO_COMPILE=0 $(GUILD) compile -L . -o $@ $<
 
 # Tests
 
