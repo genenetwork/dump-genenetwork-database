@@ -15,6 +15,12 @@ Drop into a development environment with
 $ guix shell
 ```
 
+Build the sources.
+
+``` shell
+$ make
+```
+
 Describe the database connection parameters in a file *conn.scm* file as
 shown below. Take care to replace the placeholders within angle brackets
 with the appropriate values.
