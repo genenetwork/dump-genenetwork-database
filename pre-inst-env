@@ -10,7 +10,11 @@
                                         '()))
                             ":")))
 
-(prepend-path-environment! "GUILE_LOAD_PATH" (dirname (current-filename)))
+(define %source-dir
+  (dirname (current-filename)))
+
+(prepend-path-environment! "GUILE_LOAD_PATH" %source-dir)
+(prepend-path-environment! "GUILE_LOAD_COMPILED_PATH" %source-dir)
 
 (match (command-line)
   ((_ command args ...)
