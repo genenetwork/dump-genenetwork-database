@@ -72,6 +72,14 @@ $ xdot sql.dot
 $ xdot rdf.dot
 ```
 
+The
+[dump-genenetwork-database](https://ci.genenetwork.org/jobs/dump-genenetwork-database)
+continuous integration job runs these steps on every commit and
+publishes its version of
+[sql.svg](https://ci.genenetwork.org/archive/dump-genenetwork-database/latest/sql.svg)
+and
+[rdf.svg](https://ci.genenetwork.org/archive/dump-genenetwork-database/latest/rdf.svg).
+
 # Contributing
 
 See bugs and tasks in BUGS.org.
