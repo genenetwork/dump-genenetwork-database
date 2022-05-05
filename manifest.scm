@@ -5,6 +5,7 @@
 ;; Happy hacking!
 
 (use-modules (gnu packages autotools)
+             ((gnu packages base) #:select (gnu-make))
              ((gnu packages bioinformatics) #:prefix guix:)
              ((gnu packages databases) #:select (virtuoso-ose))
              (gnu packages graphviz)
@@ -70,7 +71,7 @@
     (license license:gpl3+)))
 
 (packages->manifest
- (list guile-3.0 guile-dbi guile-dbd-mysql
+ (list gnu-make guile-3.0 guile-dbi guile-dbd-mysql
        ;; We abuse (ccwl graphviz) as a library to visualize the database
        ;; schema. Hence we need ccwl and guile-libyaml.
        ccwl graphviz guile-hashing guile-libyaml guile-sparql
