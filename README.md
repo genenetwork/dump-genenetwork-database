@@ -43,11 +43,13 @@ Make sure there is enough free space! It\'s best to dump the database on
 penguin2 where disk space and bandwidth are not significant
 constraints.
 
-Then, load the dumped RDF into virtuoso. This will load the dumped RDF
-into the `http://genenetwork.org` graph, and will delete all
-pre-existing data in that graph.
+Then, validate the dumped RDF using `rapper` and load it into
+virtuoso. This will load the dumped RDF into the
+`http://genenetwork.org` graph, and will delete all pre-existing data
+in that graph.
 
 ``` shell
+$ rapper --input turtle --count ~/data/dump/dump.ttl
 $ ./pre-inst-env ./load-rdf.scm conn.scm ~/data/dump/dump.ttl
 ```
 
