@@ -20,11 +20,11 @@ shown below. Take care to replace the placeholders within angle brackets
 with the appropriate values.
 
 ``` scheme
-((username . "<username-here>")
- (password . "<password-here>")
- (database . "<database-name-here>")
- (host . "<hostname-here>")
- (port . <port-here>))
+((sql-username . "<sql-username-here>")
+ (sql-password . "<sql-password-here>")
+ (sql-database . "<sql-database-name-here>")
+ (sql-host . "<sql-hostname-here>")
+ (sql-port . <sql-port-here>))
 ```
 
 Then, to dump the database to \~/data/dump, run

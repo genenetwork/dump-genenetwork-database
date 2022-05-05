@@ -20,13 +20,13 @@
 
 (define (call-with-genenetwork-database proc)
   (call-with-database "mysql" (string-join
-                               (list (assq-ref %connection-settings 'username)
-                                     (assq-ref %connection-settings 'password)
-                                     (assq-ref %connection-settings 'database)
+                               (list (assq-ref %connection-settings 'sql-username)
+                                     (assq-ref %connection-settings 'sql-password)
+                                     (assq-ref %connection-settings 'sql-database)
                                      "tcp"
-                                     (assq-ref %connection-settings 'host)
+                                     (assq-ref %connection-settings 'sql-host)
                                      (number->string
-                                      (assq-ref %connection-settings 'port)))
+                                      (assq-ref %connection-settings 'sql-port)))
                                ":")
                       proc))
 
@@ -725,7 +725,7 @@ is a <table> object."
                                (information_schema.tables data_length))
                               (information_schema.tables)
                               (format #f "WHERE table_schema = '~a'"
-                                      (assq-ref %connection-settings 'database))))))
+                                      (assq-ref %connection-settings 'sql-database))))))
 
 (define (dump-schema db)
   (let ((tables (tables db)))
