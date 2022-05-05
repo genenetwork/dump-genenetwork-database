@@ -1,3 +1,5 @@
+[[https://ci.systemreboot.net/jobs/dump-genenetwork-database-tests][https://ci.systemreboot.net/badge/dump-genenetwork-database-tests.svg]] [[https://ci.systemreboot.net/jobs/dump-genenetwork-database][https://ci.systemreboot.net/badge/dump-genenetwork-database.svg]]
+
 The GeneNetwork database is being migrated from a relational database
 to a plain text and RDF database. This repository contains code to
 dump the relational database to plain text.
