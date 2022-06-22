@@ -753,6 +753,28 @@ is a <table> object."
                             (table-columns table))))
               tables)))
 
+(define-dump dump-case-attributes
+  (tables (InbredSet
+           (join Species "ON InbredSet.SpeciesId = Species.Id")
+           (join Strain "ON Strain.SpeciesId = Species.Id")
+           (join CaseAttributeXRefNew
+                 "ON CaseAttributeXRefNew.StrainId = Strain.Id")
+           (join CaseAttribute
+                 "ON CaseAttributeXRefNew.CaseAttributeId = CaseAttribute.Id"))
+          (string-join
+           '("WHERE CaseAttribute.Name IS NOT NULL"
+             "GROUP BY CaseAttribute.Name"
+             "ORDER BY CaseAttribute.Name")))
+  (schema-triples
+   (gn:name rdfs:range rdfs:Literal)
+   (gn:inbredSet rdfs:range rdfs:Literal)
+   (gn:description rdfs:range gn:species))
+  (triples (string->identifier "caseAttribute" (field CaseAttribute Name))
+    (set rdf:type 'gn:caseAttribute)
+    (set gn:name (field CaseAttribute Name))
+    (set gn:inbredSet (field InbredSet Name InbredSetName))
+    (set gn:description (field CaseAttribute Description))
+    (set gn:caseAttributeId (field CaseAttribute Id))))
 
 ;; Main function
 
@@ -780,4 +802,5 @@ is a <table> object."
        (dump-avg-method db)
        (dump-gene-chip db)
        (dump-info-files db)
-       (dump-schema db)))))
+       (dump-schema db)
+       (dump-case-attributes db)
