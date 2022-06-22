@@ -111,7 +111,9 @@ characters with an underscore and prefixing with gn:PREFIX."
                                   (case c
                                     ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
                                     (else c)))
-                                (string-downcase str))))))
+                                (string-downcase
+                                 (string-trim-right str #\.)))))))
+
 
 (define (snake->lower-camel str)
   (let ((char-list (string->list str)))
