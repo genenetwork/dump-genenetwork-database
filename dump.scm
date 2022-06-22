@@ -775,6 +775,27 @@ is a <table> object."
     (set gn:inbredSet (field InbredSet Name InbredSetName))
     (set gn:description (field CaseAttribute Description))
     (set gn:caseAttributeId (field CaseAttribute Id))))
+
+(define-dump dump-groups
+  (tables (InbredSet
+           (left-join Species "USING (SpeciesId)"))
+          (string-join
+           '("WHERE Species.Name IN "
+             "(SELECT Name FROM Species ORDER BY OrderId) "
+             "GROUP BY InbredSet.Name "
+             "ORDER BY "
+             "IFNULL(InbredSet.FamilyOrder, InbredSet.FullName) "
+             "ASC, IFNULL(InbredSet.Family, InbredSet.FullName) "
+             "ASC, InbredSet.FullName ASC, InbredSet.MenuOrderId ASC")))
+  (schema-triples
+   (gn:name rdfs:range rdfs:Literal)
+   (gn:binomialName rdfs:range rdfs:Literal)
+   (gn:species rdfs:range gn:species))
+  (triples (string->identifier "inbredSet" (field InbredSet Name))
+    (set gn:name (field InbredSet Name))
+    (set gn:binomialName (field InbredSet fullName))
+    (set gn:species (field Species Name))))
+
 
 ;; Main function
 
@@ -804,3 +825,4 @@ is a <table> object."
        (dump-info-files db)
        (dump-schema db)
        (dump-case-attributes db)
+       (dump-groups db)))))
