@@ -476,7 +476,11 @@ must be remedied."
     (set gn:abstract
          ;; TODO: Why are there unprintable characters?
          (delete-substrings (field Publication Abstract)
-                            "\x01"))))
+                            "\x01"
+                            ;; \v is a vertical tab
+                            ;; character. Microsoft Word probably
+                            ;; still uses this.
+                            "\v"))))
 
 (define-dump dump-publish-xref
   (tables (PublishXRef
