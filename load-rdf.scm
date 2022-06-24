@@ -116,7 +116,7 @@ PROC."
                                    (zero? return-value))
                         (error "Invocation of program failed" (cons program args))))))))
 
-(define (put-graph sparql-endpoint username password rdf-file graph)
+(define* (put-graph sparql-endpoint username password rdf-file graph #:optional retry?)
   "Load RDF-FILE into GRAPH at SPARQL-ENDPOINT, a SPARQL 1.1 Graph
 Store HTTP Protocol endpoint, authenticating with USERNAME and
 PASSWORD. The PUT method is used, and therefore, any existing data in
@@ -134,7 +134,13 @@ the graph is deleted."
     (unless (= (quotient (response-code response)
                          100)
                2)
-      (error "Putting graph failed" response))))
+      ;; When uploading a large RDF file into a clean virtuoso, it
+      ;; fails for the first time, and succeeds only the second
+      ;; time. It is unclear why. So, perform this ugly hack of trying
+      ;; twice.
+      (if retry?
+          (put-graph sparql-endpoint username password rdf-file graph #f)
+          (error "Putting graph failed" response)))))
 
 (define (delete-graph port graph)
   "Delete GRAPH from virtuoso connecting to virtuoso on PORT."
@@ -185,7 +191,8 @@ the graph is deleted."
                      (assq-ref connection-settings 'virtuoso-username)
                      (assq-ref connection-settings 'virtuoso-password)
                      rdf-file
-                     %graph-uri)))))
+                     %graph-uri
+                     #t)))))
     ((arg0 _ ...)
      (format (current-error-port) "Usage: ~a CONNECTION-SETTINGS-FILE RDF-FILE~%" arg0)
      (exit #f))))
