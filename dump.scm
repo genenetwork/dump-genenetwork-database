@@ -489,7 +489,11 @@ must be remedied."
    (gn:phenotypeOfSpecies rdfs:domain gn:phenotype)
    (gn:phenotypeOfSpecies rdfs:range gn:species))
   (triples (phenotype-id->id (field PublishXRef PhenotypeId))
-    (set gn:phenotypeOfSpecies (inbred-set-name->id (field InbredSet Name)))))
+    (set gn:phenotypeOfSpecies (inbred-set-name->id (field InbredSet Name)))
+    (set gn:traitId (field PublishXRef id))
+    (set gn:publicationId
+         (string->identifier "publication"
+                             (number->string (field PublishXRef PublicationId))))))
 
 (define tissue-short-name->id
   (cut string->identifier "tissue" <>))
