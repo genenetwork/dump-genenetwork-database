@@ -142,19 +142,24 @@ the graph is deleted."
           (put-graph sparql-endpoint username password rdf-file graph #f)
           (error "Putting graph failed" response)))))
 
-(define (delete-graph port graph)
-  "Delete GRAPH from virtuoso connecting to virtuoso on PORT."
+(define (delete-graph port password graph)
+  "Delete GRAPH from virtuoso connecting to virtuoso on PORT
+authenticating as the dba user with PASSWORD."
   ;; We do this with SQL because doing it with SPARQL is too
   ;; slow. Note that this does not delete free-text index data, if
   ;; any. See
   ;; http://vos.openlinksw.com/owiki/wiki/VOS/VirtTipsAndTricksGuideDeleteLargeGraphs
   (call-with-pipe
-   (lambda (port)
-     (format port
-             "DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
+   (lambda (out)
+     (format out
+             "SET DSN=localhost:~a;
+SET PWD=~a;
+DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
+             port
+             password
              graph))
    OPEN_WRITE
-   "isql" "-S" (number->string port)))
+   "isql"))
 
 (define (time-thunk thunk)
   "Run THUNK and return the time taken in seconds."
@@ -176,6 +181,7 @@ the graph is deleted."
                (time-thunk
                 (cut delete-graph
                      (assq-ref connection-settings 'virtuoso-port)
+                     (assq-ref connection-settings 'virtuoso-password)
                      %graph-uri)))
        ;; Load data into virtuoso.
        (format (current-output-port)
