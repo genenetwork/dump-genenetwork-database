@@ -2,9 +2,14 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
-  #:export (translate-forms
+  #:export (string-blank?
+            translate-forms
             collect-forms
             map-alist))
+
+(define (string-blank? str)
+  "Return non-#f if STR consists only of whitespace characters."
+  (string-every char-set:whitespace str))
 
 (define (translate-forms from translator x)
   "Recursively pass (FROM ...) forms in source X to TRANSLATOR, and

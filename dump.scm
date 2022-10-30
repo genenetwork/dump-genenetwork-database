@@ -128,10 +128,6 @@ characters with an underscore and prefixing with gn:PREFIX."
              (drop char-list 1)
              char-list)))))
 
-(define (string-blank? str)
-  "Return non-#f if STR consists only of whitespace characters."
-  (string-every char-set:whitespace str))
-
 (define (scm->triples alist id)
   (for-each (match-lambda
               ((predicate . object)
