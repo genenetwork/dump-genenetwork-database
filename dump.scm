@@ -573,10 +573,7 @@ must be remedied."
 (define-dump dump-avg-method
   ;; The Name and Normalization fields seem to be the same. Dump only
   ;; the Name field.
-  ;;
-  ;; There are two records with Name as "N/A". Deduplicate.
-  (tables (AvgMethod)
-          "GROUP BY Name")
+  (tables (AvgMethod))
   (schema-triples
    (gn:name rdfs:range rdfs:Literal))
   (triples (avg-method-name->id (field AvgMethod Name))
