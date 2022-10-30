@@ -555,9 +555,18 @@ must be remedied."
                                         (field Investigators LastName)
                                         (field Investigators Email))
     (set rdf:type 'foaf:Person)
-    (set foaf:name (string-append (field Investigators FirstName) " " (field Investigators LastName)))
+    ;; Special case Yohan Bossé's name since the last name has
+    ;; unprintable characters.
+    (set foaf:name (string-append (field Investigators FirstName) " "
+                                  (if (string=? (field Investigators FirstName) "Yohan")
+                                      "Bossé"
+                                      (field Investigators LastName))))
     (set foaf:givenName (field Investigators FirstName))
-    (set foaf:familyName (field Investigators LastName))
+    ;; Special case Yohan Bossé's name since the last name has
+    ;; unprintable characters.
+    (set foaf:familyName (if (string=? (field Investigators FirstName) "Yohan")
+                             "Bossé"
+                             (field Investigators LastName)))
     (set foaf:phone (field Investigators Phone))
     (set foaf:mbox (fix-email-id (field Investigators Email)))
     (set foaf:homepage (field Investigators Url))
