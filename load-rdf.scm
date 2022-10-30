@@ -152,12 +152,8 @@ authenticating as the dba user with PASSWORD."
   (call-with-pipe
    (lambda (out)
      (format out
-             "SET DSN=localhost:~a;
-SET PWD=~a;
-DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
-             port
-             password
-             graph))
+             "SET DSN=localhost:~a; SET PWD=~a; DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
+             port password graph))
    OPEN_WRITE
    "isql"))
 
