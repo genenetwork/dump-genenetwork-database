@@ -773,6 +773,9 @@ is a <table> object."
 
 ;; Import GeneRIF
 
+;; Download GeneRIF data from
+;; https://ftp.ncbi.nih.gov/gene/GeneRIF/generifs_basic.gz
+
 (define decode-html-entities
   (cut regexp-substitute/global
        #f
