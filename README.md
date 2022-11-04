@@ -26,7 +26,8 @@ shown below. Take care to replace the placeholders within angle brackets
 with the appropriate values.
 
 ``` scheme
-((sql-username . "<sql-username-here>")
+((generif-data-file . "/path/to/generifs_basic.gz")
+ (sql-username . "<sql-username-here>")
  (sql-password . "<sql-password-here>")
  (sql-database . "<sql-database-name-here>")
  (sql-host . "<sql-hostname-here>")
