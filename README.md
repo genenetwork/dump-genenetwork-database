@@ -21,6 +21,8 @@ Build the sources.
 $ make
 ```
 
+## Set up connection parameters
+
 Describe the database connection parameters in a file *conn.scm* file as
 shown below. Take care to replace the placeholders within angle brackets
 with the appropriate values.
@@ -40,6 +42,8 @@ with the appropriate values.
  (sparql-port . <sparql-endpoint-port-here>))
 ```
 
+## Dump the database
+
 Then, to dump the database to \~/data/dump, run
 
 ``` shell
@@ -50,6 +54,8 @@ Make sure there is enough free space! It\'s best to dump the database on
 penguin2 where disk space and bandwidth are not significant
 constraints.
 
+## Validate and load dump
+
 Then, validate the dumped RDF using `rapper` and load it into
 virtuoso. This will load the dumped RDF into the
 `http://genenetwork.org` graph, and will delete all pre-existing data
@@ -59,6 +65,8 @@ in that graph.
 $ rapper --input turtle --count ~/data/dump/dump.ttl
 $ ./pre-inst-env ./load-rdf.scm conn.scm ~/data/dump/dump.ttl
 ```
+
+## Visualize schema
 
 Now, you may query virtuoso to visualize the SQL and RDF schema.
 
