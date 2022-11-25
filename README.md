@@ -42,6 +42,10 @@ with the appropriate values.
  (sparql-port . <sparql-endpoint-port-here>))
 ```
 
+Download the GeneRIF data file from
+https://ftp.ncbi.nih.gov/gene/GeneRIF/generifs_basic.gz and specify
+its path in the `generif-data-file` parameter.
+
 ## Dump the database
 
 Then, to dump the database to \~/data/dump, run
