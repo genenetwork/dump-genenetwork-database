@@ -46,6 +46,22 @@ Download the GeneRIF data file from
 https://ftp.ncbi.nih.gov/gene/GeneRIF/generifs_basic.gz and specify
 its path in the `generif-data-file` parameter.
 
+Here's a sample *conn.scm*.
+``` scheme
+((generif-data-file . "/home/gn/generifs_basic.gz")
+ (sql-username . "webqtlout")
+ (sql-password . "my-secret-password")
+ (sql-database . "db_webqtl")
+ (sql-host . "localhost")
+ (sql-port . 3306)
+ (virtuoso-port . 9081)
+ (virtuoso-username . "dba")
+ (virtuoso-password . "my-secret-virtuoso-password")
+ (sparql-scheme . http)
+ (sparql-host . "localhost")
+ (sparql-port . 9082))
+```
+
 ## Dump the database
 
 Then, to dump the database to \~/data/dump, run
