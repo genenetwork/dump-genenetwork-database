@@ -669,7 +669,7 @@ must be remedied."
          (and (not (string-prefix-ci? "no geo series"
                                       (field Datasets GeoSeries)))
               (field Datasets GeoSeries)))
-    (set gn:name (field InfoFiles InfoFileTitle Name))
+    (set gn:name (field InfoFiles InfoPageName))
     (set gn:title (field InfoFiles Title))
     (set gn:specifics (field InfoFiles Specifics))
     (set gn:datasetGroup (field Datasets DatasetName DatasetGroup))
