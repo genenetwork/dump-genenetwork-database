@@ -367,17 +367,21 @@ must be remedied."
 
 (define-dump dump-inbred-set
   (tables (InbredSet
-           (inner-join Species "USING (SpeciesId)")))
+           (left-join Species "ON InbredSet.SpeciesId=Species.Id")
+           (left-join MappingMethod
+                       "ON InbredSet.MappingMethodId=MappingMethod.Id")))
   (schema-triples
    (gn:fullName rdfs:range rdfs:Literal)
    (gn:geneticType rdfs:range rdfs:Literal)
    (gn:family rdfs:range rdfs:Literal)
-   (gn:inbredSetOfSpecies rdfs:range gn:species))
+   (gn:inbredSetOfSpecies rdfs:range gn:species)
+   (gn:inbredSetOfMappingMethod rdfs:range gn:mappingMethod))
   (triples (inbred-set-name->id (field InbredSet Name))
     (set rdf:type 'gn:inbredSet)
     (set gn:fullName (field InbredSet FullName))
     (set gn:geneticType (field InbredSet GeneticType))
     (set gn:family (field InbredSet Family))
+    (set gn:inbredSetOfMappingMethod (field MappingMethod Name))
     (set gn:inbredSetOfSpecies
          (binomial-name->species-id (field Species FullName BinomialName)))))
 
