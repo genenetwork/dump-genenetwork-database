@@ -385,7 +385,91 @@ must be remedied."
     (set gn:inbredSetOfSpecies
          (binomial-name->species-id (field Species FullName BinomialName)))))
 
+;; Metadata for published datasets
+(define-dump dump-publishfreeze
+  (tables (PublishFreeze
+           (left-join InbredSet "USING (InbredSetId)")))
   (schema-triples
+   (gn:datasetOfInbredSet rdfs:range gn:inbredSet)
+   (gn:name rdfs:range rdfs:Literal)
+   (gn:fullName rdfs:range rdfs:Literal)
+   (gn:shortName rdfs:range rdfs:Literal)
+   (gn:createTime rdfs:range rdfs:Literal))
+  (triples (string->identifier "dataset" (field PublishFreeze Name))
+    (set rdf:type 'gn:dataset)
+    (set gn:name (field PublishFreeze Name))
+    (set gn:fullName (field PublishFreeze FullName))
+    (set gn:shortName (field PublishFreeze ShortName))
+    (set gn:createTime (field PublishFreeze CreateTime))
+    (set gn:datasetOfInbredSet
+         (inbred-set-name->id (field InbredSet Name InbredSetName)))))
+
+;; Phenotype metadata
+(define-dump dump-published-phenotypes
+  (tables (PublishXRef
+           (inner-join
+            Phenotype
+            "ON PublishXRef.PhenotypeId = Phenotype.Id")
+           (inner-join
+            Publication
+            "ON PublishXRef.PublicationId =
+Publication.Id")
+           (inner-join PublishFreeze "USING (InbredSetId)"))
+          "WHERE PublishFreeze.public > 0 AND PublishFreeze.confidentiality < 1")
+  (schema-triples
+   (gn:prePublicationDescription rdfs:range rdfs:Literal)
+   (gn:postPublicationDescription rdfs:range rdfs:Literal)
+   (gn:originalDescription rdfs:range rdfs:Literal)
+   (gn:units rdfs:range rdfs:Literal)
+   (gn:prePublicationAbbreviation rdfs:range rdfs:Literal)
+   (gn:postPublicationAbbreviation rdfs:range rdfs:Literal)
+   (gn:labCode rdfs:range rdfs:Literal)
+   (gn:submitter rdfs:range rdfs:Literal)
+   (gn:owner rdfs:range rdfs:Literal)
+   (gn:phenotypeOfDataset rdfs:range gn:dataset)
+   (gn:pubMedId rdfs:range rdfs:Literal)
+   (gn:publicationId rdfs:range gn:publication)
+   (gn:mean rdfs:range rdfs:Literal)
+   (gn:locus rdfs:range rdfs:Literal)
+   (gn:lrs rdfs:range rdfs:Literal)
+   (gn:additive rdfs:range rdfs:Literal)
+   (gn:sequence rdfs:range rdfs:Literal)
+   (gn:comments rdfs:range rdfs:Literal))
+  ;; In GN, a given trait is identified by the id of the PublishXRef!
+  (triples (string->identifier "phenotype"
+                               (number->string
+                                (field PublishXRef Id)))
+    (set rdf:type 'gn:phenotype)
+    (set rdf:type 'gn:phenotype)
+    (set gn:prePublicationDescription (field Phenotype Pre_publication_description))
+    (set gn:prePublicationDescription (field Phenotype Pre_publication_description))
+    (set gn:postPublicationDescription (field Phenotype Post_publication_description))
+    (set gn:originalDescription (field Phenotype Original_description))
+    (set gn:units (field Phenotype Units))
+    (set gn:prePublicationAbbreviation (field Phenotype Pre_publication_description))
+    (set gn:postPublicationAbbreviation (field Phenotype Post_publication_abbreviation))
+    (set gn:labCode (field Phenotype Lab_code))
+    (multiset gn:submitter
+              (map string-trim (string-split
+                                (field Phenotype Submitter) #\,)))
+    (multiset gn:owner
+              (map string-trim (string-split
+                                (field Phenotype Owner) #\,)))
+    (set gn:pubMedId (field Publication PubMed_ID))
+    (set gn:publicationId
+         (string->identifier
+          "publication"
+          (number->string (field Publication Id))))
+    (set gn:mean (field PublishXRef mean))
+    (set gn:locus (field PublishXRef Locus))
+    (set gn:lrs (field PublishXRef LRS))
+    (set gn:additive (field PublishXRef additive))
+    (set gn:sequence (field PublishXRef Sequence))
+    (set gn:comments (field PublishXRef comments))
+    (set gn:phenotypeOfDataset
+         (string->identifier "dataset"
+                             (field PublishFreeze Name)))))
+
 
 (define-dump dump-publication
   (tables (Publication))
@@ -783,6 +867,7 @@ is a <table> object."
        (dump-strain db)
        (dump-mapping-method db)
        (dump-inbred-set db)
+       (dump-publishfreeze db)
        (dump-publication db)
        (dump-tissue db)
        (dump-investigators db)
@@ -792,3 +877,4 @@ is a <table> object."
        (dump-schema db)
        (dump-groups db)
        (import-generif (assq-ref %connection-settings 'generif-data-file))))))
+       (dump-published-phenotypes db)
