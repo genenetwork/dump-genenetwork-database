@@ -385,31 +385,7 @@ must be remedied."
     (set gn:inbredSetOfSpecies
          (binomial-name->species-id (field Species FullName BinomialName)))))
 
-(define (phenotype-id->id id)
-  (string->identifier "phenotype" (number->string id)))
-
-(define-dump dump-phenotype
-  (tables (Phenotype))
   (schema-triples
-   (gn:prePublicationDescription rdfs:range rdfs:Literal)
-   (gn:postPublicationDescription rdfs:range rdfs:Literal)
-   (gn:originalDescription rdfs:range rdfs:Literal)
-   (gn:labCode rdfs:range rdfs:Literal)
-   (gn:submitter rdfs:range rdfs:Literal)
-   (gn:owner rdfs:range rdfs:Literal)
-   (gn:authorizedUsers rdfs:range rdfs:Literal)
-   (gn:units rdfs:range rdfs:Literal))
-  (triples (phenotype-id->id (field Phenotype Id))
-    (set rdf:type 'gn:phenotype)
-    (set gn:prePublicationDescription (field Phenotype Pre_publication_description))
-    (set gn:postPublicationDescription (field Phenotype Post_publication_description))
-    (set gn:originalDescription (field Phenotype Original_description))
-    (set gn:labCode (field Phenotype Lab_code))
-    (set gn:submitter (field Phenotype Submitter))
-    (set gn:owner (field Phenotype Owner))
-    (set gn:authorizedUsers (field Phenotype Authorized_Users))
-    (set gn:units (and (string-ci=? (field Phenotype Units) "unknown")
-                       (field Phenotype Units)))))
 
 (define-dump dump-publication
   (tables (Publication))
@@ -446,18 +422,6 @@ must be remedied."
                             ;; still uses this.
                             "\v"))))
 
-(define-dump dump-publish-xref
-  (tables (PublishXRef
-           (inner-join InbredSet "USING (InbredSetId)")))
-  (schema-triples
-   (gn:phenotypeOfSpecies rdfs:domain gn:phenotype)
-   (gn:phenotypeOfSpecies rdfs:range gn:species))
-  (triples (phenotype-id->id (field PublishXRef PhenotypeId))
-    (set gn:phenotypeOfSpecies (inbred-set-name->id (field InbredSet Name)))
-    (set gn:traitId (field PublishXRef id))
-    (set gn:publicationId
-         (string->identifier "publication"
-                             (number->string (field PublishXRef PublicationId))))))
 
 (define tissue-short-name->id
   (cut string->identifier "tissue" <>))
@@ -819,9 +783,7 @@ is a <table> object."
        (dump-strain db)
        (dump-mapping-method db)
        (dump-inbred-set db)
-       (dump-phenotype db)
        (dump-publication db)
-       (dump-publish-xref db)
        (dump-tissue db)
        (dump-investigators db)
        (dump-avg-method db)
