@@ -799,6 +799,84 @@ is a <table> object."
     (set gn:binomialName (field InbredSet fullName))
     (set gn:species (field Species Name))))
 
+(define-dump dump-generif
+  (tables (GeneRIF
+	   (left-join Species "USING (SpeciesId)")
+	   (left-join GeneRIFXRef "ON GeneRIFXRef.GeneRIFId = GeneRIF.Id")
+	   (left-join GeneCategory "ON GeneRIFXRef.GeneCategoryId = GeneCategory.Id"))
+          "WHERE GeneRIF.display > 0")
+  (schema-triples
+   (gn:versionId rdfs:range rdfs:Literal)
+   (gn:symbol rdfs:range rdfs:Literal)
+   (gn:pubMedId rdfs:range rdfs:Literal)
+   (gn:geneRIFOfSpecies rdfs:range gn:species)
+   (gn:comment rdfs:range rdfs:Literal)
+   (gn:email rdfs:range rdfs:Literal)
+   (gn:weburl rdfs:range rdfs:Literal)
+   (gn:createTime rdfs:range rdfs:Literal)
+   (gn:reason rdfs:range rdfs:Literal)
+   (gn:geneRIFOFGenenetwork rdfs:range gn:geneRIF)
+   (gn:geneCategory rdfs:range gn:geneRIF)
+   (gn:initial rdfs:range rdfs:Literal))
+  (triples (string->identifier
+            "geneRIF"
+            (number->string (field GeneRIF Id)))
+    (set rdf:type 'gn:geneRIFOfGenenetwork)
+    (set gn:versionId (field GeneRIF versionId))
+    (set gn:symbol (field GeneRIF symbol))
+    (set gn:geneCategory (field GeneCategory Name))
+    (set gn:pubMedId (field GeneRIF PubMed_ID))
+    (set gn:geneRIFOfSpecies
+         (binomial-name->species-id
+          (field Species FullName)))
+    (set gn:comment
+         (replace-substrings
+          (field GeneRIF comment)
+          '(("\xa0" . " ")
+            ("â\x81„" . "/")
+            ("â€\x9d" . #\")
+            ("â€™" . #\')
+            ("\x02" . "")
+            ("\x01" . "")
+            ("Î²" . "β")
+            ("Î±-Â\xad" . "α")
+            ("Â\xad" . "")
+            ("Î±" . "α")
+            ("â€“" . "-"))))
+    (set gn:email (field GeneRIF email))
+    (set gn:weburl (field GeneRIF weburl))
+    (set gn:createTime (field GeneRIF createtime))
+    (set gn:reason (field GeneRIF reason))
+    (set gn:initial (field GeneRIF initial))))
+
+;; GeneRIF data from NCBI
+(define-dump dump-generif-basic
+  (tables (GeneRIF_BASIC
+           (left-join Species "USING (SpeciesId)")))
+  (schema-triples
+   (gn:taxId rdfs:range rdfs:Literal)
+   (gn:geneId rdfs:range rdfs:Literal)
+   (gn:symbol rdfs:range rdfs:Literal)
+   (gn:pubMedId rdfs:range rdfs:Literal)
+   (gn:symbol rdfs:range rdfs:Literal)
+   (gn:geneRIFOfSpecies rdfs:range gn:species)
+   (gn:createTime rdfs:range rdfs:Literal)
+   (gn:versionId rdfs:range rdfs:Literal))
+  (triples
+      (string->identifier
+       "geneRIF"
+       (number->string (field GeneRIF_BASIC GeneId)))
+    (set rdf:type 'gn:geneRIFOfNcbi)
+    (set gn:geneRIFOfSpecies
+         (binomial-name->species-id
+          (field Species FullName)))
+    (set gn:taxId (field GeneRIF_BASIC TaxID))
+    (set gn:geneId (field GeneRIF_BASIC GeneId))
+    (set gn:symbol (field GeneRIF_BASIC symbol))
+    (set gn:pubMedId (field GeneRIF_BASIC PubMed_ID))
+    (set gn:createTime (field GeneRIF_BASIC createtime))
+    (set gn:versionId (field GeneRIF_BASIC VersionId))))
+
 
 ;; Import GeneRIF
 
@@ -876,5 +954,8 @@ is a <table> object."
        (dump-info-files db)
        (dump-schema db)
        (dump-groups db)
-       (import-generif (assq-ref %connection-settings 'generif-data-file))))))
        (dump-published-phenotypes db)
+       (dump-generif db)
+       (dump-generif-basic db)
+       (import-generif (assq-ref %connection-settings 'generif-data-file))))))
+
