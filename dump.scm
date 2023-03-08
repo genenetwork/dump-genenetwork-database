@@ -958,4 +958,3 @@ is a <table> object."
        (dump-generif db)
        (dump-generif-basic db)
        (import-generif (assq-ref %connection-settings 'generif-data-file))))))
-
