@@ -33,6 +33,8 @@
                                                       (format #f "~a.~a" table column))
                                                      ((table column alias)
                                                       (format #f "~a.~a AS ~a" table column alias))
+                                                     ((table column operation alias)
+                                                      (format #f "~a(~a.~a) AS ~a" operation table column alias))
                                                      (field-spec
                                                       (error "Invalid field specification" field-spec)))
                                                    (syntax->datum #'fields))
