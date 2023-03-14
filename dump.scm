@@ -813,8 +813,8 @@ is a <table> object."
    (gn:pubMedId rdfs:range rdfs:Literal)
    (gn:geneRIFOfSpecies rdfs:range gn:species)
    (gn:comment rdfs:range rdfs:Literal)
-   (gn:email rdfs:range rdfs:Literal)
    (gn:weburl rdfs:range rdfs:Literal)
+   (gn:createTime rdfs:range xsd:datetime)
    (gn:createTime rdfs:range rdfs:Literal)
    (gn:reason rdfs:range rdfs:Literal)
    (gn:geneRIFOFGenenetwork rdfs:range gn:geneRIF)
@@ -832,37 +832,44 @@ is a <table> object."
          (binomial-name->species-id
           (field Species FullName)))
     (set gn:comment
-         (replace-substrings
-          (field GeneRIF comment)
-          '(("\xa0" . " ")
-            ("â\x81„" . "/")
-            ("â€\x9d" . #\")
-            ("â€™" . #\')
-            ("\x02" . "")
-            ("\x01" . "")
-            ("Î²" . "β")
-            ("Î±-Â\xad" . "α")
-            ("Â\xad" . "")
-            ("Î±" . "α")
-            ("â€“" . "-"))))
-    (set gn:email (field GeneRIF email))
+         (format #f "(~a) (~a) ~a"
+                 (time-unix->string (field GeneRIF createtime) "~5")
+                 (field GeneRIF email)
+                 (replace-substrings
+                  (field GeneRIF comment)
+                  '(("\xa0" . " ")
+                    ("â\x81„" . "/")
+                    ("â€\x9d" . #\")
+                    ("â€™" . #\')
+                    ("\x02" . "")
+                    ("\x01" . "")
+                    ("Î²" . "β")
+                    ("Î±-Â\xad" . "α")
+                    ("Â\xad" . "")
+                    ("Î±" . "α")
+                    ("â€“" . "-")))))
+    (set gn:createTime
+         (annotate-field
+          (time-unix->string
+           (field GeneRIF createtime) "~5")
+          '^^xsd:datetime))
     (set gn:weburl (field GeneRIF weburl))
-    (set gn:createTime (field GeneRIF createtime))
     (set gn:reason (field GeneRIF reason))
     (set gn:initial (field GeneRIF initial))))
 
 ;; GeneRIF data from NCBI
 (define-dump dump-generif-basic
   (tables (GeneRIF_BASIC
-           (left-join Species "USING (SpeciesId)")))
+           (left-join Species "USING (SpeciesId)"))
+          "GROUP BY SpeciesId, symbol, GeneId, VersionId")
   (schema-triples
    (gn:taxId rdfs:range rdfs:Literal)
    (gn:geneId rdfs:range rdfs:Literal)
-   (gn:symbol rdfs:range rdfs:Literal)
    (gn:pubMedId rdfs:range rdfs:Literal)
+   (pubmed:pmid rdfs:range rdfs:Literal)
+   (gn:comment rdfs:range rdfs:Literal)
    (gn:symbol rdfs:range rdfs:Literal)
    (gn:geneRIFOfSpecies rdfs:range gn:species)
-   (gn:createTime rdfs:range rdfs:Literal)
    (gn:versionId rdfs:range rdfs:Literal))
   (triples
       (string->identifier
@@ -872,11 +879,19 @@ is a <table> object."
     (set gn:geneRIFOfSpecies
          (binomial-name->species-id
           (field Species FullName)))
-    (set gn:taxId (field GeneRIF_BASIC TaxID))
-    (set gn:geneId (field GeneRIF_BASIC GeneId))
+    (set gn:taxId (ontology 'taxon: (field GeneRIF_BASIC TaxID)))
+    (set gn:geneId (ontology 'generif: (field GeneRIF_BASIC GeneId)))
     (set gn:symbol (field GeneRIF_BASIC symbol))
-    (set gn:pubMedId (field GeneRIF_BASIC PubMed_ID))
-    (set gn:createTime (field GeneRIF_BASIC createtime))
+    (set gn:comment (field GeneRIF_BASIC comment))
+    (multiset gn:pubMedId
+              (map (compose
+                    (cut ontology 'pubmed: <>)
+                    string-trim)
+                   (string-split (field GeneRIF_BASIC
+                                        PubMed_ID
+                                        GROUP_CONCAT
+                                        PubMedID)
+                                 #\,)))
     (set gn:versionId (field GeneRIF_BASIC VersionId))))
 
 
@@ -956,6 +971,8 @@ is a <table> object."
        (dump-investigators db)
        (dump-avg-method db)
        (dump-gene-chip db)
+       (dump-generif-basic db)
+       (dump-generif db)
        (dump-info-files db)
        (dump-schema db)
        (dump-groups db)
