@@ -1,7 +1,8 @@
 (define-module (dump triples)
   #:use-module (ice-9 match)
   #:use-module (dump utils)
-  #:export (string->identifier
+  #:export (ontology
+            string->identifier
             prefix
             triple
             scm->triples))
@@ -20,6 +21,10 @@ characters with an underscore and prefixing with gn:PREFIX."
 
 (define (prefix prefix iri)
   (format #t "@prefix ~a ~a .~%" prefix iri))
+
+(define (ontology prefix value)
+  (string->symbol
+   `,(format #f "~a~a" prefix value)))
 
 (define (triple subject predicate object)
   (unless (or (string? subject)
