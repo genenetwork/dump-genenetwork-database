@@ -1,11 +1,27 @@
 (define-module (dump utils)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-19)
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
   #:export (string-blank?
             translate-forms
             collect-forms
-            map-alist))
+            map-alist
+            time-unix->string))
+
+
+(define (time-unix->string seconds . maybe-format)
+  "Given an integer saying the number of seconds since the Unix
+epoch (1970-01-01 00:00:00), SECONDS, format it as a human readable
+date and time-string, possible using the MAYBE-FORMAT."
+  (letrec ([time-unix->time-utc
+            (lambda (seconds)
+              (add-duration
+               (date->time-utc (make-date 0 0 0 0 1 1 1970 0))
+               (make-time time-duration 0 seconds)))])
+    (apply date->string
+           (time-utc->date (time-unix->time-utc seconds))
+           maybe-format)))
 
 (define (string-blank? str)
   "Return non-#f if STR consists only of whitespace characters."
