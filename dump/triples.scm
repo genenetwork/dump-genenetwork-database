@@ -40,7 +40,16 @@ characters with an underscore and prefixing with gn:PREFIX."
               (number? object))
     (error "Triple object not a string, symbol or number:"
            (list subject predicate object)))
-  (format #t "~a ~a ~s .~%" subject predicate object))
+  (let ([format-string
+         (if (symbol? object)
+             "~a ~a ~a .~%" "~a ~a ~s .~%")]
+        [object
+         (if (and (symbol? object)
+                  (string-contains (symbol->string object)
+                                   "\""))
+             (symbol->string object)
+             object)])
+    (format #t format-string subject predicate object)))
 
 (define (scm->triples alist id)
   (for-each (match-lambda

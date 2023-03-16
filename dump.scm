@@ -89,6 +89,15 @@
 
 ;;; Dump tables
 
+(define (annotate-field field schema)
+  (let ([schema (cond ((symbol? schema)
+                       (symbol->string schema))
+                      ((string? schema) schema)
+                      (else
+                       (error "Use a string/symbol")))])
+    (string->symbol
+     (format #f "~s~a" field schema))))
+
 (define (delete-substrings str . substrings)
   "Delete SUBSTRINGS, a list of strings, from STR."
   (fold (lambda (substring result)
