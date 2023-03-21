@@ -969,6 +969,8 @@ is a <table> object."
        (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
        (prefix "taxon:" "<http://purl.uniprot.org/taxonomy/>")
        (prefix "generif:" "<https://www.ncbi.nlm.nih.gov/gene?Db=gene&Cmd=DetailsSearch&Term=>")
+       (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+       (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
        (newline)
        (dump-species db)
        (dump-strain db)
