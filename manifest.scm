@@ -7,7 +7,7 @@
 (use-modules (gnu packages autotools)
              ((gnu packages base) #:select (gnu-make))
              ((gnu packages bioinformatics) #:prefix guix:)
-             ((gnu packages databases) #:select (virtuoso-ose))
+             ((gnu packages databases) #:select (virtuoso-ose mariadb))
              (gnu packages graphviz)
              (gnu packages guile)
              ((gnu packages guile-xyz) #:select (guile-sparql) #:prefix guix:)
@@ -71,8 +71,8 @@
     (license license:gpl3+)))
 
 (packages->manifest
- (list gnu-make guile-3.0 guile-dbi guile-dbd-mysql
+ (list gnu-make guile-3.0 guile-dbi guile-dbd-mysql guile-zlib
        ;; We abuse (ccwl graphviz) as a library to visualize the database
        ;; schema. Hence we need ccwl and guile-libyaml.
        ccwl graphviz guile-hashing guile-libyaml guile-sparql
-       raptor2 run64 virtuoso-ose))
+       raptor2 run64 virtuoso-ose mariadb))
