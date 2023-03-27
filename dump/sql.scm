@@ -29,12 +29,12 @@
                             (_ ""))
                         #,(string-join (filter-map (match-lambda
                                                      ('distinct #f)
+                                                     (((query alias))
+                                                      (format #f "~a AS ~a" query alias))
                                                      ((table column)
                                                       (format #f "~a.~a" table column))
                                                      ((table column alias)
                                                       (format #f "~a.~a AS ~a" table column alias))
-                                                     ((table column operation alias)
-                                                      (format #f "~a(~a.~a) AS ~a" operation table column alias))
                                                      (field-spec
                                                       (error "Invalid field specification" field-spec)))
                                                    (syntax->datum #'fields))

@@ -134,6 +134,7 @@ association list mapping substrings to their replacements."
                        #`(key #,(symbol->string
                                  (syntax->datum
                                   ((syntax-rules (field)
+                                     ((field (query alias)) alias)
                                      ((field table column) column)
                                      ((field table column alias) alias)
                                      ((field table column operation alias) alias))
@@ -149,6 +150,7 @@ ALIST field-name) forms."
                                     #,(symbol->string
                                        (syntax->datum
                                         ((syntax-rules (field)
+                                           ((field (query alias)) alias)
                                            ((field table column) column)
                                            ((field table column alias) alias)
                                            ((field table column operation alias) alias))
@@ -311,7 +313,10 @@ must be remedied."
                                                            ((table-name column-name _ ...)
                                                             (datum->syntax
                                                              x (column-id (symbol->string table-name)
-                                                                          (symbol->string column-name))))))
+                                                                          (symbol->string column-name))))
+                                                           (((query alias))
+                                                            (datum->syntax
+                                                             x (column-id query (symbol->string alias))))))
                                                        (collect-fields predicate-clause))))
                                    #,(dump-id dump-table (syntax->datum #'predicate)))
                                   ;; Automatically create domain triples
