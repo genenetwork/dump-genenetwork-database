@@ -192,6 +192,28 @@ ALIST field-name) forms."
       (string-append
        dump-table "_" (remove-namespace (symbol->string predicate)))))))
 
+(define-syntax blank-node
+  (syntax-rules ()
+    "Allow having set and multiset within the context of a blank-node"
+    [(_ (op predicate object) ...)
+     (let [(node (string-join
+                  (filter-map (match-lambda
+                                ((pred . obj)
+                                 (match obj
+                                   ((and (?  string? obj)
+                                         (?  string-null? obj))
+                                    #f)
+                                   ((?  symbol? obj)
+                                    (format #f "~a ~a" pred (symbol->string obj)))
+                                   (_
+                                    (format #f "~a ~s" pred obj)))))
+                              (map-alist '()
+                                (op predicate object) ...))
+                  " ; "))]
+       (if (string-null? node)
+           ""
+           (format #f "[ ~a ]" node)))]))
+
 (define-syntax syntax-let
   (syntax-rules ()
     "Like match-let, but for syntax.
