@@ -1,4 +1,5 @@
 (define-module (dump triples)
+  #:use-module (ice-9 regex)
   #:use-module (ice-9 match)
   #:use-module (dump utils)
   #:export (ontology
@@ -40,16 +41,16 @@ characters with an underscore and prefixing with gn:PREFIX."
               (number? object))
     (error "Triple object not a string, symbol or number:"
            (list subject predicate object)))
-  (let ([format-string
-         (if (symbol? object)
-             "~a ~a ~a .~%" "~a ~a ~s .~%")]
-        [object
-         (if (and (symbol? object)
-                  (string-contains (symbol->string object)
-                                   "\""))
-             (symbol->string object)
-             object)])
-    (format #t format-string subject predicate object)))
+  (match object
+    ((and (?  string? object)
+          (?  (lambda (el) (string-match "^\\[ .* \\]$" object))))
+     (format #t "~a ~a ~a .~%" subject predicate object))
+    ((?  symbol? object)
+     (format #t "~a ~a ~a .~%" subject predicate object))
+    ((or (?  string? object)
+         (?  number? object))
+     (format #t "~a ~a ~s .~%" subject predicate object))
+    (_ (error "Trible object must be a string, symbol, number or blank node"))))
 
 (define (scm->triples alist id)
   (for-each (match-lambda
