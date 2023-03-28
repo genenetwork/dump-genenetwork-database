@@ -903,7 +903,9 @@ is a <table> object."
                     (blank-node
                      (set gn:category genecategory)
                      (multiset gn:pubMedId
-                               (map (cut ontology 'pubmed: <>)
+                               (map (lambda (el) (if (string-null? el)
+                                                     ""
+                                                     (ontology 'pubmed: el)))
                                     (string-split pmid #\space)))
                      (set gn:author (regexp-substitute/global #f "@.*$"
                                                email
