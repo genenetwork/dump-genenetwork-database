@@ -939,57 +939,6 @@ is a <table> object."
     ))
 
 
-;; Import GeneRIF
-
-;; Download GeneRIF data from
-;; https://ftp.ncbi.nih.gov/gene/GeneRIF/generifs_basic.gz
-(define decode-html-entities
-  (cut regexp-substitute/global
-       #f
-       ;; We tolerate the absence of the trailing semicolon.
-       "&#([[:digit:]]+);{0,1}"
-       <>
-       'pre
-       (compose string integer->char string->number (cut match:substring <> 1))
-       'post))
-
-(define (import-generif generif-data-file)
-  ;; TODO: Link to gene objects, not merely literal Gene IDs.
-  (triple 'gn:geneId 'rdfs:domain 'gn:geneRIF)
-  (triple 'gn:geneId 'rdfs:range 'rdfs:Literal)
-  ;; TODO: Link to gn:publication objects, not merely literal PubMed
-  ;; IDs.
-  (triple 'gn:geneRIFEvidencedByPubMedId 'rdfs:domain 'gn:geneRIF)
-  (triple 'gn:geneRIFEvidencedByPubMedId 'rdfs:range 'rdfs:Literal)
-  (triple 'gn:geneRIFText 'rdfs:domain 'gn:geneRIF)
-  (triple 'gn:geneRIFText 'rdfs:range 'rdfs:Literal)
-
-  (call-with-gzip-input-port (open-input-file generif-data-file)
-    (lambda (port)
-      ;; Read and discard header.
-      (get-line port)
-      ;; Dump other lines.
-      (port-transduce
-       (compose (tenumerate)
-                (tmap (match-lambda
-                        ;; Is there a better way to identify GeneRIF
-                        ;; entries instead of merely enumerating them?
-                        ((i . line)
-                         (match (string-split line #\tab)
-                           ((_ gene-id pubmed-id _ text)
-                            (scm->triples
-                             `((rdf:type . gn:geneRIF)
-                               (gn:geneId . ,(string->number gene-id))
-                               (gn:pubMedId . ,(string->number pubmed-id))
-                               ;; Some text has HTML entities. Decode
-                               ;; them.
-                               (gn:geneRIFText . ,(decode-html-entities text)))
-                             (string->identifier "geneRIF" (number->string i)))))))))
-       (const #t)
-       get-line
-       port))))
-
-
 ;; Main function
 
 (call-with-genenetwork-database
@@ -1020,6 +969,5 @@ is a <table> object."
        (dump-info-files db)
        (dump-schema db)
        (dump-groups db)
-       (dump-published-phenotypes db)
-       (import-generif (assq-ref %connection-settings 'generif-data-file))))))
+       (dump-published-phenotypes db)))))
 
