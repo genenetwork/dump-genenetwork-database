@@ -865,16 +865,18 @@ is a <table> object."
            (left-join GeneRIF "USING (symbol)")
            (left-join GeneRIFXRef "ON GeneRIFXRef.GeneRIFId = GeneRIF.Id")
            (left-join GeneCategory "ON GeneRIFXRef.GeneCategoryId = GeneCategory.Id"))
-          "WHERE GeneRIF.display > 0 and GeneRIF.VersionId = 0 AND GeneRIF.Id != 2322 GROUP BY GeneRIF.symbol")
+          "WHERE GeneRIF.display > 0 and GeneRIF.VersionId = 0 GROUP BY GeneRIF.symbol")
   (schema-triples
+   (gn:geneWikiEntry rdfs:domain gn:geneWiki)
    (gn:geneWikiEntryOfGN rdfs:domain gn:geneWiki)
+   (gn:geneWikiEntryofNCBI rdfs:domain gn:geneWiki)
    (gn:weburl rdfs:domain gn:geneWiki)
    (gn:versionId rdfs:domain gn:geneWiki)
    (gn:category rdfs:domain gn:geneWiki)
    (gn:pubMedId rdfs:domain rdfs:Literal)
    (gn:createTime rdfs:range xsd:datetime))
   (triples (ontology 'generif:
-                     (field GeneRIF_BASIC GeneId))
+                      (field GeneRIF_BASIC GeneId))
     (set rdf:type 'gn:geneWikiEntry)
     (set gn:symbol (field GeneRIF symbol))
     (multiset gn:geneWikiEntryOfGn
@@ -893,33 +895,49 @@ is a <table> object."
                                                     ("Î±-Â\xad" . "α")
                                                     ("Â\xad" . "")
                                                     ("Î±" . "α")
-                                                    ("â€“" . "-")))
-                              ]
+                                                    ("â€“" . "-")))]
                      [comments (string-split-substring entries ";;;;;")])
                 (map
                  (match-lambda
-                   ;; annotate pubmed id properly
                    ((genecategory pmid email text createtime weburl)
                     (blank-node
-                     (gn:category genecategory)
-                     (multiset
-                      gn:pubMedId
-                      (string-split
-                       (ontology 'pubmed: pmid)
-                       #\space))
-                     ;; TODO: Truncate mail to '@'
-                     (gn:email email)
-                     (gn:comment
-                      (annotate-field text '^^xsd:string))
-                     (gn:createTime (annotate-field
-                                     createtime
-                                     ;; (time-unix->string
-                                     ;;  createtime)
-                                     '^^xsd:datetime))
-                     (gn:weburl weburl))))
+                     (set gn:category genecategory)
+                     (multiset gn:pubMedId
+                               (map (cut ontology 'pubmed: <>)
+                                    (string-split pmid #\space)))
+                     (set gn:author (regexp-substitute/global #f "@.*$"
+                                               email
+                                               'pre
+                                               ""
+                                               'post))
+                     (set gn:geneWikiEntry
+                          (annotate-field text '^^xsd:string))
+                     (set gn:createTime (annotate-field
+                                         createtime
+                                         '^^xsd:datetime))
+                     (set gn:weburl weburl))))
                  (map
                   (cut string-split-substring <> "::::")
-                  comments))))))
+                  comments))))
+    (multiset gn:geneWikiEntryOfNCBI
+              (let* ([entries (field
+                               ("GROUP_CONCAT(DISTINCT CONCAT_WS('::::', IFNULL(GeneRIF_BASIC.PubMed_ID, ''), IFNULL(GeneRIF_BASIC.comment, '')) SEPARATOR'|||||')"
+                                ncbientry))
+                              ]
+                     [ncbi-comments (string-split-substring entries "|||||")])
+                (map
+                 (match-lambda
+                   ((pmid text)
+                    (blank-node
+                     (set gn:geneWikiEntry (annotate-field text '^^xsd:string))
+                     (set gn:pubMedId (ontology 'pubmed: pmid))))
+                   (_ (display (string-split-substring ncbi-comments "::::"))
+                      (error "error")))
+                 (map
+                  (cut string-split-substring <> "::::")
+                  ncbi-comments))))
+    ))
+
 
 ;; Import GeneRIF
 
@@ -988,6 +1006,7 @@ is a <table> object."
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
        (newline)
+       (dump-gn-genewiki-entries db)
        (dump-species db)
        (dump-strain db)
        (dump-mapping-method db)
@@ -998,13 +1017,9 @@ is a <table> object."
        (dump-investigators db)
        (dump-avg-method db)
        (dump-gene-chip db)
-       (dump-generif-basic db)
-       (dump-generif db)
        (dump-info-files db)
        (dump-schema db)
        (dump-groups db)
        (dump-published-phenotypes db)
-       (dump-generif db)
-       (dump-generif-basic db)
        (import-generif (assq-ref %connection-settings 'generif-data-file))))))
 
