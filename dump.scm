@@ -861,84 +861,92 @@ is a <table> object."
 
 ;; GeneRIF metadata
 (define-dump dump-gn-genewiki-entries
-  (tables (GeneRIF_BASIC
-           (left-join GeneRIF "USING (symbol)")
+  (tables (GeneRIF
+           (left-join GeneRIF_BASIC "USING (symbol)")
+           (left-join Species "ON Species.SpeciesId = GeneRIF.SpeciesId")
            (left-join GeneRIFXRef "ON GeneRIFXRef.GeneRIFId = GeneRIF.Id")
            (left-join GeneCategory "ON GeneRIFXRef.GeneCategoryId = GeneCategory.Id"))
-          "WHERE GeneRIF.display > 0 and GeneRIF.VersionId = 0 GROUP BY GeneRIF.symbol")
+          "WHERE GeneRIF.display > 0 AND GeneRIF.VersionId = 0 GROUP BY GeneRIF.symbol")
   (schema-triples
-   (gn:geneWikiEntry rdfs:domain gn:geneWiki)
-   (gn:geneWikiEntryOfGN rdfs:domain gn:geneWiki)
-   (gn:geneWikiEntryofNCBI rdfs:domain gn:geneWiki)
-   (gn:weburl rdfs:domain gn:geneWiki)
-   (gn:versionId rdfs:domain gn:geneWiki)
-   (gn:category rdfs:domain gn:geneWiki)
-   (gn:pubMedId rdfs:domain rdfs:Literal)
-   (gn:createTime rdfs:range xsd:datetime))
-  (triples (ontology 'generif:
-                      (field GeneRIF_BASIC GeneId))
-    (set rdf:type 'gn:geneWikiEntry)
-    (set gn:symbol (field GeneRIF symbol))
+   (gn:geneCategory rdfs:domain gn:geneWikiEntry)
+   (gn:geneWikiEntryOfGn rdfs:domain gn:geneWikiEntry)
+   (gn:geneWikiEntry rdfs:domain gn:geneWikiEntry))
+  (triples
+      (let ([geneid (field GeneRIF_BASIC GeneId)])
+        (if (eq? geneid 0)
+            (ontology 'gn:anonSymbol_
+                      (field GeneRIF symbol))
+            (ontology 'generif:
+                      geneid)))
+    (set gn:species (let ([geneid (field GeneRIF_BASIC GeneId)])
+                      (if (eq? geneid 0)
+                          (field Species SpeciesName)
+                          "")))
     (multiset gn:geneWikiEntryOfGn
-              (let* ([entries (replace-substrings (field
-                                                   ("GROUP_CONCAT(DISTINCT CONCAT_WS('::::', IFNULL(GeneCategory.Name, ''), IFNULL(GeneRIF.PubMed_ID, ''), GeneRIF.email, GeneRIF.comment, GeneRIF.createtime, IFNULL(weburl, '')) SEPARATOR';;;;;')"
-                                                    wikientry))
-                                                  '(("\x28" . "")
-                                                    ("\x29" . "")
-                                                    ("\xa0" . " ")
-                                                    ("â\x81„" . "/")
-                                                    ("â€\x9d" . #\")
-                                                    ("â€™" . #\')
-                                                    ("\x02" . "")
-                                                    ("\x01" . "")
-                                                    ("Î²" . "β")
-                                                    ("Î±-Â\xad" . "α")
-                                                    ("Â\xad" . "")
-                                                    ("Î±" . "α")
-                                                    ("â€“" . "-")))]
+              (let* ([entries
+                      (replace-substrings
+                       (field
+                        ("GROUP_CONCAT(DISTINCT CONCAT_WS('::::', IFNULL(GeneCategory.Name, ''), IFNULL(GeneRIF.PubMed_ID, ''), GeneRIF.email, GeneRIF.comment, GeneRIF.createtime, IFNULL(weburl, '')) SEPARATOR';;;;;')"
+                         wikientry))
+                       '(("\x28" . "")
+                         ("\x29" . "")
+                         ("\xa0" . " ")
+                         ("â\x81„" . "/")
+                         ("â€\x9d" . #\")
+                         ("â€™" . #\')
+                         ("\x02" . "")
+                         ("\x01" . "")
+                         ("Î²" . "β")
+                         ("Î±-Â\xad" . "α")
+                         ("Â\xad" . "")
+                         ("Î±" . "α")
+                         ("â€“" . "-")))]
                      [comments (string-split-substring entries ";;;;;")])
                 (map
                  (match-lambda
                    ((genecategory pmid email text createtime weburl)
                     (blank-node
-                     (set gn:category genecategory)
-                     (multiset gn:pubMedId
+                     (set gn:geneCategory genecategory)
+                     (multiset dct:source
                                (map (lambda (el) (if (string-null? el)
                                                      ""
                                                      (ontology 'pubmed: el)))
                                     (string-split pmid #\space)))
-                     (set gn:author (regexp-substitute/global #f "@.*$"
-                                               email
-                                               'pre
-                                               ""
-                                               'post))
+                     (set dct:creator (regexp-substitute/global #f "@.*$"
+                                                                email
+                                                                'pre
+                                                                ""
+                                                                'post))
                      (set gn:geneWikiEntry
                           (annotate-field text '^^xsd:string))
-                     (set gn:createTime (annotate-field
-                                         createtime
-                                         '^^xsd:datetime))
-                     (set gn:weburl weburl))))
+                     (set dct:created (annotate-field
+                                       createtime
+                                       '^^xsd:datetime))
+                     (set foaf:homepage weburl))))
                  (map
                   (cut string-split-substring <> "::::")
-                  comments))))
-    (multiset gn:geneWikiEntryOfNCBI
-              (let* ([entries (field
-                               ("GROUP_CONCAT(DISTINCT CONCAT_WS('::::', IFNULL(GeneRIF_BASIC.PubMed_ID, ''), IFNULL(GeneRIF_BASIC.comment, '')) SEPARATOR'|||||')"
-                                ncbientry))
-                              ]
-                     [ncbi-comments (string-split-substring entries "|||||")])
-                (map
-                 (match-lambda
-                   ((pmid text)
-                    (blank-node
-                     (set gn:geneWikiEntry (annotate-field text '^^xsd:string))
-                     (set gn:pubMedId (ontology 'pubmed: pmid))))
-                   (_ (display (string-split-substring ncbi-comments "::::"))
-                      (error "error")))
-                 (map
-                  (cut string-split-substring <> "::::")
-                  ncbi-comments))))
-    ))
+                  comments))))))
+
+(define-dump dump-ncbi-genewiki-entries
+  (tables (GeneRIF_BASIC)
+          "GROUP BY GeneId, comment, createtime")
+  (schema-triples
+   (gn:geneWikiEntryofNCBI rdfs:domain gn:geneWikiEntry))
+  (triples (ontology 'generif:
+                     (field GeneRIF_BASIC GeneId))
+    (set gn:geneWikiEntryOfNCBI
+         (blank-node
+          (set gn:geneWikiEntry
+               (annotate-field (field GeneRIF_BASIC comment)
+                               '^^xsd:string))
+          (multiset dct:source (map (lambda (el) (if (string-null? el)
+                                                     ""
+                                                     (ontology 'pubmed: el)))
+                                    (string-split (field ("GROUP_CONCAT(PubMed_ID)" pmids))
+                                                  #\,)))
+          (set dct:created (annotate-field (time-unix->string
+                                            (field GeneRIF_BASIC createtime) "~5")
+                                           '^^xsd:datetime))))))
 
 
 ;; Main function
@@ -960,6 +968,7 @@ is a <table> object."
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
        (newline)
        (dump-gn-genewiki-entries db)
+       (dump-ncbi-genewiki-entries db)
        (dump-species db)
        (dump-strain db)
        (dump-mapping-method db)
