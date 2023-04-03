@@ -859,6 +859,18 @@ is a <table> object."
     (set gn:binomialName (field InbredSet fullName))
     (set gn:species (field Species Name))))
 
+(define-dump dump-genewiki-symbols
+  (tables (GeneRIF_BASIC)
+          "GeneRIF_BASIC GROUP BY GeneId ORDER BY BINARY symbol")
+  (schema-triples
+   (gn:symbol rdfs:domain gn:geneWikiEntry)
+   (gn:taxid rdfs:domain gn:geneWikiEntry))
+  (triples (ontology 'generif: (field GeneRIF_BASIC GeneId))
+    (multiset gn:symbol (string-split (field ("GROUP_CONCAT(DISTINCT symbol)" symbol))
+                                      #\,))
+    (multiset gn:taxId (map (cut ontology 'taxon: <>)
+                            (string-split (field ("GROUP_CONCAT(DISTINCT TaxID)" taxId))
+                                          #\,)))))
 ;; GeneRIF metadata
 (define-dump dump-gn-genewiki-entries
   (tables (GeneRIF
@@ -977,6 +989,7 @@ is a <table> object."
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
        (newline)
+       (dump-genewiki-symbols db)
        (dump-gn-genewiki-entries db)
        (dump-ncbi-genewiki-entries db)
        (dump-species db)
