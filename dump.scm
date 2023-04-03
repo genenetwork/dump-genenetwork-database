@@ -868,6 +868,9 @@ is a <table> object."
            (left-join GeneCategory "ON GeneRIFXRef.GeneCategoryId = GeneCategory.Id"))
           "WHERE GeneRIF.display > 0 AND GeneRIF.VersionId = 0 GROUP BY GeneRIF.symbol")
   (schema-triples
+   (gn:geneWikiEntry a rdfs:Class)
+   (gn:geneWikiEntry a owl:Class)
+   (gn:geneWikiEntry rdfs:comment "Represents GeneRIF Entries")
    (gn:geneCategory rdfs:domain gn:geneWikiEntry)
    (gn:geneWikiEntryOfGn rdfs:domain gn:geneWikiEntry)
    (gn:geneWikiEntry rdfs:domain gn:geneWikiEntry))
