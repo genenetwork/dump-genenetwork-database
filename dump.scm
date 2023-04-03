@@ -878,10 +878,17 @@ is a <table> object."
                       (field GeneRIF symbol))
             (ontology 'generif:
                       geneid)))
-    (set gn:species (let ([geneid (field GeneRIF_BASIC GeneId)])
-                      (if (eq? geneid 0)
+    (set rdf:type (if (eq? (field GeneRIF_BASIC GeneId) 0)
+                        'gn:geneWikiEntry
+                        ""))
+    (set gn:species (if (eq? (field GeneRIF_BASIC GeneId) 0)
                           (field Species SpeciesName)
-                          "")))
+                          ""))
+    ;; This only dumps symbols not present in the GeneRIF_BASIC table
+    (set gn:symbol (let ([geneid (field GeneRIF_BASIC GeneId)])
+                     (if (eq? geneid 0)
+                         (field GeneRIF symbol)
+                         "")))
     (multiset gn:geneWikiEntryOfGn
               (let* ([entries
                       (replace-substrings
