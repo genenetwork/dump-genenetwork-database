@@ -991,7 +991,7 @@ is a <table> object."
        (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "taxon:" "<http://purl.uniprot.org/taxonomy/>")
-       (prefix "generif:" "<https://www.ncbi.nlm.nih.gov/gene?Db=gene&Cmd=DetailsSearch&Term=>")
+       (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
        (newline)
