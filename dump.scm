@@ -860,14 +860,20 @@ is a <table> object."
     (set gn:species (field Species Name))))
 
 (define-dump dump-genewiki-symbols
-  (tables (GeneRIF_BASIC)
-          "GeneRIF_BASIC GROUP BY GeneId ORDER BY BINARY symbol")
+  (tables (GeneRIF_BASIC
+           (left-join Species "USING (SpeciesId)"))
+          "GROUP BY GeneId ORDER BY BINARY symbol")
   (schema-triples
    (gn:symbol rdfs:domain gn:geneWikiEntry)
+   (gn:wikiEntryOfSpecies rdfs:range gn:species)
    (gn:taxid rdfs:domain gn:geneWikiEntry))
   (triples (ontology 'generif: (field GeneRIF_BASIC GeneId))
     (multiset gn:symbol (string-split (field ("GROUP_CONCAT(DISTINCT symbol)" symbol))
                                       #\,))
+    (multiset gn:wikiEntryOfSpecies
+              (string-split
+               (field ("GROUP_CONCAT(DISTINCT Species.SpeciesName)" species))
+               #\,))
     (multiset gn:taxId (map (cut ontology 'taxon: <>)
                             (string-split (field ("GROUP_CONCAT(DISTINCT TaxID)" taxId))
                                           #\,)))))
@@ -896,9 +902,9 @@ is a <table> object."
     (set rdf:type (if (eq? (field GeneRIF_BASIC GeneId) 0)
                         'gn:geneWikiEntry
                         ""))
-    (set gn:species (if (eq? (field GeneRIF_BASIC GeneId) 0)
-                          (field Species SpeciesName)
-                          ""))
+    (set gn:wikiEntryOfSpecies (if (eq? (field GeneRIF_BASIC GeneId) 0)
+                                   (field Species SpeciesName)
+                                   ""))
     ;; This only dumps symbols not present in the GeneRIF_BASIC table
     (set gn:symbol (let ([geneid (field GeneRIF_BASIC GeneId)])
                      (if (eq? geneid 0)
