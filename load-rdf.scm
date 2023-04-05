@@ -153,7 +153,7 @@ authenticating as the dba user with PASSWORD."
    (lambda (out)
      (format out
              "SET DSN=localhost:~a;
-SET PWD=~a;
+SET PWD=~s;
 DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
              port
              password
