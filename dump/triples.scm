@@ -41,16 +41,13 @@ characters with an underscore and prefixing with gn:PREFIX."
               (number? object))
     (error "Triple object not a string, symbol or number:"
            (list subject predicate object)))
-  (match object
-    ((and (?  string? object)
-          (?  (lambda (el) (string-match "^\\[ .* \\]$" object))))
-     (format #t "~a ~a ~a .~%" subject predicate object))
-    ((?  symbol? object)
-     (format #t "~a ~a ~a .~%" subject predicate object))
-    ((or (?  string? object)
-         (?  number? object))
-     (format #t "~a ~a ~s .~%" subject predicate object))
-    (_ (error "Trible object must be a string, symbol, number or blank node"))))
+  (let ([pattern (match object
+                   ((or (?  symbol? object)
+                        ;; Check for a node
+                        (?  (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
+                    "~a ~a ~a .~%")
+                   (_ "~a ~a ~s .~%"))])
+    (format #t pattern subject predicate object)))
 
 (define (scm->triples alist id)
   (for-each (match-lambda
