@@ -157,8 +157,7 @@ association list mapping substrings to their replacements."
                                   ((syntax-rules (field)
                                      ((field (query alias)) alias)
                                      ((field table column) column)
-                                     ((field table column alias) alias)
-                                     ((field table column operation alias) alias))
+                                     ((field table column alias) alias))
                                    x)))))
                      x))
 
@@ -173,8 +172,7 @@ ALIST field-name) forms."
                                         ((syntax-rules (field)
                                            ((field (query alias)) alias)
                                            ((field table column) column)
-                                           ((field table column alias) alias)
-                                           ((field table column operation alias) alias))
+                                           ((field table column alias) alias))
                                          x)))))
                      x))
 
