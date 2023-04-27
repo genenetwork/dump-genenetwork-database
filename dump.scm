@@ -383,13 +383,16 @@ must be remedied."
   (tables (Species))
   (schema-triples
    (gn:name rdfs:range rdfs:Literal)
-   (gn:menuname rdfs:range rdfs:Literal)
-   (gn:binomialName rdfs:range rdfs:Literal))
+   (gn:displayName rdfs:range rdfs:Literal)
+   (gn:binomialName rdfs:range rdfs:Literal)
+   (gn:family rdfs:range rdfs:Literal))
   (triples (binomial-name->species-id (field Species FullName))
     (set rdf:type 'gn:species)
     (set gn:name (field Species SpeciesName))
-    (set gn:menuName (field Species MenuName))
-    (set gn:binomialName (field Species FullName))))
+    (set gn:displayName (field Species MenuName))
+    (set gn:binomialName (field Species FullName))
+    (set gn:family (field Species Family))
+    (set up:organism (ontology 'taxon: (field Species TaxonomyId)))))
 
 (define-dump dump-strain
   (tables (Strain
