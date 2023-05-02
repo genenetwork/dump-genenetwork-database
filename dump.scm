@@ -455,6 +455,18 @@ must be remedied."
     (set gn:phenotype
          (field ("IF ((SELECT GenoFreeze.Name FROM GenoFreeze WHERE GenoFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'DNA Markers and SNPs', '')" phenotypeP)))))
 
+(define-dump dump-molecular-traits
+  (tables (ProbeFreeze
+           (left-join ProbeSetFreeze "USING (ProbeFreezeId)")
+           (left-join InbredSet "USING (InbredSetId)")
+           (left-join Tissue "USING (TissueId)")
+           (left-join Species "USING (SpeciesId)"))
+          "GROUP BY InbredSet.Name")
+  (schema-triples
+   (gn:molecularTrait rdfs:range rdfs:Literal))
+  (triples (inbred-set-name->id (field InbredSet Name))
+    (set gn:molecularTrait (field Tissue TissueName))))
+
 ;; Metadata for published datasets
 (define-dump dump-publishfreeze
   (tables (PublishFreeze
