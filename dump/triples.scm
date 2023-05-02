@@ -47,7 +47,8 @@ characters with an underscore and prefixing with gn:PREFIX."
                         (?  (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
                     "~a ~a ~a .~%")
                    (_ "~a ~a ~s .~%"))])
-    (format #t pattern subject predicate object)))
+    (format #t pattern subject predicate
+            (if (symbol? object) (symbol->string object) object))))
 
 (define (scm->triples alist id)
   (for-each (match-lambda
