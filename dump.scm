@@ -434,17 +434,26 @@ must be remedied."
   (schema-triples
    (gn:fullName rdfs:range rdfs:Literal)
    (gn:geneticType rdfs:range rdfs:Literal)
-   (gn:family rdfs:range rdfs:Literal)
+   (gn:inbredSetCode rdfs:range rdfs:Literal)
+   (gn:inbredFamily rdfs:range rdfs:Literal)
    (gn:inbredSetOfSpecies rdfs:range gn:species)
+   (gn:inbredSetType rdfs:range rdfs:Literal)
+   (gn:phenotype rdfs:range gn:inbredSetType)
+   (gn:genotype rdfs:range gn:inbredSetType)
    (gn:inbredSetOfMappingMethod rdfs:range gn:mappingMethod))
   (triples (inbred-set-name->id (field InbredSet Name))
     (set rdf:type 'gn:inbredSet)
     (set gn:fullName (field InbredSet FullName))
     (set gn:geneticType (field InbredSet GeneticType))
-    (set gn:family (field InbredSet Family))
+    (set gn:inbredFamily (field InbredSet Family))
     (set gn:inbredSetOfMappingMethod (field MappingMethod Name))
+    (set gn:inbredSetCode (field InbredSet InbredSetCode))
     (set gn:inbredSetOfSpecies
-         (binomial-name->species-id (field Species FullName BinomialName)))))
+         (binomial-name->species-id (field Species FullName BinomialName)))
+    (set gn:genotype
+         (field ("IF ((SELECT PublishFreeze.Name FROM PublishFreeze WHERE PublishFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'Traits and Cofactors', '')" genotypeP)))
+    (set gn:phenotype
+         (field ("IF ((SELECT GenoFreeze.Name FROM GenoFreeze WHERE GenoFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'DNA Markers and SNPs', '')" phenotypeP)))))
 
 ;; Metadata for published datasets
 (define-dump dump-publishfreeze
