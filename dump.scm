@@ -726,6 +726,76 @@ must be remedied."
     (set gn:citation (field Datasets Citation))
     (set gn:acknowledgment (field Datasets Acknowledgment))))
 
+;; Dumping Phenotypes from PublishFreeze that are not present in the InfoFiles tables
+(define-dump dump-phenotypes
+  (tables (Phenotype
+           (left-join PublishXRef "ON Phenotype.Id = PublishXRef.PhenotypeId")
+           (left-join Publication "ON Publication.Id = PublishXRef.PublicationId")
+           (left-join PublishFreeze "ON PublishFreeze.InbredSetId = PublishXRef.InbredSetId")
+           (left-join InfoFiles "ON InfoFiles.InfoPageName = PublishFreeze.Name")))
+  (schema-triples
+   (gn:phenotypeDataset rdfs:subPropertyOf gn:dataset))
+  (triples (ontology 'phenotype:
+                     (regexp-substitute/global #f "[^A-Za-z0-9:]"
+                                               (field ("CONCAT(IF(PublishFreeze.Name IS NULL, '', CONCAT(PublishFreeze.Name, ':')), IF(Phenotype.Post_publication_abbreviation IS NULL, IF(Phenotype.Pre_publication_abbreviation IS NULL, Phenotype.Id, Pre_publication_abbreviation), Phenotype.Post_publication_abbreviation))" abbrev))
+                                               'pre "_" 'post))
+    (set rdf:type 'gn:phenotype)
+    (set gn:name (sanitize-rdf-string
+                  (field
+                   ("CAST(CONVERT(BINARY CONVERT(CONCAT(IF(PublishFreeze.Name IS NULL, '', CONCAT(PublishFreeze.Name, '-')), IF(Phenotype.Post_publication_abbreviation IS NULL, IF(Phenotype.Pre_publication_abbreviation IS NULL, Phenotype.Id, Phenotype.Pre_publication_abbreviation), Phenotype.Post_publication_abbreviation)) USING latin1) USING utf8) AS VARCHAR(10000))"
+                    abbrev))))
+    ;; There is no row with an empty post-publication description so
+    ;; use this field as the main publication description
+    (set gn:publicationDescription
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Phenotype.Post_publication_description USING latin1) USING utf8) AS CHAR(10000))"
+                  postPubDescr))))
+    (set gn:originalDescription (sanitize-rdf-string
+                                 (delete-substrings
+                                  (field Phenotype Original_description)
+                                  "Original post publication description: ")))
+    (set gn:prePublicationDescription
+         (sanitize-rdf-string
+          (field
+           ("CAST(CONVERT(BINARY CONVERT(Phenotype.Pre_publication_description USING latin1) USING utf8) AS VARCHAR(15000))"
+            prePubDesc))))
+    (set gn:prePublicationAbbreviation (sanitize-rdf-string (field Phenotype Pre_publication_abbreviation)))
+    (set gn:postPublicationAbbreviation (sanitize-rdf-string (field Phenotype Post_publication_abbreviation)))
+    (set gn:labCode (field Phenotype Lab_code))
+    (set gn:submitter (sanitize-rdf-string (field Phenotype Submitter)))
+    (set gn:owner (sanitize-rdf-string (field Phenotype Owner)))
+    (set gn:mean (annotate-field (field ("IFNULL(PublishXRef.mean, '')" mean))
+                                 '^^xsd:float))
+    (set gn:locus (field PublishXRef Locus))
+    (set gn:LRS (annotate-field (field ("IFNULL(PublishXRef.LRS, '')" lrs)) '^^xsd:float))
+    (set gn:additive (annotate-field (field ("IFNULL(PublishXRef.additive, '')" additive)) '^^xsd:decimal))
+    (set gn:sequence (annotate-field (field PublishXRef Sequence) '^^xsd:int))
+    (set gn:phenotypeOfDataset (string->identifier "dataset" (field PublishFreeze Name)))
+    (set gn:phenotypeOfPublication
+         (let ((pmid (field
+                      ("IF(Publication.PubMed_ID IS NULL, '', CONVERT(Publication.PubMed_Id, INT))"
+                       pmid)))
+               (publication-id (field Publication Id)))
+           (if (string-null? pmid)
+               (string->identifier "publication"
+                                   (number->string publication-id))
+               (ontology 'pubmed: pmid))))))
+
+(define-dump dump-genotypes
+  (tables (GenoFreeze
+           (left-join InfoFiles "ON InfoFiles.InfoPageName = GenoFreeze.Name"))
+          "WHERE GenoFreeze.Name NOT IN (SELECT DISTINCT InfoFiles.InfoPageName FROM InfoFiles)")
+  (schema-triples
+   (gn:phenotypeDataset rdfs:subPropertyOf gn:dataset))
+  (triples (string->identifier "dataset"
+                               (field GenoFreeze Name))
+    (set rdf:type 'gn:genotypeDataset)
+    (set gn:name (field GenoFreeze FullName))
+    (set dct:created (annotate-field
+                      (field GenoFreeze CreateTime)
+                      '^^xsd:datetime))))
+
+
 (define (dump-data-table db table-name data-field)
   (let ((dump-directory (string-append %dump-directory "/" table-name))
         (port #f)
@@ -960,6 +1030,7 @@ is a <table> object."
        (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
+       (prefix "phenotype:" "<http://genenetwork.org/phenotype/>")
        (newline)
        (dump-genewiki-symbols db)
        (dump-gn-genewiki-entries db)
