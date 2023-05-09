@@ -135,6 +135,14 @@ association list mapping substrings to their replacements."
         str
         replacement-alist))
 
+(define (sanitize-rdf-string str)
+  (replace-substrings
+   (string-trim-both str)
+   '(("\r" . "\\r")
+     ("\n" . "\\n")
+     ("\"" . "'")
+     ("\v" . ""))))
+
 (define (snake->lower-camel str)
   (let ((char-list (string->list str)))
     (call-with-output-string
