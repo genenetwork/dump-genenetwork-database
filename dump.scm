@@ -94,9 +94,12 @@
                        (symbol->string schema))
                       ((string? schema) schema)
                       (else
-                       (error "Use a string/symbol")))])
-    (string->symbol
-     (format #f "~s~a" field schema))))
+                       (error "Use a string/symbol")))]
+        [string-field (if (number? field) (number->string field) field)])
+    (if (string-null? string-field)
+        ""
+        (string->symbol
+         (format #f "~s~a" string-field schema)))))
 
 (define (string-split-substring str substr)
   "Split the string @var{str} into a list of substrings delimited by the
