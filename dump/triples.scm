@@ -24,8 +24,10 @@ characters with an underscore and prefixing with gn:PREFIX."
   (format #t "@prefix ~a ~a .~%" prefix iri))
 
 (define (ontology prefix value)
-  (string->symbol
-   `,(format #f "~a~a" prefix value)))
+  (if (and (string? value) (string-null? value))
+      ""
+      (string->symbol
+       `,(format #f "~a~a" prefix value))))
 
 (define (triple subject predicate object)
   (unless (or (string? subject)
