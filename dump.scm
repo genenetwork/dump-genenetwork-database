@@ -638,13 +638,14 @@ must be remedied."
     (set rdf:type 'gn:platform)
     (set gn:name (field GeneChip GeneChipName))))
 
-;; TODO: Double check Platforms. It doesn't seem to match up.
+;; Dumping Datasets from InfoFiles that don't exist in PublishFreeze and GenoFreeze
 (define-dump dump-info-files
   (tables (InfoFiles
+           (left-join PublishFreeze "ON InfoFiles.InfoPageName = PublishFreeze.Name")
+           (left-join GenoFreeze "ON InfoFiles.InfoPageName = GenoFreeze.Name")
            (left-join Datasets "USING (DatasetId)")
            (left-join DatasetStatus "USING (DatasetStatusId)")
            (left-join Species "USING (SpeciesId)")
-           (left-join InbredSet "USING (InbredSetId)")
            (left-join Tissue "USING (TissueId)")
            (left-join Investigators "USING (InvestigatorId)")
            (left-join AvgMethod "USING (AvgMethodId)")
@@ -681,8 +682,22 @@ must be remedied."
    (gn:citation rdfs:range rdfs:Literal)
    (gn:acknowledgment rdfs:range rdfs:Literal))
   (triples (string->identifier "dataset"
-                               (number->string (field InfoFiles GN_AccesionId)))
+                               (field InfoFiles InfoPageName))
     (set rdf:type 'gn:dataset)
+    (set gn:name (field InfoFiles InfoPageName))
+    (set dct:created
+         (let* ((genotype-create-time
+                 (field ("IFNULL(GenoFreeze.CreateTime, '')"
+                         createTimeGenoFreeze)))
+                (phenotype-create-time
+                 (field ("IFNULL(PublishFreeze.CreateTime, '')"
+                         createTimePublishFreeze)))
+                (create-time
+                 (if (string-null? genotype-create-time)
+                     phenotype-create-time genotype-create-time)))
+           (annotate-field
+                create-time
+                '^^xsd:datetime)))
     (set gn:datasetOfInvestigator
          (investigator-attributes->id (field Investigators FirstName)
                                       (field Investigators LastName)
@@ -693,7 +708,6 @@ must be remedied."
                                (field DatasetStatus DatasetStatusName)))
     (set gn:datasetOfSpecies (binomial-name->species-id
                               (field Species FullName BinomialName)))
-    (set gn:datasetOfInbredSet (inbred-set-name->id (field InbredSet Name InbredSetName)))
     (set gn:datasetOfTissue (tissue-short-name->id (field Tissue Short_Name)))
     (set gn:normalization
          (avg-method-name->id
@@ -702,29 +716,27 @@ must be remedied."
               "N/A" (field AvgMethod Name AvgMethodName))))
     (set gn:datasetOfPlatform (gene-chip-name->id (field GeneChip Name GeneChip)))
     (set gn:summary
-         ;; TODO: Why are there unprintable characters?
-         (delete-substrings (field Datasets Summary)
-                            "\x01" "\x03"))
+         (sanitize-rdf-string (field Datasets Summary)))
     (set gn:aboutTissue
-         ;; TODO: Why are there unprintable characters?
-         (delete-substrings (field Datasets AboutTissue)
-                            "\x01" "\x03"))
+         (sanitize-rdf-string (field Datasets AboutTissue)))
     (set gn:geoSeries
          (and (not (string-prefix-ci? "no geo series"
                                       (field Datasets GeoSeries)))
               (field Datasets GeoSeries)))
-    (set gn:name (field InfoFiles InfoPageName))
     (set gn:title (field InfoFiles Title))
-    (set gn:specifics (field InfoFiles Specifics))
+    (set gn:specifics (sanitize-rdf-string (field InfoFiles Specifics)))
     (set gn:datasetGroup (field Datasets DatasetName DatasetGroup))
-    (set gn:aboutCases (field Datasets AboutCases))
-    (set gn:aboutPlatform (field Datasets AboutPlatform))
-    (set gn:aboutDataProcessing (field Datasets AboutDataProcessing))
-    (set gn:notes (field Datasets Notes))
-    (set gn:experimentDesign (field Datasets ExperimentDesign))
-    (set gn:contributors (field Datasets Contributors))
-    (set gn:citation (field Datasets Citation))
-    (set gn:acknowledgment (field Datasets Acknowledgment))))
+    (set gn:aboutCases (sanitize-rdf-string (field Datasets AboutCases)))
+    (set gn:aboutPlatform (sanitize-rdf-string (field Datasets AboutPlatform)))
+    (set gn:aboutDataProcessing (sanitize-rdf-string
+                                 (field Datasets AboutDataProcessing)))
+    (set gn:notes (sanitize-rdf-string (field Datasets Notes)))
+    (set gn:experimentDesign (sanitize-rdf-string
+                              (field Datasets ExperimentDesign)))
+    (set gn:contributors (sanitize-rdf-string (field Datasets Contributors)))
+    (set gn:citation (sanitize-rdf-string (field Datasets Citation)))
+    (set gn:acknowledgment (sanitize-rdf-string
+                            (field Datasets Acknowledgment)))))
 
 ;; Dumping Phenotypes from PublishFreeze that are not present in the InfoFiles tables
 (define-dump dump-phenotypes
