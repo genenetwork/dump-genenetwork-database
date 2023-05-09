@@ -509,10 +509,17 @@ must be remedied."
    (gn:year rdfs:range rdfs:Literal)
    (gn:author rdfs:range rdfs:Literal)
    (gn:abstract rdfs:range rdfs:Literal))
-  (triples (string->identifier "publication"
-                               (number->string (field Publication Id)))
+  (triples
+      (let ((pmid (field
+                   ("IF(Publication.PubMed_ID IS NULL, '', CONVERT(Publication.PubMed_Id, INT))"
+                    pmid)))
+            (publication-id (field Publication Id)))
+        (if (string-null? pmid)
+            (string->identifier "publication"
+                                (number->string publication-id))
+            (ontology 'pubmed: pmid)))
     (set rdf:type 'gn:publication)
-    (set gn:pubMedId (field Publication PubMed_ID))
+    (set gn:pubMedId (field ("IFNULL(PubMed_ID, '')" pubmedId)))
     (set gn:title (field Publication Title))
     (set gn:journal (field Publication Journal))
     (set gn:volume (field Publication Volume))
@@ -522,16 +529,9 @@ must be remedied."
     (multiset gn:author
               ;; The authors field is a comma
               ;; separated list. Split it.
-              (map string-trim (string-split (field Publication Authors) #\,)))
+              (map string-trim (string-split (sanitize-rdf-string (field Publication Authors)) #\,)))
     (set gn:abstract
-         ;; TODO: Why are there unprintable characters?
-         (delete-substrings (field Publication Abstract)
-                            "\x01"
-                            ;; \v is a vertical tab
-                            ;; character. Microsoft Word probably
-                            ;; still uses this.
-                            "\v"))))
-
+         (sanitize-rdf-string (field Publication Abstract)))))
 
 (define tissue-short-name->id
   (cut string->identifier "tissue" <>))
