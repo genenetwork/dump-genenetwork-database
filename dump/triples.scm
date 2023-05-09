@@ -45,10 +45,9 @@ characters with an underscore and prefixing with gn:PREFIX."
            (list subject predicate object)))
   (let ([pattern (match object
                    ((or (?  symbol? object)
-                        ;; Check for a node
-                        (?  (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
+                        (? (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
                     "~a ~a ~a .~%")
-                   (_ "~a ~a ~s .~%"))])
+                   (_ "~a ~a \"~a\" .~%"))])
     (format #t pattern subject predicate
             (if (symbol? object) (symbol->string object) object))))
 
