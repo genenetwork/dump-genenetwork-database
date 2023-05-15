@@ -1,24 +1,39 @@
 (define-module (dump triples)
   #:use-module (ice-9 regex)
   #:use-module (ice-9 match)
-  #:use-module (dump utils)
+  #:use-module (dump strings)
   #:export (ontology
             string->identifier
             prefix
             triple
-            scm->triples))
+            scm->triples
+            annotate-field))
+
+(define (annotate-field field schema)
+  (let ([schema (cond ((symbol? schema)
+                       (symbol->string schema))
+                      ((string? schema) schema)
+                      (else
+                       (error "Use a string/symbol")))]
+        [string-field (if (number? field) (number->string field) field)])
+    (if (string-null? string-field)
+        ""
+        (string->symbol
+         (format #f "~s~a" string-field schema)))))
 
 (define (string->identifier prefix str)
   "Convert STR to a turtle identifier after replacing illegal
 characters with an underscore and prefixing with gn:PREFIX."
-  (string->symbol
-   (string-append "gn:" prefix "_"
-                  (string-map (lambda (c)
-                                (case c
-                                  ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
-                                  (else c)))
-                              (string-downcase
-                               (string-trim-right str #\.))))))
+  (if (string-null? str)
+      ""
+      (string->symbol
+       (string-append "gn:" prefix "_"
+                      (string-map (lambda (c)
+                                    (case c
+                                      ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
+                                      (else c)))
+                                  (string-downcase
+                                   (string-trim-right str #\.)))))))
 
 (define (prefix prefix iri)
   (format #t "@prefix ~a ~a .~%" prefix iri))

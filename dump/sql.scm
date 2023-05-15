@@ -10,6 +10,7 @@
   #:use-module (dbi dbi)
   #:export (select-query
             call-with-database
+            call-with-target-database
             sql-exec
             sql-fold
             sql-map
@@ -99,3 +100,15 @@
 (define (sql-find db statement)
   (sql-exec db statement)
   (dbi-get_row db))
+
+(define (call-with-target-database connection-settings proc)
+  (call-with-database "mysql" (string-join
+                               (list (assq-ref connection-settings 'sql-username)
+                                     (assq-ref connection-settings 'sql-password)
+                                     (assq-ref connection-settings 'sql-database)
+                                     "tcp"
+                                     (assq-ref connection-settings 'sql-host)
+                                     (number->string
+                                      (assq-ref connection-settings 'sql-port)))
+                               ":")
+                      proc))
