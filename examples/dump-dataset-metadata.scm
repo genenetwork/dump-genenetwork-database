@@ -64,18 +64,14 @@
                                         (field Investigators LastName)
                                         (field Investigators Email))
     (set rdf:type 'foaf:Person)
-    ;; Special case Yohan Bossé's name since the last name has
-    ;; unprintable characters.
     (set foaf:name (string-append (field Investigators FirstName) " "
                                   (if (string=? (field Investigators FirstName) "Yohan")
                                       "Bossé"
                                       (field Investigators LastName))))
-    (set foaf:givenName (field Investigators FirstName))
-    ;; Special case Yohan Bossé's name since the last name has
-    ;; unprintable characters.
-    (set foaf:familyName (if (string=? (field Investigators FirstName) "Yohan")
-                             "Bossé"
-                             (field Investigators LastName)))
+    (set foaf:givenName
+         (field ("CAST(CONVERT(BINARY CONVERT(FirstName USING latin1) USING utf8) AS VARCHAR(100))" FirstName)))
+    (set foaf:familyName
+         (field ("CAST(CONVERT(BINARY CONVERT(LastName USING latin1) USING utf8) AS VARCHAR(100))" LastName)))
     (set foaf:homepage (field Investigators Url))
     (set gn:address (field Investigators Address))
     (set gn:city (field Investigators City))
