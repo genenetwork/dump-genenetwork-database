@@ -130,8 +130,10 @@
    (gn:contributors rdfs:range rdfs:Literal)
    (gn:citation rdfs:range rdfs:Literal)
    (gn:acknowledgment rdfs:range rdfs:Literal))
-  (triples (string->identifier "dataset"
-                               (field InfoFiles InfoPageName))
+  (triples (ontology 'dataset:
+                     (regexp-substitute/global #f "[^A-Za-z0-9:]"
+                                               (field InfoFiles InfoPageName)
+                                               'pre "_" 'post))
     ;; Add GeneChipName and GeoPlatform:
     ;; GeneChip.GeneChipName AS gene_chip_name
     ;; GeneChip.GeoPlatform AS geo_platform
@@ -214,6 +216,7 @@
        (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+       (prefix "dataset:" "<http://genenetwork.org/dataset/>")
        (newline)
        (dump-info-files db)
        (dump-investigators db))

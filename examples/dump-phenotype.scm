@@ -89,7 +89,11 @@
     (set gn:LRS (annotate-field (field ("IFNULL(PublishXRef.LRS, '')" lrs)) '^^xsd:float))
     (set gn:additive (annotate-field (field ("IFNULL(PublishXRef.additive, '')" additive)) '^^xsd:decimal))
     (set gn:sequence (annotate-field (field PublishXRef Sequence) '^^xsd:int))
-    (set gn:phenotypeOfDataset (string->identifier "dataset" (field PublishFreeze Name)))
+    (set gn:phenotypeOfDataset
+         (ontology 'dataset:
+                   (regexp-substitute/global #f "[^A-Za-z0-9:]"
+                                             (field PublishFreeze Name)
+                                             'pre "_" 'post)))
     (set gn:phenotypeOfPublication
          (let ((pmid (field
                       ("IF(Publication.PubMed_ID IS NULL, '', CONVERT(Publication.PubMed_Id, INT))"
@@ -127,6 +131,7 @@
        (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+       (prefix "dataset:" "<http://genenetwork.org/dataset/>")
        (newline)
        (dump-publishfreeze db)
        (dump-phenotypes db))
