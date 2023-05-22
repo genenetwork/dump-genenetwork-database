@@ -54,8 +54,6 @@
    (foaf:name rdfs:range rdfs:Literal)
    (foaf:givenName rdfs:range rdfs:Literal)
    (foaf:familyName rdfs:range rdfs:Literal)
-   (foaf:phone rdfs:range rdfs:Literal)
-   (foaf:mbox rdfs:range rdfs:Literal)
    (foaf:homepage rdfs:range rdfs:Literal)
    (gn:address rdfs:range rdfs:Literal)
    (gn:city rdfs:range rdfs:Literal)
@@ -78,8 +76,6 @@
     (set foaf:familyName (if (string=? (field Investigators FirstName) "Yohan")
                              "Bossé"
                              (field Investigators LastName)))
-    (set foaf:phone (field Investigators Phone))
-    (set foaf:mbox (fix-email-id (field Investigators Email)))
     (set foaf:homepage (field Investigators Url))
     (set gn:address (field Investigators Address))
     (set gn:city (field Investigators City))
