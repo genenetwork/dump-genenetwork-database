@@ -40,7 +40,9 @@
     (set gn:name (field PublishFreeze Name))
     (set gn:fullName (field PublishFreeze FullName))
     (set gn:shortName (field PublishFreeze ShortName))
-    (set gn:createTime (field PublishFreeze CreateTime))
+    (set dct:created (annotate-field
+                      (field PublishFreeze CreateTime)
+                      '^^xsd:date))
     (set gn:datasetOfInbredSet
          (string->identifier "inbredSet" (field InbredSet Name InbredSetName)))))
 
