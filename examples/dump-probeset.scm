@@ -35,12 +35,17 @@
            (left-join GeneChip "ON GeneChip.Id = ProbeSet.ChipId")))
   (schema-triples
    (gn:name rdfs:range rdfs:Literal))
-  (triples (ontology 'gn:probeset_ (field ("IFNULL(ProbeSet.Name, ProbeSet.Id)"
-                                           name)))
+  (triples (ontology
+            'probeset:
+            (field ("IFNULL(ProbeSet.Name, ProbeSet.Id)"
+                    name)))
     (set gn:probesetOfDataset
-         (string->identifier
-          "dataset"
-          (field ProbeSetFreeze Name)))
+         (ontology
+          'probeset:
+          (regexp-substitute/global
+           #f "[^A-Za-z0-9:]"
+           (field ProbeSetFreeze Name)
+           'pre "_" 'post)))
     (set gn:mean (annotate-field (field ("IFNULL(ProbeSetXRef.mean, '')" mean))
                                  '^^xsd:double))
     (set gn:se (annotate-field (field ("IFNULL(ProbeSetXRef.se, '')" se))
@@ -60,8 +65,6 @@
     (set gn:description (field ProbeSet description))
     (set gn:chr (field ProbeSet Chr))
     (set gn:mb (annotate-field (field ("IFNULL(ProbeSet.Mb, '')" Mb)) '^^xsd:double))
-    (set gn:chr_2016 (field ProbeSet Chr_2016))
-    (set gn:mb_2016 (annotate-field (field ("IFNULL(ProbeSet.Mb_2016, '')" Mb_2016)) '^^xsd:double))
     (set gn:alias (string-trim-both (field ProbeSet alias)))
     (set gn:generif (ontology 'generif: (field ProbeSet GeneId)))
     (set gn:genbank (ontology 'nuccore: (field ProbeSet GenbankId)))
@@ -86,21 +89,8 @@
     (set gn:blatMbend (annotate-field
                        (field ("IFNULL(ProbeSet.Probe_set_Blat_Mb_end, '')" Probe_set_Blat_Mb_end))
                        '^^xsd:double))
-    (set gn:blatMbStart2016
-         (annotate-field
-          (field ("IFNULL(ProbeSet.Probe_set_Blat_Mb_start_2016, '')" Probe_set_Blat_Mb_start_2016)) '^^xsd:double))
-    (set gn:blatMbend2016
-         (annotate-field
-          (field ("IFNULL(ProbeSet.Probe_set_Blat_Mb_end_2016, '')" Probe_set_Blat_Mb_end_2016)) '^^xsd:double))
     (set gn:strand (field ProbeSet Probe_set_strand))
-    (set gn:noteByRW (field ProbeSet Probe_set_Note_by_RW))
     (set gn:flag (field ProbeSet flag))
-    (set gn:symbolH (field ProbeSet Symbol_H))
-    (set gn:descriptionH (field ProbeSet Description_H))
-    (set gn:chromosomeH (field ProbeSet chromosome_H))
-    (set gn:mbH (annotate-field (field ProbeSet MB_H) '^^xsd:double))
-    (set gn:aliasH (field ProbeSet alias_H))
-    (set gn:geneIdH (field ProbeSet GeneId_H))
     (set gn:chrNum (field ("IFNULL(ProbeSet.chr_num, '')" chr_num)))
     (set gn:nameNum (field ("IFNULL(ProbeSet.name_num, '')" name_num)))
     (set gn:probeTargetDescription (field ProbeSet Probe_Target_Description))
@@ -157,16 +147,21 @@
 ;; Molecular Traits are also referred to as ProbeSets
 (define-dump dump-probesetfreeze
   (tables (ProbeSetFreeze
+           (left-join InfoFiles "ON InfoFiles.InfoPageName = ProbeSetFreeze.Name")
            (left-join ProbeFreeze "USING (ProbeFreezeId)")
            (left-join AvgMethod "ON AvgMethod.AvgMethodId = ProbeSetFreeze.AvgID")
            (left-join InbredSet "ON ProbeFreeze.InbredSetId=InbredSet.Id")
            (left-join Tissue "USING (TissueId)"))
-          "WHERE ProbeSetFreeze.public > 0 GROUP BY ProbeFreeze.Id")
+          "WHERE ProbeSetFreeze.public > 0 AND InfoFiles.InfoPageName IS NULL GROUP BY ProbeFreeze.Id")
   (schema-triples
-   (gn:molecularTrait rdfs:range rdfs:Literal))
+   (gn:avgMethod rdfs:range rdfs:Literal)
+   (gn:dataScale rdfs:range rdfs:Literal))
   (triples
-      (string->identifier "dataset" (field ProbeSetFreeze Name))
-    (set rdf:type 'gn:dataset)
+      (ontology 'probeset:
+                (regexp-substitute/global #f "[^A-Za-z0-9:]"
+                                          (field ProbeSetFreeze Name)
+                                          'pre "_" 'post))
+    (set rdf:type 'gn:probesetDataset)
     (set gn:avgMethod (string->identifier "avgmethod" (field AvgMethod Name)))
     (set gn:fullName (field ProbeSetFreeze FullName))
     (set gn:shortName (field ProbeSetFreeze ShortName))
@@ -206,8 +201,9 @@
        (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+       (prefix "probeset:" "<http://genenetwork.org/probeset/>")
        (newline)
        (dump-gene-chip db)
-       (dump-probeset db)
-       (dump-probesetfreeze db))
+       (dump-probesetfreeze db)
+       (dump-probeset db))
      #:encoding "utf8")))
