@@ -91,9 +91,10 @@
     (set gn:sequence (annotate-field (field PublishXRef Sequence) '^^xsd:int))
     (set gn:phenotypeOfDataset
          (ontology 'dataset:
-                   (regexp-substitute/global #f "[^A-Za-z0-9:]"
-                                             (field PublishFreeze Name)
-                                             'pre "_" 'post)))
+                   (regexp-substitute/global
+                    #f "[^A-Za-z0-9:]"
+                    (field ("IFNULL(PublishFreeze.Name, '')" DatasetName))
+                    'pre "_" 'post)))
     (set gn:phenotypeOfPublication
          (let ((pmid (field
                       ("IF(Publication.PubMed_ID IS NULL, '', CONVERT(Publication.PubMed_Id, INT))"

@@ -74,7 +74,7 @@
          (ontology 'dataset:
                    (regexp-substitute/global
                     #f "[^A-Za-z0-9:]"
-                    (field GenoFreeze Name)
+                    (field ("IFNULL(GenoFreeze.Name, '')" DatasetName))
                     'pre "_" 'post)))
     (set gn:chrNum
          (annotate-field

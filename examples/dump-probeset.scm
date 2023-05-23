@@ -44,7 +44,7 @@
           'probeset:
           (regexp-substitute/global
            #f "[^A-Za-z0-9:]"
-           (field ProbeSetFreeze Name)
+           (field ("IFNULL(ProbeSetFreeze.Name, '')" DatasetName))
            'pre "_" 'post)))
     (set gn:mean (annotate-field (field ("IFNULL(ProbeSetXRef.mean, '')" mean))
                                  '^^xsd:double))
