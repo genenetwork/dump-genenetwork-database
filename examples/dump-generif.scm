@@ -74,9 +74,10 @@
                          "")))
     (multiset gn:geneWikiEntryOfGn
               (let* ([entries
-                      (field
-                       ("GROUP_CONCAT(DISTINCT CONCAT_WS('::::', IFNULL(GeneCategory.Name, ''), IFNULL(GeneRIF.PubMed_ID, ''), GeneRIF.email, CAST(CONVERT(BINARY CONVERT(GeneRIF.comment USING latin1) USING utf8) AS VARCHAR(15000)), GeneRIF.createtime, IFNULL(weburl, '')) SEPARATOR';;;;;')"
-                        wikientry))]
+                      (sanitize-rdf-string
+                       (field
+                        ("GROUP_CONCAT(DISTINCT CONCAT_WS('::::', IFNULL(GeneCategory.Name, ''), IFNULL(GeneRIF.PubMed_ID, ''), GeneRIF.email, CAST(CONVERT(BINARY CONVERT(GeneRIF.comment USING latin1) USING utf8) AS VARCHAR(15000)), GeneRIF.createtime, IFNULL(weburl, '')) SEPARATOR';;;;;')"
+                         wikientry)))]
                      [comments (string-split-substring entries ";;;;;")])
                 (map
                  (match-lambda
