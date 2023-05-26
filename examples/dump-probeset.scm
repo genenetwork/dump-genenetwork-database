@@ -22,8 +22,6 @@
 
 (define-dump dump-probeset
   (tables (ProbeSet
-           (left-join ProbeSetXRef "ON ProbeSetXRef.ProbeSetId = ProbeSet.Id")
-           (left-join ProbeSetFreeze "ON ProbeSetXRef.ProbeSetFreezeId = ProbeSetFreeze.Id")
            (left-join GeneChip "ON GeneChip.Id = ProbeSet.ChipId")))
   (schema-triples
    (gn:name rdfs:range rdfs:Literal))
@@ -31,26 +29,6 @@
             'probeset:
             (field ("IFNULL(ProbeSet.Name, ProbeSet.Id)"
                     name)))
-    (set gn:probesetOfDataset
-         (ontology
-          'probeset:
-          (regexp-substitute/global
-           #f "[^A-Za-z0-9:]"
-           (field ("IFNULL(ProbeSetFreeze.Name, '')" DatasetName))
-           'pre "_" 'post)))
-    (set gn:mean (annotate-field (field ("IFNULL(ProbeSetXRef.mean, '')" mean))
-                                 '^^xsd:double))
-    (set gn:se (annotate-field (field ("IFNULL(ProbeSetXRef.se, '')" se))
-                               '^^xsd:double))
-    (set gn:LRS (annotate-field (field ("IFNULL(ProbeSetXRef.LRS, '')" LRS))
-                                '^^xsd:double))
-    (set gn:pValue (annotate-field (field ("IFNULL(ProbeSetXRef.pValue, '')" pValue))
-                                   '^^xsd:double))
-    (set gn:additive (annotate-field (field ("IFNULL(ProbeSetXRef.additive, '')" additive))
-                                     '^^xsd:double))
-    (set gn:h2 (annotate-field (field ("IFNULL(ProbeSetXRef.h2, '')" h2))
-                               '^^xsd:float))
-    (set gn:locus (field ProbeSetXRef Locus))
     (set gn:chipOf (string->identifier "platform" (field GeneChip Name)))
     (set gn:name (field ProbeSet Name))
     (set gn:symbol (field ProbeSet Symbol))
