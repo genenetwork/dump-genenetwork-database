@@ -37,7 +37,8 @@
     (set gn:chipOf (string->identifier "platform" (field GeneChip Name)))
     (set gn:name (field ProbeSet Name))
     (set gn:symbol (field ProbeSet Symbol))
-    (set gn:description (field ProbeSet description))
+    (set gn:description (sanitize-rdf-string
+                         (field ProbeSet description)))
     (set gn:chr (field ProbeSet Chr))
     (set gn:mb (annotate-field (field ("IFNULL(ProbeSet.Mb, '')" Mb)) '^^xsd:double))
     (multiset gn:tissue (map string-trim-both
