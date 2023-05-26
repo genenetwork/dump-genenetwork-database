@@ -63,12 +63,7 @@
     (set gn:snp (field ("IFNULL(ProbeSet.SNP, '')" SNP)))
     (set gn:blatSeq (string-trim-both (field ProbeSet BlatSeq)))
     (set gn:targetSeq (field ProbeSet TargetSeq))
-    (set gn:unigene (field ProbeSet UniGeneId))
-    (set gn:strandProbe (field ProbeSet Strand_Probe))
-    (set gn:strandGene (field ProbeSet Strand_Gene))
     (set gn:omim (ontology 'omim: (field ProbeSet OMIM)))
-    (set gn:comments (sanitize-rdf-string (field ProbeSet comments)))
-    (set gn:targetRegion (field ProbeSet Probe_set_target_region))
     (set gn:specificity (annotate-field
                          (field ("IFNULL(ProbeSet.Probe_set_specificity, '')" Probe_set_specificity))
                          '^^xsd:double))
@@ -82,56 +77,18 @@
                        (field ("IFNULL(ProbeSet.Probe_set_Blat_Mb_end, '')" Probe_set_Blat_Mb_end))
                        '^^xsd:double))
     (set gn:strand (field ProbeSet Probe_set_strand))
-    (set gn:flag (field ProbeSet flag))
     (set gn:chrNum (field ("IFNULL(ProbeSet.chr_num, '')" chr_num)))
     (set gn:nameNum (field ("IFNULL(ProbeSet.name_num, '')" name_num)))
-    (set gn:probeTargetDescription (field ProbeSet Probe_Target_Description))
     (set gn:RefSeq_TranscriptId (ontology 'nuccore: (field ProbeSet RefSeq_TranscriptId)))
-    (set gn:ENSEMBLGeneId (string-trim-both
-                           (field ProbeSet ENSEMBLGeneId)))
     (set gn:Chr_mm8 (field ("IFNULL(ProbeSet.Chr_mm8, '')" Chr_mm8)))
     (set gn:Mb_mm8 (field ("IFNULL(ProbeSet.Mb_mm8, '')" Mb_mm8)))
-    (set gn:probeSetBlatMbStart_mm8
-         (annotate-field
-          (field ("IFNULL(ProbeSet.Probe_set_Blat_Mb_start_mm8, '')" Probe_set_Blat_Mb_start_mm8))
-          '^^xsd:double))
-    (set gn:probeSetBlatMbEnd_mm8
-         (annotate-field 
-          (field ("IFNULL(ProbeSet.Probe_set_Blat_Mb_end_mm8, '')" Probe_set_Blat_Mb_end_mm8))
-          '^^xsd:double))
-    (set gn:homoloGeneID (ontology
-                          'homologene:
-                          (field ProbeSet HomoloGeneID)))
-    (set gn:biotype_ENS (field ProbeSet Biotype_ENS))
-    (set gn:proteinName (field ProbeSet ProteinName))
     (set gn:uniProtReference (ontology 'uniprot:
                                        (field ProbeSet UniProtID)))
-    (set gn:flybase_Id (field ProbeSet Flybase_Id))
-    (set gn:RGD_ID (field ("IFNULL(ProbeSet.RGD_ID, '')" RGD_ID)))
-    (set gn:hgnc (ontology
-                  'hgnc: (field ProbeSet HGNC_ID)))
-    (set gn:HMDB_ID (field ProbeSet HMDB_ID))
-    (set gn:confidence (field ("IFNULL(ProbeSet.Confidence, '')" Confidence)))
-    (set gn:chebi_ID (ontology
-                      'chebi:
-                      (field
-                       ("IFNULL(ProbeSet.ChEBI_ID, '')"
-                        ChEBI_ID))))
-    (set gn:CASNumber (field ProbeSet CAS_number))
     (set gn:PubChemID (ontology
                        'pubchem:
                        (field
                         ("IFNULL(ProbeSet.PubChem_ID, '')"
                          PubChem_ID))))
-    (set gn:chemSpiderID (field ("IFNULL(ProbeSet.ChemSpider_ID, '')" ChemSpider_ID)))
-    (set gn:uniiID (field ProbeSet UNII_ID))
-    (set gn:ECNumber (field ProbeSet EC_number))
-    (set gn:keggID (ontology 'kegg:
-                             (field ProbeSet KEGG_ID)))
-    (set gn:molecularWeight (annotate-field (field ProbeSet Molecular_Weight) '^^xsd:double))
-    (set gn:nugowikiID (field ("IFNULL(ProbeSet.Nugowiki_ID, '')" Nugowiki_ID)))
-    (set gn:type (field ProbeSet Type))
-    (set gn:tissue (field ProbeSet Tissue))
     (set gn:primaryName (field ProbeSet PrimaryName))
     (set gn:secondaryNames (field ProbeSet SecondaryNames))
     (set gn:peptideSequence (field ProbeSet PeptideSequence))))
