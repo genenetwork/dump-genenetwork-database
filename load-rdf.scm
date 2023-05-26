@@ -6,6 +6,7 @@
              (srfi srfi-26)
              (srfi srfi-71)
              (srfi srfi-171)
+             (ice-9 ftw)
              (ice-9 match)
              (ice-9 popen)
              (hashing md5)
@@ -184,23 +185,28 @@ DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
                      (assq-ref connection-settings 'virtuoso-password)
                      %graph-uri)))
        ;; Load data into virtuoso.
-       (format (current-output-port)
-               "~a loaded into virtuoso in ~a seconds~%"
-               rdf-file
-               (time-thunk
-                (cut put-graph
-                     (build-uri
-                      (assq-ref connection-settings 'sparql-scheme)
-                      #:host (assq-ref connection-settings 'sparql-host)
-                      #:port (assq-ref connection-settings 'sparql-port)
-                      #:path "/sparql-graph-crud-auth")
-                     (assq-ref connection-settings 'virtuoso-username)
-                     (assq-ref connection-settings 'virtuoso-password)
-                     rdf-file
-                     %graph-uri
-                     #t)))))
+       (ftw rdf-file
+            (lambda (filename statinfo flag)
+              (begin
+                (when (eq? 'regular (stat:type statinfo))
+                  (format (current-output-port)
+                          "~a loaded into virtuoso in ~a seconds~%"
+                          filename
+                          (time-thunk
+                           (cut put-graph
+                                (build-uri
+                                 (assq-ref connection-settings 'sparql-scheme)
+                                 #:host (assq-ref connection-settings 'sparql-host)
+                                 #:port (assq-ref connection-settings 'sparql-port)
+                                 #:path "/sparql-graph-crud-auth")
+                                (assq-ref connection-settings 'virtuoso-username)
+                                (assq-ref connection-settings 'virtuoso-password)
+                                filename
+                                %graph-uri
+                                #t))))
+                #t)))))
     ((arg0 _ ...)
-     (format (current-error-port) "Usage: ~a CONNECTION-SETTINGS-FILE RDF-FILE~%" arg0)
+     (format (current-error-port) "Usage: ~a CONNECTION-SETTINGS-FILE RDF-FILE-OR-RDF-DIR~%" arg0)
      (exit #f))))
 
 (apply main (command-line))
