@@ -35,6 +35,10 @@
     (set gn:description (field ProbeSet description))
     (set gn:chr (field ProbeSet Chr))
     (set gn:mb (annotate-field (field ("IFNULL(ProbeSet.Mb, '')" Mb)) '^^xsd:double))
+    (multiset gn:tissue (map string-trim-both
+                             (string-split
+                              (field ("IFNULL(ProbeSet.Tissue, '')" Tissue))
+                              #\,)))
     (multiset gn:alias (map string-trim-both
                             (string-split (sanitize-rdf-string (field ProbeSet alias))
                                           #\;)))
