@@ -61,8 +61,8 @@
     (set rdf:type 'gn:phenotype)
     (set gn:name (sanitize-rdf-string
                   (field
-                   ("CAST(CONVERT(BINARY CONVERT(CONCAT(IF(PublishFreeze.Name IS NULL, '', CONCAT(PublishFreeze.Name, '-')), IF(Phenotype.Post_publication_abbreviation IS NULL, IF(Phenotype.Pre_publication_abbreviation IS NULL, Phenotype.Id, Phenotype.Pre_publication_abbreviation), Phenotype.Post_publication_abbreviation)) USING latin1) USING utf8) AS VARCHAR(10000))"
-                    abbrev))))
+                   ("CAST(CONVERT(BINARY CONVERT(IF(Phenotype.Post_publication_abbreviation IS NULL, IF(Phenotype.Pre_publication_abbreviation IS NULL, Phenotype.Id, Phenotype.Pre_publication_abbreviation), Phenotype.Post_publication_abbreviation) USING latin1) USING utf8) AS VARCHAR(100))"
+                    PhenotypeName))))
     ;; There is no row with an empty post-publication description so
     ;; use this field as the main publication description
     (set gn:publicationDescription
