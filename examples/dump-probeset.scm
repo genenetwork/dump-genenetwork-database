@@ -35,7 +35,9 @@
     (set gn:description (field ProbeSet description))
     (set gn:chr (field ProbeSet Chr))
     (set gn:mb (annotate-field (field ("IFNULL(ProbeSet.Mb, '')" Mb)) '^^xsd:double))
-    (set gn:alias (string-trim-both (field ProbeSet alias)))
+    (multiset gn:alias (map string-trim-both
+                            (string-split (sanitize-rdf-string (field ProbeSet alias))
+                                          #\;)))
     (set gn:generif (ontology 'generif: (field ProbeSet GeneId)))
     (set gn:genbank (ontology 'nuccore: (field ProbeSet GenbankId)))
     (set gn:snp (field ("IFNULL(ProbeSet.SNP, '')" SNP)))
