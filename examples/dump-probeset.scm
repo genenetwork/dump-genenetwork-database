@@ -24,11 +24,16 @@
   (tables (ProbeSet
            (left-join GeneChip "ON GeneChip.Id = ProbeSet.ChipId")))
   (schema-triples
-   (gn:name rdfs:range rdfs:Literal))
+   (gn:name rdfs:range rdfs:Literal)
+   (gn:probeset rdfs:range rdfs:Literal))
   (triples (ontology
             'probeset:
-            (field ("IFNULL(ProbeSet.Name, ProbeSet.Id)"
-                    name)))
+            (regexp-substitute/global
+             #f "[^A-Za-z0-9:]"
+             (field ("IFNULL(ProbeSet.Name, ProbeSet.Id)"
+                     name))
+             'pre "_" 'post))
+    (set rdf:type 'gn:probeset)
     (set gn:chipOf (string->identifier "platform" (field GeneChip Name)))
     (set gn:name (field ProbeSet Name))
     (set gn:symbol (field ProbeSet Symbol))
