@@ -89,6 +89,10 @@
                        (field
                         ("IFNULL(ProbeSet.PubChem_ID, '')"
                          PubChem_ID))))
+    (multiset gn:tissue (map string-trim-both
+                        (string-split
+                         (field ("IFNULL(ProbeSet.Tissue, '')" Tissue))
+                         #\,)))
     (set gn:primaryName (field ProbeSet PrimaryName))
     (set gn:secondaryNames (field ProbeSet SecondaryNames))
     (set gn:peptideSequence (field ProbeSet PeptideSequence))))
