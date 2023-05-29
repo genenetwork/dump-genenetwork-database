@@ -23,7 +23,8 @@
 (define-dump dump-probeset-metadata
   (tables (ProbeSetXRef
            (left-join ProbeSet "ON ProbeSetXRef.ProbeSetId = ProbeSet.Id")
-           (left-join ProbeSetFreeze "ON ProbeSetXRef.ProbeSetFreezeId = ProbeSetFreeze.Id")))
+           (left-join ProbeSetFreeze "ON ProbeSetXRef.ProbeSetFreezeId = ProbeSetFreeze.Id"))
+          "WHERE ProbeSetFreeze.public > 0 AND ProbeSetFreeze.confidentiality < 1")
   (schema-triples
    (gn:probesetData rdfs:range gn:probeset)
    (gn:hasProbeset rdfs:range rdfs:Literal))
