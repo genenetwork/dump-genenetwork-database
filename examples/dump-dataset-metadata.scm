@@ -84,9 +84,9 @@
            (left-join PublishFreeze "ON InfoFiles.InfoPageName = PublishFreeze.Name")
            (left-join GenoFreeze "ON InfoFiles.InfoPageName = GenoFreeze.Name")
            (left-join ProbeSetFreeze "ON InfoFiles.InfoPageName = ProbeSetFreeze.Name")
+           (left-join InbredSet "ON InfoFiles.InbredSetId = InbredSet.InbredSetId")
            (left-join Datasets "USING (DatasetId)")
            (left-join DatasetStatus "USING (DatasetStatusId)")
-           (left-join Species "USING (SpeciesId)")
            (left-join Tissue "USING (TissueId)")
            (left-join Investigators "USING (InvestigatorId)")
            (left-join AvgMethod "USING (AvgMethodId)")
@@ -95,8 +95,6 @@
   (schema-triples
    (gn:datasetOfInvestigator rdfs:domain gn:dataset)
    (gn:datasetOfInvestigator rdfs:range foaf:Person)
-   (gn:datasetOfSpecies rdfs:domain gn:dataset)
-   (gn:datasetOfSpecies rdfs:range gn:species)
    (gn:datasetOfInbredSet rdfs:domain gn:dataset)
    (gn:datasetOfInbredSet rdfs:range gn:inbredSet)
    (gn:datasetOfTissue rdfs:domain gn:dataset)
@@ -144,8 +142,8 @@
                                              (field InfoFiles GN_AccesionId))))
     (set gn:datasetStatusName (string-downcase
                                (field DatasetStatus DatasetStatusName)))
-    (set gn:datasetOfSpecies (string->identifier "species"
-                              (field Species FullName BinomialName)))
+    (set gn:datasetOfInbredSet
+         (string->identifier "inbredSet" (field InbredSet Name InbredSetName)))
     (set gn:datasetOfTissue (string->identifier "tissue"
                                                 (field Tissue Short_Name)))
     (set gn:normalization
