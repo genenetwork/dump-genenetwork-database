@@ -55,7 +55,8 @@
               ;; separated list. Split it.
               (map string-trim (string-split (sanitize-rdf-string (field Publication Authors)) #\,)))
     (set gn:abstract
-         (sanitize-rdf-string (field Publication Abstract)))))
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Publication.Abstract USING latin1) USING utf8) AS VARCHAR(100))" Abstract))))))
 
 
 
