@@ -185,26 +185,31 @@ DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
                      (assq-ref connection-settings 'virtuoso-password)
                      %graph-uri)))
        ;; Load data into virtuoso.
-       (ftw rdf-file
-            (lambda (filename statinfo flag)
-              (begin
-                (when (eq? 'regular (stat:type statinfo))
-                  (format (current-output-port)
-                          "~a loaded into virtuoso in ~a seconds~%"
-                          filename
-                          (time-thunk
-                           (cut put-graph
-                                (build-uri
-                                 (assq-ref connection-settings 'sparql-scheme)
-                                 #:host (assq-ref connection-settings 'sparql-host)
-                                 #:port (assq-ref connection-settings 'sparql-port)
-                                 #:path "/sparql-graph-crud-auth")
-                                (assq-ref connection-settings 'virtuoso-username)
-                                (assq-ref connection-settings 'virtuoso-password)
-                                filename
-                                %graph-uri
-                                #t))))
-                #t)))))
+       (let ((host (assq-ref connection-settings 'sparql-host))
+             (port (assq-ref connection-settings 'sparql-port))
+             (path "/sparql-graph-crud-auth")
+             (username (assq-ref connection-settings 'virtuoso-username))
+             (password (assq-ref connection-settings 'virtuoso-password)))
+         (ftw rdf-file
+              (lambda (filename statinfo flag)
+                (begin
+                  (when (eq? 'regular (stat:type statinfo))
+                    (format (current-output-port)
+                            "~a loaded into virtuoso in ~a seconds~%"
+                            filename
+                            (time-thunk
+                             (cut put-graph
+                                  (build-uri
+                                   (assq-ref connection-settings 'sparql-scheme)
+                                   #:host host
+                                   #:port port
+                                   #:path path)
+                                  username
+                                  password
+                                  filename
+                                  %graph-uri
+                                  #t))))
+                  #t))))))
     ((arg0 _ ...)
      (format (current-error-port) "Usage: ~a CONNECTION-SETTINGS-FILE RDF-FILE-OR-RDF-DIR~%" arg0)
      (exit #f))))
