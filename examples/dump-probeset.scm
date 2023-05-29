@@ -54,10 +54,7 @@
     (set gn:blatSeq (sanitize-rdf-string
                      (string-trim-both (field ProbeSet BlatSeq))))
     (set gn:targetSeq (sanitize-rdf-string (field ProbeSet TargetSeq)))
-    (set gn:omim
-         (ontology
-          'omim:
-          (field ("IF(ProbeSet.OMIM REGEXP '^-?[0-9]+$' > 0, ProbeSet.OMIM, '')" OMIM))))
+    (set gn:omim (sanitize-rdf-string (string-trim-both (field ProbeSet OMIM))))
     (set gn:RefSeq_TranscriptId (field ProbeSet RefSeq_TranscriptId))
     (set gn:uniProtReference (ontology 'uniprot:
                                         (field ProbeSet UniProtID)))))
