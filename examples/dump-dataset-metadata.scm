@@ -198,6 +198,7 @@
        (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+       (prefix "probeset:" "<http://genenetwork.org/probeset/>")
        (prefix "dataset:" "<http://genenetwork.org/dataset/>")
        (newline)
        (dump-info-files db)
