@@ -120,9 +120,9 @@ PROC."
 (define* (put-graph sparql-endpoint username password rdf-file graph #:optional retry?)
   "Load RDF-FILE into GRAPH at SPARQL-ENDPOINT, a SPARQL 1.1 Graph
 Store HTTP Protocol endpoint, authenticating with USERNAME and
-PASSWORD. The PUT method is used, and therefore, any existing data in
-the graph is deleted."
-  (let ((response (http-upload-file 'PUT
+PASSWORD. Note that when the PUT method is used, any existing data in
+the graph is deleted.  Therefore, a POST method is used."
+  (let ((response (http-upload-file 'POST
                                     (build-uri (uri-scheme sparql-endpoint)
                                                #:host (uri-host sparql-endpoint)
                                                #:port (uri-port sparql-endpoint)
