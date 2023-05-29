@@ -28,7 +28,7 @@
   (tables (PublishFreeze
            (left-join InfoFiles "ON InfoFiles.InfoPageName = PublishFreeze.Name")
            (left-join InbredSet "ON PublishFreeze.InbredSetId = InbredSet.InbredSetId"))
-          "WHERE PublishFreeze.public > 0 AND InfoFiles.InfoPageName IS NULL")
+          "WHERE PublishFreeze.public > 0 AND PublishFreeze.confidentiality < 1 AND InfoFiles.InfoPageName IS NULL")
   (schema-triples
    (gn:datasetOfInbredSet rdfs:range gn:inbredSet)
    (gn:name rdfs:range rdfs:Literal)

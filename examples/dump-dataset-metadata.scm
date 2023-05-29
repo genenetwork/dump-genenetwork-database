@@ -91,7 +91,7 @@
            (left-join Investigators "USING (InvestigatorId)")
            (left-join AvgMethod "USING (AvgMethodId)")
            (left-join GeneChip "USING (GeneChipId)"))
-          "WHERE GN_AccesionId IS NOT NULL")
+          "WHERE GN_AccesionId IS NOT NULL AND ((PublishFreeze.public > 0 AND PublishFreeze.confidentiality < 1) OR (GenoFreeze.public > 0 AND GenoFreeze.confidentiality < 1) OR (ProbeSetFreeze.public > 0 AND ProbeSetFreeze.confidentiality < 1))")
   (schema-triples
    (gn:datasetOfInvestigator rdfs:domain gn:dataset)
    (gn:datasetOfInvestigator rdfs:range foaf:Person)

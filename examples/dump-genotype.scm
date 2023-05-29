@@ -27,7 +27,7 @@
   (tables (GenoFreeze
            (left-join InfoFiles "ON InfoFiles.InfoPageName = GenoFreeze.Name")
            (left-join InbredSet "ON GenoFreeze.InbredSetId = InbredSet.InbredSetId"))
-          "WHERE GenoFreeze.public > 0 AND InfoFiles.InfoPageName IS NULL")
+          "WHERE GenoFreeze.public > 0 AND GenoFreeze.confidentiality < 1 AND InfoFiles.InfoPageName IS NULL")
   (schema-triples
    (gn:datasetOfInbredSet rdfs:range gn:inbredSet)
    (gn:genotypeDataset rdfs:subPropertyOf gn:dataset)
