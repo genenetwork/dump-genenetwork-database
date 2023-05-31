@@ -131,7 +131,10 @@
     (set rdf:type (string->symbol
                    (field ("IF(GenoFreeze.Id IS NOT NULL, 'gn:genotypeDataset', IF(PublishFreeze.Id IS NOT NULL, 'gn:phenotypeDataset', 'gn:dataset'))"
                            rdfType))))
-    (set gn:name (field InfoFiles InfoPageName))
+    (set gn:name (regexp-substitute/global
+                  #f "^[Nn]one$"
+                  (field InfoFiles InfoPageName)
+                  ""))
     (set dct:created
          (field ("IFNULL(GenoFreeze.CreateTime, IFNULL(PublishFreeze.CreateTime, IFNULL(ProbeSetFreeze.CreateTime, '')))"
                  createTimeGenoFreeze)))
@@ -163,7 +166,11 @@
          (and (not (string-prefix-ci? "no geo series"
                                       (field Datasets GeoSeries)))
               (field Datasets GeoSeries)))
-    (set gn:title (field InfoFiles Title))
+    (set gn:title
+         (regexp-substitute/global
+          #f "^[Nn]one$"
+          (field InfoFiles Title)
+          ""))
     (set gn:specifics (sanitize-rdf-string (field InfoFiles Specifics)))
     (set gn:datasetGroup (field Datasets DatasetName DatasetGroup))
     (set gn:aboutCases (sanitize-rdf-string (field Datasets AboutCases)))
