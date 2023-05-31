@@ -39,7 +39,8 @@
           "WHERE ProbeSetFreeze.public > 0 AND InfoFiles.InfoPageName IS NULL GROUP BY ProbeFreeze.Id")
   (schema-triples
    (gn:avgMethod rdfs:range rdfs:Literal)
-   (gn:dataScale rdfs:range rdfs:Literal))
+   (gn:dataScale rdfs:range rdfs:Literal)
+   (gn:probesetDataset rdf:subClassOf gn:dataset))
   (triples
       (ontology 'probeset:
                 (regexp-substitute/global #f "[^A-Za-z0-9:]"
