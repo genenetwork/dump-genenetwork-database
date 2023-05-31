@@ -93,6 +93,7 @@
            (left-join GeneChip "USING (GeneChipId)"))
           "WHERE GN_AccesionId IS NOT NULL AND ((PublishFreeze.public > 0 AND PublishFreeze.confidentiality < 1) OR (GenoFreeze.public > 0 AND GenoFreeze.confidentiality < 1) OR (ProbeSetFreeze.public > 0 AND ProbeSetFreeze.confidentiality < 1))")
   (schema-triples
+   (gn:dataset rdfs:range rdfs:Literal)
    (gn:datasetOfInvestigator rdfs:domain gn:dataset)
    (gn:datasetOfInvestigator rdfs:range foaf:Person)
    (gn:datasetOfInbredSet rdfs:domain gn:dataset)
