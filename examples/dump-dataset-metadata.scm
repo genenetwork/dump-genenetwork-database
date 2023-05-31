@@ -125,9 +125,6 @@
                      (regexp-substitute/global #f "[^A-Za-z0-9:]"
                                                (field InfoFiles InfoPageName)
                                                'pre "_" 'post))
-    ;; Add GeneChipName and GeoPlatform:
-    ;; GeneChip.GeneChipName AS gene_chip_name
-    ;; GeneChip.GeoPlatform AS geo_platform
     (set rdf:type (string->symbol
                    (field ("IF(GenoFreeze.Id IS NOT NULL, 'gn:genotypeDataset', IF(PublishFreeze.Id IS NOT NULL, 'gn:phenotypeDataset', 'gn:dataset'))"
                            rdfType))))
