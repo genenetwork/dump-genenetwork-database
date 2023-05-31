@@ -174,7 +174,20 @@
     (set gn:experimentDesign (sanitize-rdf-string
                               (field Datasets ExperimentDesign)))
     (set gn:contributors (sanitize-rdf-string (field Datasets Contributors)))
-    (set gn:citation (sanitize-rdf-string (field Datasets Citation)))
+    (set gn:citation
+         (sanitize-rdf-string
+          (regexp-substitute/global
+           #f "^[Nn]one$"
+           (field
+            ("CAST(CONVERT(BINARY CONVERT(IFNULL(IF(InfoFiles.Citation = 'None' OR InfoFiles.Citation = '' OR InfoFiles.Citation IS NULL, Datasets.Citation, InfoFiles.Citation), '') USING latin1) USING utf8) AS VARCHAR(1500))"
+             Citation))
+           "")))
+    (set gn:dataSourceAcknowledgment
+         (sanitize-rdf-string
+          (string-trim-both
+           (regexp-substitute/global #f "^[Nn]one$"
+                                     (field InfoFiles Data_Source_Acknowledge)
+                                     ""))))
     (set gn:acknowledgment (sanitize-rdf-string
                             (field Datasets Acknowledgment)))))
 
