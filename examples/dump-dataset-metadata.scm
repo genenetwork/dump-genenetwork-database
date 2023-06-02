@@ -170,14 +170,29 @@
           ""))
     (set gn:specifics (sanitize-rdf-string (field InfoFiles Specifics)))
     (set gn:datasetGroup (field Datasets DatasetName DatasetGroup))
-    (set gn:aboutCases (sanitize-rdf-string (field Datasets AboutCases)))
-    (set gn:aboutPlatform (sanitize-rdf-string (field Datasets AboutPlatform)))
-    (set gn:aboutDataProcessing (sanitize-rdf-string
-                                 (field Datasets AboutDataProcessing)))
-    (set gn:notes (sanitize-rdf-string (field Datasets Notes)))
-    (set gn:experimentDesign (sanitize-rdf-string
-                              (field Datasets ExperimentDesign)))
-    (set gn:contributors (sanitize-rdf-string (field Datasets Contributors)))
+    (set gn:aboutCases
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.AboutCases USING latin1) USING utf8) AS VARCHAR(10000))" AboutCases))))
+    (set gn:aboutPlatform
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.AboutPlatform USING latin1) USING utf8) AS VARCHAR(1500))"
+                  AboutPlatform))))
+    (set gn:aboutDataProcessing
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.AboutProcessing USING latin1) USING utf8) AS VARCHAR(1500))"
+                  AboutProcessing))))
+    (set gn:notes
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.Notes USING latin1) USING utf8) AS VARCHAR(1500))"
+                  Notes))))
+    (set gn:experimentDesign
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.ExperimentDesign USING latin1) USING utf8) AS VARCHAR(1500))"
+                  ExperimentDesign))))
+    (set gn:contributors
+         (sanitize-rdf-string
+          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.Contributors USING latin1) USING utf8) AS VARCHAR(1500))"
+                  Contributors))))
     (set gn:citation
          (sanitize-rdf-string
           (regexp-substitute/global
@@ -189,9 +204,11 @@
     (set gn:dataSourceAcknowledgment
          (sanitize-rdf-string
           (string-trim-both
-           (regexp-substitute/global #f "^[Nn]one$"
-                                     (field InfoFiles Data_Source_Acknowledge)
-                                     ""))))
+           (regexp-substitute/global
+            #f "^[Nn]one$"
+            (field ("CAST(CONVERT(BINARY CONVERT(InfoFiles.Data_Source_Acknowledge USING latin1) USING utf8) AS VARCHAR(1500))"
+                    Data_Source_Acknowledge))
+            ""))))
     (set gn:acknowledgment (sanitize-rdf-string
                             (field Datasets Acknowledgment)))))
 
