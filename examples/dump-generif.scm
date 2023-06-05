@@ -36,7 +36,7 @@
               (string-split
                (field ("GROUP_CONCAT(DISTINCT Species.SpeciesName)" species))
                #\,))
-    (multiset gn:taxId (map (cut ontology 'taxon: <>)
+    (multiset gn:taxId (map (cut ontology 'ncbiTaxon: <>)
                             (string-split (field ("GROUP_CONCAT(DISTINCT TaxID)" taxId))
                                           #\,)))))
 
@@ -139,7 +139,7 @@
        (prefix "dct:" "<http://purl.org/dc/terms/>")
        (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
-       (prefix "taxon:" "<http://purl.uniprot.org/taxonomy/>")
+       (prefix "ncbiTaxon:" "<https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=>")
        (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
