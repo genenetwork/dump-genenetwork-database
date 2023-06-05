@@ -34,7 +34,7 @@
     (set gn:displayName (field Species MenuName))
     (set gn:binomialName (field Species FullName))
     (set gn:family (field Species Family))
-    (set up:organism (ontology 'taxon: (field Species TaxonomyId)))))
+    (set gn:organism (ontology 'ncbiTaxon: (field Species TaxonomyId)))))
 
 (define-dump dump-strain
   (tables (Strain
@@ -128,7 +128,7 @@
        (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
        (prefix "rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
        (prefix "rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
-       (prefix "taxon:" "<http://purl.uniprot.org/taxonomy/>")
+       (prefix "ncbiTaxon:" "<https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=>")
        (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
