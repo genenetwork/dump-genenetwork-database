@@ -133,6 +133,7 @@
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
        (prefix "dataset:" "<http://genenetwork.org/dataset/>")
+       (prefix "publication:" "<http://genenetwork.org/publication/>")
        (newline)
        (dump-publishfreeze db)
        (dump-phenotypes db))
