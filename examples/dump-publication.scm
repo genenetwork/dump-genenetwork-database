@@ -39,11 +39,11 @@
                     pmid)))
             (publication-id (field Publication Id)))
         (if (string-null? pmid)
-            (string->identifier "publication"
-                                (number->string publication-id))
-            (ontology 'pubmed: pmid)))
+            (ontology 'publication:
+                      publication-id)
+            (ontology 'publication: pmid)))
     (set rdf:type 'gn:publication)
-    (set gn:pubMedId (field ("IFNULL(PubMed_ID, '')" pubmedId)))
+    (set gn:pubMedId (ontology 'pubmed: (field ("IFNULL(PubMed_ID, '')" pubmedId))))
     (set gn:title (field Publication Title))
     (set gn:journal (field Publication Journal))
     (set gn:volume (field Publication Volume))
@@ -85,6 +85,7 @@
        (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
        (prefix "up:" "<http://purl.uniprot.org/core/>")
        (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+       (prefix "publication:" "<http://genenetwork.org/publication/>")
        (newline)
        (dump-publication db))
      #:encoding "utf8")))
