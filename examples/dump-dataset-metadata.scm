@@ -175,7 +175,8 @@
     (set gn:title
          (regexp-substitute/global
           #f "^[Nn]one$"
-          (field InfoFiles Title)
+          (field InfoFiles InfoFileTitle)
+          ""))
     (set gn:publicationTitle
          (regexp-substitute/global
           #f "^[Nn]one$"
