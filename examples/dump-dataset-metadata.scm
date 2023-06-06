@@ -163,9 +163,12 @@
     (set gn:aboutTissue
          (sanitize-rdf-string (field Datasets AboutTissue)))
     (set gn:geoSeries
-         (and (not (string-prefix-ci? "no geo series"
-                                      (field Datasets GeoSeries)))
-              (field Datasets GeoSeries)))
+         (let ((s
+                (string-match "GSE[0-9]*"
+                              (field ("IFNULL(Datasets.GeoSeries, '')" GeoSeries)))))
+           (if s (ontology
+                  'geoSeries: (match:substring s))
+               "")))
     (set gn:title
          (regexp-substitute/global
           #f "^[Nn]one$"
@@ -226,6 +229,7 @@
        (prefix "dct:" "<http://purl.org/dc/terms/>")
        (prefix "foaf:" "<http://xmlns.com/foaf/0.1/>")
        (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
+       (prefix "geoSeries:" "<http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=>")
        (prefix "gn:" "<http://genenetwork.org/>")
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
        (prefix "phenotype:" "<http://genenetwork.org/phenotype/>")
