@@ -99,6 +99,8 @@
    (gn:datasetOfInvestigator rdfs:range foaf:Person)
    (gn:datasetOfInbredSet rdfs:domain gn:dataset)
    (gn:datasetOfInbredSet rdfs:range gn:inbredSet)
+   (gn:datasetOfSpecies rdfs:domain gn:dataset)
+   (gn:datasetOfSpecies rdfs:range gn:inbredSet)
    (gn:datasetOfTissue rdfs:domain gn:dataset)
    (gn:datasetOfTissue rdfs:range gn:tissue)
    (gn:normalization rdfs:domain gn:dataset)
