@@ -95,6 +95,7 @@
   (schema-triples
    (gn:dataset rdfs:range rdfs:Literal)
    (gn:datasetOfInvestigator rdfs:domain gn:dataset)
+   (gn:datasetOfOrganization rdfs:domain gn:dataset)
    (gn:datasetOfInvestigator rdfs:range foaf:Person)
    (gn:datasetOfInbredSet rdfs:domain gn:dataset)
    (gn:datasetOfInbredSet rdfs:range gn:inbredSet)
@@ -139,6 +140,8 @@
          (investigator-attributes->id (field Investigators FirstName)
                                       (field Investigators LastName)
                                       (field Investigators Email)))
+    (set gn:datasetOfOrganization
+         (field ("CAST(CONVERT(BINARY CONVERT(Organizations.OrganizationName USING latin1) USING utf8) AS VARCHAR(1500))" Organizations)))
     (set gn:accessionId (string-append "GN" (number->string
                                              (field InfoFiles GN_AccesionId))))
     (set gn:datasetStatusName (string-downcase
