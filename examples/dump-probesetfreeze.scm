@@ -26,7 +26,10 @@
    (gn:name rdfs:range rdfs:Literal))
   (triples (string->identifier "platform" (field GeneChip Name))
     (set rdf:type 'gn:platform)
-    (set gn:name (field GeneChip GeneChipName))))
+    (set gn:name (field GeneChip GeneChipName))
+    (set gn:geoPlatform
+         (ontology 'geoSeries:
+                   (string-trim-both (field GeneChip GeoPlatform))))))
 
 ;; Molecular Traits are also referred to as ProbeSets
 (define-dump dump-probesetfreeze
