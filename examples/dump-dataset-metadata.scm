@@ -192,8 +192,8 @@
                   AboutPlatform))))
     (set gn:aboutDataProcessing
          (sanitize-rdf-string
-          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.AboutProcessing USING latin1) USING utf8) AS VARCHAR(1500))"
-                  AboutProcessing))))
+          (field ("CAST(CONVERT(BINARY CONVERT(Datasets.AboutDataProcessing USING latin1) USING utf8) AS VARCHAR(1500))"
+                  AboutDataProcessing))))
     (set gn:notes
          (sanitize-rdf-string
           (field ("CAST(CONVERT(BINARY CONVERT(Datasets.Notes USING latin1) USING utf8) AS VARCHAR(1500))"
