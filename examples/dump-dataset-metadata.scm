@@ -112,6 +112,7 @@
    (gn:geoSeries rdfs:range rdfs:Literal)
    (gn:name rdfs:range rdfs:Literal)
    (gn:title rdfs:range rdfs:Literal)
+   (gn:publicationTitle rdfs:range rdfs:Literal)
    (gn:specifics rdfs:range rdfs:Literal)
    (gn:datasetGroup rdfs:range rdfs:Literal)
    (gn:aboutCases rdfs:range rdfs:Literal)
@@ -173,6 +174,10 @@
          (regexp-substitute/global
           #f "^[Nn]one$"
           (field InfoFiles Title)
+    (set gn:publicationTitle
+         (regexp-substitute/global
+          #f "^[Nn]one$"
+          (field Datasets PublicationTitle)
           ""))
     (set gn:specifics (sanitize-rdf-string (field InfoFiles Specifics)))
     (set gn:datasetGroup (field Datasets DatasetName DatasetGroup))
