@@ -68,6 +68,7 @@
        (prefix "dct:" "<http://purl.org/dc/terms/>")
        (prefix "foaf:" "<http://xmlns.com/foaf/0.1/>")
        (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
+       (prefix "geoSeries:" "<http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=>")
        (prefix "gn:" "<http://genenetwork.org/>")
        (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
        (prefix "phenotype:" "<http://genenetwork.org/phenotype/>")
