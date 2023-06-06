@@ -152,9 +152,9 @@
                                                 (field Tissue Short_Name)))
     (set gn:normalization
          (string->identifier "avgmethod"
-          ;; If AvgMethodName is NULL, assume N/A.
-          (if (string-blank? (field AvgMethod Name AvgMethodName))
-              "N/A" (field AvgMethod Name AvgMethodName))))
+                             ;; If AvgMethodName is NULL, assume N/A.
+                             (if (string-blank? (field AvgMethod Name AvgMethodName))
+                                 "N/A" (field AvgMethod Name AvgMethodName))))
     (set gn:datasetOfPlatform
          (string->identifier "platform"
                              (field GeneChip Name GeneChip)))
