@@ -85,6 +85,7 @@
            (left-join GenoFreeze "ON InfoFiles.InfoPageName = GenoFreeze.Name")
            (left-join ProbeSetFreeze "ON InfoFiles.InfoPageName = ProbeSetFreeze.Name")
            (left-join InbredSet "ON InfoFiles.InbredSetId = InbredSet.InbredSetId")
+           (left-join Species "ON InfoFiles.SpeciesId = Species.SpeciesId")
            (left-join Datasets "USING (DatasetId)")
            (left-join DatasetStatus "USING (DatasetStatusId)")
            (left-join Tissue "USING (TissueId)")
