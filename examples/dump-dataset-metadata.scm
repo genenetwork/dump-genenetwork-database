@@ -211,7 +211,7 @@
           (regexp-substitute/global
            #f "^[Nn]one$"
            (field
-            ("CAST(CONVERT(BINARY CONVERT(IFNULL(IF(InfoFiles.Citation = 'None' OR InfoFiles.Citation = '' OR InfoFiles.Citation IS NULL, Datasets.Citation, InfoFiles.Citation), '') USING latin1) USING utf8) AS VARCHAR(1500))"
+            ("CAST(CONVERT(BINARY CONVERT(Datasets.Citation USING latin1) USING utf8) AS VARCHAR(1500))"
              Citation))
            "")))
     (set gn:dataSourceAcknowledgment
