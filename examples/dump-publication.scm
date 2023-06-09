@@ -39,8 +39,8 @@
                     pmid)))
             (publication-id (field Publication Id)))
         (if (string-null? pmid)
-            (ontology 'publication:
-                      publication-id)
+            (string->identifier "unpublished"
+                                (number->string publication-id))
             (ontology 'publication: pmid)))
     (set rdf:type 'gn:publication)
     (set gn:pubMedId (ontology 'pubmed: (field ("IFNULL(PubMed_ID, '')" pubmedId))))

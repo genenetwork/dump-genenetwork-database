@@ -102,9 +102,9 @@
                        pmid)))
                (publication-id (field Publication Id)))
            (if (string-null? pmid)
-               (string->identifier "publication"
+               (string->identifier "unpublished"
                                    (number->string publication-id))
-               (ontology 'pubmed: pmid))))))
+               (ontology 'publication: pmid))))))
 
 
 (call-with-target-database
