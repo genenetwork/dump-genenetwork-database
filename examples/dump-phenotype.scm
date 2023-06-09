@@ -36,7 +36,11 @@
    (gn:shortName rdfs:range rdfs:Literal)
    (gn:createTime rdfs:range rdfs:Literal)
    (gn:phenotypeDataset rdf:subClassOf gn:dataset))
-  (triples (string->identifier "dataset" (field PublishFreeze Name))
+  (triples
+      (ontology 'dataset:
+                (regexp-substitute/global #f "[^A-Za-z0-9:]"
+                                          (field PublishFreeze Name)
+                                          'pre "_" 'post))
     (set rdf:type 'gn:phenotypeDataset)
     (set gn:name (field PublishFreeze Name))
     (set gn:fullName (field PublishFreeze FullName))
