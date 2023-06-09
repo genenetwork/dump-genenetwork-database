@@ -98,7 +98,7 @@
          (ontology 'dataset:
                    (regexp-substitute/global
                     #f "[^A-Za-z0-9:]"
-                    (field ("IFNULL(PublishFreeze.Name, '')" DatasetName))
+                    (field ("IFNULL(InfoFiles.InfoPageName, IFNULL(PublishFreeze.Name, ''))" DatasetName))
                     'pre "_" 'post)))
     (set gn:phenotypeOfPublication
          (let ((pmid (field
