@@ -138,6 +138,9 @@
                   #f "^[Nn]one$"
                   (field InfoFiles InfoPageName)
                   ""))
+    (set gn:fullName
+         (field ("IFNULL(GenoFreeze.FullName, IFNULL(PublishFreeze.FullName, ''))"
+                 DatasetFullName)))
     (set dct:created
          (field ("IFNULL(GenoFreeze.CreateTime, IFNULL(PublishFreeze.CreateTime, IFNULL(ProbeSetFreeze.CreateTime, '')))"
                  createTimeGenoFreeze)))
