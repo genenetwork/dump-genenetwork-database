@@ -155,6 +155,7 @@ authenticating as the dba user with PASSWORD."
      (format out
              "SET DSN=localhost:~a;
 SET PWD=~s;
+log_enable(3, 1);
 DELETE FROM rdf_quad WHERE g = iri_to_id ('~a');"
              port
              password
