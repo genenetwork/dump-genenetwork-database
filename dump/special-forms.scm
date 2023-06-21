@@ -17,6 +17,7 @@
             dump-id
             syntax-let
             blank-node
+            map-alist
             define-dump))
 
 (define (key->assoc-ref alist x)

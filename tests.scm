@@ -2,7 +2,8 @@
              (ice-9 match)
              (dump sql)
              (dump string-similarity)
-             (dump utils))
+             (dump strings)
+             (dump special-forms))
 
 (test-begin "sql")
 
