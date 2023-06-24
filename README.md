@@ -24,12 +24,10 @@ $ make
 or for a container
 
 ```shell
-guix shell -C --network --share=/run/mysqld/
-make
-export GUILE_LOAD_PATH=.:$GUILE_LOAD_PATH
 mkdir test
-echo "Dumping databases..."
-guile ./dump.scm conn.scm test/
+guix shell -C --network --share=/run/mysqld/ --manifest=manifest.scm
+export GUILE_LOAD_PATH=.:$GUILE_LOAD_PATH
+guile json-dump.scm conn.scm test/
 ```
 
 
