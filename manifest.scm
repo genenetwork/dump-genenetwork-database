@@ -11,7 +11,12 @@
              (gnu packages graphviz)
              (gnu packages guile)
              ((gnu packages guile-xyz) #:select (guile-sparql) #:prefix guix:)
-             ((gnu packages guile-xyz) #:select (guile-dbd-mysql guile-dbi guile-hashing guile-libyaml))
+             ((gnu packages guile-xyz)
+              #:select (guile-dbi
+                        guile-dsv
+                        guile-hashing
+                        guile-libyaml
+                        guile-dbd-mysql))
              ((gnu packages rdf) #:select (raptor2))
              (guix build-system gnu)
              (guix git-download)
@@ -72,6 +77,7 @@
 
 (packages->manifest
  (list gnu-make guile-3.0 guile-dbi guile-dbd-mysql guile-zlib
+       guile-json-4 guile-dsv
        ;; We abuse (ccwl graphviz) as a library to visualize the database
        ;; schema. Hence we need ccwl and guile-libyaml.
        ccwl graphviz guile-hashing guile-libyaml guile-sparql
