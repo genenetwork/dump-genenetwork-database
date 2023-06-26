@@ -12,7 +12,7 @@ relational database to plain text.
 Drop into a development environment with
 
 ``` shell
-$ guix shell
+$ guix shell -m manifest.scm
 ```
 
 Build the sources.
@@ -77,7 +77,7 @@ Here's a sample *conn.scm*.
 Then, to dump the database to \~/data/dump, run
 
 ``` shell
-$ ./pre-inst-env ./dump.scm conn.scm ~/data/dump
+$ guix shell -m manifest.scm -- ./pre-inst-env ./examples/dump-dataset-metadata.scm conn.scm ~/data/dump-data/
 ```
 
 Make sure there is enough free space! It\'s best to dump the database on
@@ -92,8 +92,8 @@ virtuoso. This will load the dumped RDF into the
 in that graph.
 
 ``` shell
-$ rapper --input turtle --count ~/data/dump/dump.ttl
-$ ./pre-inst-env ./load-rdf.scm conn.scm ~/data/dump/dump.ttl
+$ guix shell -m manifest.scm -- rapper --input turtle --count ~/data/dump/dump.ttl
+$ guix shell -m manifest.scm -- ./pre-inst-env ./load-rdf.scm conn.scm ~/data/dump/dump.ttl
 ```
 
 ## Visualize schema
@@ -101,7 +101,7 @@ $ ./pre-inst-env ./load-rdf.scm conn.scm ~/data/dump/dump.ttl
 Now, you may query virtuoso to visualize the SQL and RDF schema.
 
 ``` shell
-$ ./pre-inst-env ./visualize-schema.scm conn.scm
+$ guix shell -m manifest.scm -- ./pre-inst-env ./visualize-schema.scm conn.scm
 ```
 
 This will output graphviz dot files `sql.dot` and `rdf.dot` describing
