@@ -1,6 +1,9 @@
 # Add wikidata references to species
 
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
 @prefix wd: <http://www.wikidata.org/entity/> .
+@prefix gn: <http://genenetwork.org/> .
 
 gn:species_arabidopsis_thaliana rdf:isDefinedBy wd:Q158695 .
 gn:species_bat__glossophaga_soricina_ rdf:isDefinedBy wd:Q304929 .
