@@ -439,6 +439,26 @@ must be remedied."
                                     (triple 'predicate 'rdfs:domain #,subject-type))))
                              (_ (error "Invalid predicate clause:" predicate-clause))))
                          #'(predicate-clauses ...))))
+             (when (dump-configuration-auto-document-path configuration)
+               (for-each (match-lambda
+                         ((predicate . object)
+                          (format #f "Subject:~a Predicate:~a Object:~a.~%"
+                                  #,(car (collect-keys
+                                          (field->key #'subject)))
+                                  predicate object)))
+                       (map-alist
+                           '()
+                         #,@(translate-forms 'field
+                                             (lambda (x)
+                                               (symbol->string
+                                                (syntax->datum
+                                                 ((syntax-rules (field)
+                                                    ((field (query alias)) alias)
+                                                    ((field table column) column)
+                                                    ((field table column alias) alias))
+                                                  x))))
+                                             #'(predicate-clauses ...))
+                         )))
              (sql-for-each (lambda (row)
                              (scm->triples
                               (map-alist row #,@(field->key #'(predicate-clauses ...)))
