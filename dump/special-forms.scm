@@ -1,5 +1,6 @@
 (define-module (dump special-forms)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-26)
   #:use-module (dump sql)
@@ -18,7 +19,22 @@
             syntax-let
             blank-node
             map-alist
+            dump-configuration
+            dump-configuration-table-metadata?
+            dump-configuration-auto-document-path
             define-dump))
+
+(define-immutable-record-type <dump-configuration>
+  (%dump-configuration table-metadata? auto-document-path)
+  dump-configuration?
+  (table-metadata? dump-configuration-table-metadata?)
+  (auto-document-path dump-configuration-auto-document-path))
+
+(define* (dump-configuration
+          #:optional (table-metadata? #f)
+          (auto-document-path #f))
+  "Return a new configuration."
+  (%dump-configuration table-metadata? auto-document-path))
 
 (define (key->assoc-ref alist x)
   "Recursively translate (key k) forms in source X to (assoc-ref ALIST
@@ -377,7 +393,9 @@ must be remedied."
                                                #'(schema-triples)))
                     ((triples subject predicate-clauses ...) (triples)
                      (find-clause #'(clauses ...) 'triples)))
-         #`(define* (name db #:optional (table-metadata? #f))
+         #`(define* (name db
+                          #:optional (dump-configuration
+                                      (dump-configuration)))
              #,(syntax-case #'schema-triples-clause (schema-triples)
                  ((schema-triples (triple-subject triple-predicate triple-object) ...)
                   #`(for-each triple
@@ -385,7 +403,8 @@ must be remedied."
                               (list 'triple-predicate ...)
                               (list 'triple-object ...)))
                  (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
-             (when table-metadata?
+             (when (dump-configuration-table-metadata?
+                    dump-configuration)
                #,@(let ((dump-table (symbol->string (syntax->datum #'primary-table)))
                         (subject-type (any (lambda (predicate)
                                              (syntax-case predicate (rdf:type)
