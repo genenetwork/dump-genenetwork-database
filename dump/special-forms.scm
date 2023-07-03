@@ -21,6 +21,7 @@
             map-alist
             dump-configuration
             dump-configuration-table-metadata?
+            dump-configuration-table-dump?
             dump-configuration-auto-document-path
             define-dump))
 
@@ -28,10 +29,13 @@
   (%dump-configuration table-metadata? auto-document-path)
   dump-configuration?
   (table-metadata? dump-configuration-table-metadata?)
+  (table-dump? dump-configuration-table-dump?)
   (auto-document-path dump-configuration-auto-document-path))
 
 (define* (dump-configuration
-          #:optional (table-metadata? #f)
+          #:optional
+          (table-dump? #t)
+          (table-metadata? #f)
           (auto-document-path #f))
   "Return a new configuration."
   (%dump-configuration table-metadata? auto-document-path))
@@ -441,30 +445,21 @@ must be remedied."
                          #'(predicate-clauses ...))))
              (when (dump-configuration-auto-document-path configuration)
                (for-each (match-lambda
-                         ((predicate . object)
-                          (format #f "Subject:~a Predicate:~a Object:~a.~%"
-                                  #,(car (collect-keys
-                                          (field->key #'subject)))
-                                  predicate object)))
-                       (map-alist
-                           '()
-                         #,@(translate-forms 'field
-                                             (lambda (x)
-                                               (symbol->string
-                                                (syntax->datum
-                                                 ((syntax-rules (field)
-                                                    ((field (query alias)) alias)
-                                                    ((field table column) column)
-                                                    ((field table column alias) alias))
-                                                  x))))
-                                             #'(predicate-clauses ...))
-                         )))
-             (sql-for-each (lambda (row)
-                             (scm->triples
-                              (map-alist row #,@(field->key #'(predicate-clauses ...)))
-                              #,(field->assoc-ref #'row #'subject)))
-                           db
-                           (select-query #,(collect-fields #'(subject predicate-clauses ...))
-                                         (primary-table other-tables ...)
-                                         tables-raw ...)))))
+                           ((predicate . object)
+                            (format #f "Subject:~a Predicate:~a Object:~a.~%"
+                                    #,(car (collect-keys
+                                            (field->key #'subject)))
+                                    predicate object)))
+                         (map-alist
+                             '()
+                           #,@(translate-forms 'field
+                                               (lambda (x)
+                                                 (symbol->string
+                                                  (syntax->datum
+                                                   ((syntax-rules (field)
+                                                      ((field (query alias)) alias)
+                                                      ((field table column) column)
+                                                      ((field table column alias) alias))
+                                                    x))))
+                                               #'(predicate-clauses ...)))))
       (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
