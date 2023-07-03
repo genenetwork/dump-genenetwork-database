@@ -462,4 +462,13 @@ must be remedied."
                                                       ((field table column alias) alias))
                                                     x))))
                                                #'(predicate-clauses ...)))))
+             (when (dump-configuration-table-dump? configuration)
+               (sql-for-each (lambda (row)
+                               (scm->triples
+                                (map-alist row #,@(field->key #'(predicate-clauses ...)))
+                                #,(field->assoc-ref #'row #'subject)))
+                             db
+                             (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                           (primary-table other-tables ...)
+                                           tables-raw ...))))))
       (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
