@@ -444,26 +444,54 @@ must be remedied."
                                     (triple 'predicate 'rdfs:domain #,subject-type))))
                              (_ (error "Invalid predicate clause:" predicate-clause))))
                          #'(predicate-clauses ...))))
-             (when (dump-configuration-auto-document-path configuration)
-               (for-each (match-lambda
-                           ((predicate . object)
-                            (format #f "Subject:~a Predicate:~a Object:~a.~%"
-                                    #,(car (collect-keys
-                                            (field->key #'subject)))
-                                    predicate object)))
-                         (map-alist
-                             '()
-                           #,@(translate-forms 'field
-                                               (lambda (x)
-                                                 (symbol->string
-                                                  (syntax->datum
-                                                   ((syntax-rules (field)
-                                                      ((field (query alias)) alias)
-                                                      ((field table column) column)
-                                                      ((field table column alias) alias))
-                                                    x))))
-                                               #'(predicate-clauses ...)))))
-             (when (dump-configuration-table-dump? configuration)
+             (when (dump-configuration-auto-documentation-port dump-configuration)
+               (let ((out
+                      (dump-configuration-auto-documentation-port
+                       dump-configuration)))
+                 (format out "# ~a Metadata~%" (syntax->datum #`name))
+                 #,(syntax-case #'schema-triples-clause (schema-triples)
+                     ((schema-triples (triple-subject triple-predicate triple-object) ...)
+                      #`(for-each triple
+                                  (list 'triple-subject ...)
+                                  (list 'triple-predicate ...)
+                                  (list 'triple-object ...)))
+                     (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
+                 (format out "## Generated Triples:
+
+The following SQL query was executed:
+
+```sql
+~a
+```
+
+Here are the generated triples:
+
+"
+                         (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                       (primary-table other-tables ...)
+                                       tables-raw ...))
+                 (for-each (match-lambda
+                             ((predicate . object)
+                              (format out "~a -> ~a -> ~a ~%"
+                                      #,(car (collect-keys
+                                              (field->key #'subject)))
+                                      predicate object)))
+                           (map-alist
+                               '()
+                             #,@(translate-forms 'field
+                                                 (lambda (x)
+                                                   (symbol->string
+                                                    (syntax->datum
+                                                     ((syntax-rules (field)
+                                                        ((field (query alias)) alias)
+                                                        ((field table column) column)
+                                                        ((field table column alias) alias))
+                                                      x))))
+                                                 #'(predicate-clauses ...))))
+                 ;; To clear the buffer
+                 (force-output out)
+                 ))
+             (when (dump-configuration-triples? dump-configuration)
                (sql-for-each (lambda (row)
                                (scm->triples
                                 (map-alist row #,@(field->key #'(predicate-clauses ...)))
