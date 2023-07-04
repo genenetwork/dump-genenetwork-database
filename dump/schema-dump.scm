@@ -38,7 +38,7 @@
                          (TableComments))))
 
 (define (dump-schema-annotations db)
-  (call-with-genenetwork-database
+  (call-with-target-database
    (lambda (db)
      (for-each (cut dump-table-fields db <>)
                (get-tables-from-comments db)))))
