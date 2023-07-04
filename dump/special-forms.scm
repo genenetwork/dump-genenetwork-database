@@ -20,25 +20,26 @@
             blank-node
             map-alist
             dump-configuration
+            dump-configuration?
+            dump-configuration-triples?
             dump-configuration-table-metadata?
-            dump-configuration-table-dump?
-            dump-configuration-auto-document-path
+            dump-configuration-auto-documentation-port
             define-dump))
 
 (define-immutable-record-type <dump-configuration>
-  (%dump-configuration table-metadata? auto-document-path)
+  (%dump-configuration triples? table-metadata? auto-documentation-port)
   dump-configuration?
+  (triples? dump-configuration-triples?)
   (table-metadata? dump-configuration-table-metadata?)
-  (table-dump? dump-configuration-table-dump?)
-  (auto-document-path dump-configuration-auto-document-path))
+  (auto-documentation-port dump-configuration-auto-documentation-port))
 
 (define* (dump-configuration
           #:optional
-          (table-dump? #t)
+          (triples? #t)
           (table-metadata? #f)
-          (auto-document-path #f))
+          (auto-documentation-port #f))
   "Return a new configuration."
-  (%dump-configuration table-metadata? auto-document-path))
+  (%dump-configuration triples? table-metadata? auto-documentation-port))
 
 (define (key->assoc-ref alist x)
   "Recursively translate (key k) forms in source X to (assoc-ref ALIST
