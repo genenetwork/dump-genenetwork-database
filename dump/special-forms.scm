@@ -459,7 +459,8 @@ must be remedied."
                                     (list 'triple-predicate ...)
                                     (list 'triple-object ...))))
                      (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
-                 (format out "## Generated Triples:
+                 (format out "
+## Generated Triples:
 
 The following SQL query was executed:
 
@@ -467,7 +468,7 @@ The following SQL query was executed:
 ~a
 ```
 
-Here are the generated triples:
+Triples take the form:
 
 "
                          (select-query #,(collect-fields #'(subject predicate-clauses ...))
@@ -483,14 +484,20 @@ Here are the generated triples:
                                '()
                              #,@(translate-forms 'field
                                                  (lambda (x)
-                                                   (symbol->string
-                                                    (syntax->datum
-                                                     ((syntax-rules (field)
-                                                        ((field (query alias)) alias)
-                                                        ((field table column) column)
-                                                        ((field table column alias) alias))
-                                                      x))))
-                                                 #'(predicate-clauses ...))))
+                                                   (syntax-case x (field)
+                                                     ((field (query alias))
+                                                      #`(format #f "~a" (syntax->datum #'alias)))
+                                                     ((field table column)
+                                                      #`(format #f "~a.~a"
+                                                                (syntax->datum #'table)
+                                                                (syntax->datum #'column)))
+                                                     ((field table column alias)
+                                                      #`(format #f "~a.~a"
+                                                                (syntax->datum table)
+                                                                (syntax->datum alias)))))
+                                                 #'(predicate-clauses ...)))
+                           )
+                 (format out "~%")
                  ;; To clear the buffer
                  (force-output out)
                  ))
