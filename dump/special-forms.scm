@@ -448,7 +448,7 @@ must be remedied."
                (let ((out
                       (dump-configuration-auto-documentation-port
                        dump-configuration)))
-                 (format out "# ~a Metadata~%" (syntax->datum #`name))
+                 (format out "# ~a Metadata~%" (syntax->datum #'name))
                  #,(syntax-case #'schema-triples-clause (schema-triples)
                      ((schema-triples (triple-subject triple-predicate triple-object) ...)
                       #`(for-each triple
