@@ -451,10 +451,13 @@ must be remedied."
                  (format out "# '~a' Metadata~%~%" (syntax->datum #'name))
                  #,(syntax-case #'schema-triples-clause (schema-triples)
                      ((schema-triples (triple-subject triple-predicate triple-object) ...)
-                      #`(for-each triple
-                                  (list 'triple-subject ...)
-                                  (list 'triple-predicate ...)
-                                  (list 'triple-object ...)))
+                      #`(begin
+                          (format out "## Schema Triples for '~a'~%~%" (syntax->datum #'name))
+                          (for-each (lambda (s p o)
+                                      (format out "~a -> ~a -> ~a~%" s p o))
+                                    (list 'triple-subject ...)
+                                    (list 'triple-predicate ...)
+                                    (list 'triple-object ...))))
                      (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
                  (format out "## Generated Triples:
 
