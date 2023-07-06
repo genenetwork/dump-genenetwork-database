@@ -223,7 +223,24 @@ Example:
 
 
 
-(eval-when (expand load eval)
+(eval-when (expand load )
+  (define (field->datum x)
+    (translate-forms
+     'field
+     (lambda (x)
+       (syntax-case x (field)
+         ((field (query alias))
+          #`(format #f "~a" (syntax->datum #'alias)))
+         ((field table column)
+          #`(format #f "~a.~a"
+                    (syntax->datum #'table)
+                    (syntax->datum #'column)))
+         ((field table column alias)
+          #`(format #f "~a.~a"
+                    (syntax->datum table)
+                    (syntax->datum alias)))))
+     x))
+
   (define (field->key x)
     (translate-forms 'field
                      (lambda (x)
@@ -477,30 +494,14 @@ Triples take the form:
                  (for-each (match-lambda
                              ((predicate . object)
                               (format out "~a -> ~a -> ~a ~%"
-                                      #,(car (collect-keys
-                                              (field->key #'subject)))
+                                      #,(field->datum #'subject)
                                       predicate object)))
                            (map-alist
                                '()
-                             #,@(translate-forms 'field
-                                                 (lambda (x)
-                                                   (syntax-case x (field)
-                                                     ((field (query alias))
-                                                      #`(format #f "~a" (syntax->datum #'alias)))
-                                                     ((field table column)
-                                                      #`(format #f "~a.~a"
-                                                                (syntax->datum #'table)
-                                                                (syntax->datum #'column)))
-                                                     ((field table column alias)
-                                                      #`(format #f "~a.~a"
-                                                                (syntax->datum table)
-                                                                (syntax->datum alias)))))
-                                                 #'(predicate-clauses ...)))
-                           )
+                             #,@(field->datum #'subject)))
                  (format out "~%")
                  ;; To clear the buffer
-                 (force-output out)
-                 ))
+                 (force-output out)))
              (when (dump-configuration-triples? dump-configuration)
                (sql-for-each (lambda (row)
                                (scm->triples
