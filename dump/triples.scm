@@ -44,7 +44,9 @@ characters with an underscore and prefixing with gn:PREFIX."
       (string->symbol
        `,(format #f "~a~a" prefix value))))
 
-(define (triple subject predicate object)
+(define* (triple subject predicate object
+                 #:optional
+                 (port #t))
   (unless (or (string? subject)
               (symbol? subject))
     (error "Triple subject not a string or symbol:"
@@ -63,7 +65,7 @@ characters with an underscore and prefixing with gn:PREFIX."
                         (? (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
                     "~a ~a ~a .~%")
                    (_ "~a ~a \"~a\" .~%"))])
-    (format #t pattern subject predicate
+    (format port pattern subject predicate
             (if (symbol? object) (symbol->string object) object))))
 
 (define (scm->triples alist id)
