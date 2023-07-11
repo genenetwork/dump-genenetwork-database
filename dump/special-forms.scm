@@ -485,7 +485,7 @@ The following SQL query was executed:
 ~a
 ```
 
-Triples take the form:
+The above query results to triples that have the form:
 
 "
                          (select-query #,(collect-fields #'(subject predicate-clauses ...))
@@ -498,8 +498,41 @@ Triples take the form:
                                       predicate object)))
                            (map-alist
                                '()
-                             #,@(field->datum #'subject)))
-                 (format out "~%")
+                             #,@(field->datum #'(predicate-clauses ...))))
+                 (format out "~%Here's an example query:~%~%")
+                 (let* ((result
+                         (map-alist (sql-find
+                                     db
+                                     (format #f "~a LIMIT 1"
+                                             (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                                           (primary-table other-tables ...)
+                                                           tables-raw ...)))
+                           #,@(field->key #'(predicate-clauses ...))))
+                        (first-n (list-head result (truncate (/ (length result) 2)))))
+                   (format out "SELECT ?s ?p ?o WHERE { ~%")
+                   (for-each (match-lambda
+                               ((predicate . object)
+                                (format out
+                                        (match object
+                                          ((or (?  symbol? object)
+                                               (?  (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
+                                           "    ?s ~a ~a .~%")
+                                          (_ "    ?s ~a \"~a\" .~%"))
+                                        predicate object)))
+                             first-n)
+                   (format out "    ?s ?p ?o .~%}~%"))
+                 (format out "~%Expected Result:~%~%")
+                 (sql-for-each (lambda (row)
+                                 (scm->triples
+                                  (map-alist row #,@(field->key #'(predicate-clauses ...)))
+                                  #,(field->assoc-ref #'row #'subject)
+                                  (lambda (s p o)
+                                    (triple s p o out))))
+                               db
+                               (format #f "~a LIMIT 1"
+                                       (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                                     (primary-table other-tables ...)
+                                                     tables-raw ...)))
                  ;; To clear the buffer
                  (force-output out)))
              (when (dump-configuration-triples? dump-configuration)
