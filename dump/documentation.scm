@@ -4,7 +4,9 @@
             dump-configuration?
             dump-configuration-triples?
             dump-configuration-table-metadata?
-            dump-configuration-path))
+            dump-configuration-path
+            call-with-documentation))
+
 
 (define-immutable-record-type <dump-configuration>
   (%dump-configuration triples? table-metadata? path)
@@ -22,3 +24,12 @@
   (%dump-configuration triples? table-metadata? path))
 
 
+(define (call-with-documentation conf proc)
+  (let ((port #f)
+        (path (dump-configuration-path conf)))
+    (when path
+      (dynamic-wind
+        (lambda ()
+          (set! port (open-file path "w")))
+        (cut proc port)
+        (cut close port)))))
