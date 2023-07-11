@@ -1,11 +1,11 @@
 (define-module (dump special-forms)
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-26)
   #:use-module (dump sql)
   #:use-module (dump table)
   #:use-module (dump triples)
+  #:use-module (dump documentation)
   #:export (translate-forms
             collect-forms
             collect-keys
@@ -19,27 +19,7 @@
             syntax-let
             blank-node
             map-alist
-            dump-configuration
-            dump-configuration?
-            dump-configuration-triples?
-            dump-configuration-table-metadata?
-            dump-configuration-auto-documentation-port
             define-dump))
-
-(define-immutable-record-type <dump-configuration>
-  (%dump-configuration triples? table-metadata? auto-documentation-port)
-  dump-configuration?
-  (triples? dump-configuration-triples?)
-  (table-metadata? dump-configuration-table-metadata?)
-  (auto-documentation-port dump-configuration-auto-documentation-port))
-
-(define* (dump-configuration
-          #:optional
-          (triples? #t)
-          (table-metadata? #f)
-          (auto-documentation-port #f))
-  "Return a new configuration."
-  (%dump-configuration triples? table-metadata? auto-documentation-port))
 
 (define (key->assoc-ref alist x)
   "Recursively translate (key k) forms in source X to (assoc-ref ALIST
