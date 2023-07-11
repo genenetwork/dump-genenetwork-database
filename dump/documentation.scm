@@ -1,5 +1,6 @@
 (define-module (dump documentation)
   #:use-module (srfi srfi-9 gnu)
+  #:use-module (srfi srfi-26)
   #:export (dump-configuration
             dump-configuration?
             dump-configuration-triples?
