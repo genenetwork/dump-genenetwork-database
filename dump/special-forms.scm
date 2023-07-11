@@ -441,9 +441,9 @@ must be remedied."
                                     (triple 'predicate 'rdfs:domain #,subject-type))))
                              (_ (error "Invalid predicate clause:" predicate-clause))))
                          #'(predicate-clauses ...))))
-             (when (dump-configuration-auto-documentation-port dump-configuration)
+             (when (dump-configuration-path dump-configuration)
                (let ((out
-                      (dump-configuration-auto-documentation-port
+                      (dump-configuration-path
                        dump-configuration)))
                  (format out "# '~a' Metadata~%~%" (syntax->datum #'name))
                  #,(syntax-case #'schema-triples-clause (schema-triples)
