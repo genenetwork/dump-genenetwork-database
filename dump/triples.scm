@@ -68,12 +68,14 @@ characters with an underscore and prefixing with gn:PREFIX."
     (format port pattern subject predicate
             (if (symbol? object) (symbol->string object) object))))
 
-(define (scm->triples alist id)
+(define* (scm->triples alist id
+                       #:optional
+                       (fn triple))
   (for-each (match-lambda
               ((predicate . object)
                (when (cond
                       ((string? object)
                        (not (string-blank? object)))
                       (else object))
-                 (triple id predicate object))))
+                 (fn id predicate object))))
             alist))
