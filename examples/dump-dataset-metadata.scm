@@ -16,9 +16,6 @@
   (call-with-input-file (list-ref (command-line) 1)
     read))
 
-(define %dump-directory
-  (list-ref (command-line) 2))
-
 
 
 ;; One email ID in the Investigators table has spaces in it. This
@@ -150,8 +147,7 @@
                                       (field Investigators Email)))
     (set gn:datasetOfOrganization
          (field ("CAST(CONVERT(BINARY CONVERT(Organizations.OrganizationName USING latin1) USING utf8) AS VARCHAR(1500))" Organizations)))
-    (set gn:accessionId (string-append "GN" (number->string
-                                             (field InfoFiles GN_AccesionId))))
+    (set gn:accessionId (format #f "GN~a" (field InfoFiles GN_AccesionId)))
     (set gn:datasetStatusName (string-downcase
                                (field DatasetStatus DatasetStatusName)))
     (set gn:datasetOfInbredSet
@@ -234,27 +230,23 @@
 
 
 
-(call-with-target-database
- %connection-settings
- (lambda (db)
-   (with-output-to-file (string-append %dump-directory "dump-info-pages.ttl")
-     (lambda ()
-       (prefix "dct:" "<http://purl.org/dc/terms/>")
-       (prefix "foaf:" "<http://xmlns.com/foaf/0.1/>")
-       (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
-       (prefix "geoSeries:" "<http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=>")
-       (prefix "gn:" "<http://genenetwork.org/>")
-       (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
-       (prefix "phenotype:" "<http://genenetwork.org/phenotype/>")
-       (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
-       (prefix "rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
-       (prefix "rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
-       (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
-       (prefix "up:" "<http://purl.uniprot.org/core/>")
-       (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
-       (prefix "probeset:" "<http://genenetwork.org/probeset/>")
-       (prefix "dataset:" "<http://genenetwork.org/dataset/>")
-       (newline)
-       (dump-info-files db)
-       (dump-investigators db))
-     #:encoding "utf8")))
+(dump-with-documentation
+ (name "Info files / Investigators Metadata")
+ (connection %connection-settings)
+ (table-metadata? #f)
+ (prefixes
+  (("dct:" "<http://purl.org/dc/terms/>")
+   ("geoSeries:" "<http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=>")
+   ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+   ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
+   ("gn:" "<http://genenetwork.org/terms/>")
+   ("foaf:" "<http://xmlns.com/foaf/0.1/>")
+   ("taxon:" "<http://purl.uniprot.org/taxonomy/>")
+   ("dataset:" "<http://genenetwork.org/dataset/>")))
+ (inputs
+  (dump-info-files
+   dump-investigators))
+ (outputs
+  (#:documentation "./docs/dump-info-pages.md"
+   #:rdf "./verified-data/dump-info-pages.ttl")))
+
