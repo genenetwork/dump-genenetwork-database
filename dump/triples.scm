@@ -35,8 +35,12 @@ characters with an underscore and prefixing with gn:PREFIX."
                                   (string-downcase
                                    (string-trim-right str #\.)))))))
 
-(define (prefix prefix iri)
-  (format #t "@prefix ~a ~a .~%" prefix iri))
+(define* (prefix prefix iri #:optional (ttl? #t))
+  (format #t
+	  (if ttl?
+	      "@prefix ~a ~a .~%"
+	      "PREFIX ~a ~a ~%")
+	  prefix iri))
 
 (define (ontology prefix value)
   (if (and (string? value) (string-null? value))
