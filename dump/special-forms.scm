@@ -5,7 +5,6 @@
   #:use-module (dump sql)
   #:use-module (dump table)
   #:use-module (dump triples)
-  #:use-module (dump documentation)
   #:export (translate-forms
             collect-forms
             collect-keys
@@ -19,6 +18,7 @@
             syntax-let
             blank-node
             map-alist
+	    dump-with-documentation
             define-dump))
 
 (define (key->assoc-ref alist x)
@@ -212,13 +212,13 @@ Example:
          ((field (query alias))
           #`(format #f "~a" (syntax->datum #'alias)))
          ((field table column)
-          #`(format #f "~a.~a"
+          #`(format #f "~a(~a)"
                     (syntax->datum #'table)
                     (syntax->datum #'column)))
          ((field table column alias)
-          #`(format #f "~a.~a"
-                    (syntax->datum table)
-                    (syntax->datum alias)))))
+          #`(format #f "~a(~a)"
+                    (syntax->datum #'table)
+                    (syntax->datum #'alias)))))
      x))
 
   (define (field->key x)
@@ -396,17 +396,19 @@ must be remedied."
                     ((triples subject predicate-clauses ...) (triples)
                      (find-clause #'(clauses ...) 'triples)))
          #`(define* (name db
-                          #:optional (dump-configuration
-                                      (dump-configuration)))
-             #,(syntax-case #'schema-triples-clause (schema-triples)
-                 ((schema-triples (triple-subject triple-predicate triple-object) ...)
-                  #`(for-each triple
-                              (list 'triple-subject ...)
-                              (list 'triple-predicate ...)
-                              (list 'triple-object ...)))
-                 (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
-             (when (dump-configuration-table-metadata?
-                    dump-configuration)
+			  #:optional
+                          (dump-metadata? #f)
+                          (dump-data? #f)
+                          (dump-documentation? #f))
+             (when dump-data?
+               #,(syntax-case #'schema-triples-clause (schema-triples)
+                   ((schema-triples (triple-subject triple-predicate triple-object) ...)
+                    #`(for-each triple
+                                (list 'triple-subject ...)
+                                (list 'triple-predicate ...)
+                                (list 'triple-object ...)))
+                   (_ (error "Invalid schema triples clause:" #'schema-triples-clause))))
+             (when dump-metadata?
                #,@(let ((dump-table (symbol->string (syntax->datum #'primary-table)))
                         (subject-type (any (lambda (predicate)
                                              (syntax-case predicate (rdf:type)
@@ -420,20 +422,20 @@ must be remedied."
                               #`(begin
                                   (scm->triples
                                    (map-alist '()
-                                     (set rdf:type 'gn:dump)
-                                     (set gn:createsPredicate 'predicate)
-                                     (filter-set gn:forSubjectType #,subject-type)
-                                     (multiset gn:dependsOn
-                                               '#,(map (lambda (field)
-                                                         (match (syntax->datum field)
-                                                           ((table-name column-name _ ...)
-                                                            (datum->syntax
-                                                             x (column-id (symbol->string table-name)
-                                                                          (symbol->string column-name))))
-                                                           (((query alias))
-                                                            (datum->syntax
-                                                             x (column-id query (symbol->string alias))))))
-                                                       (collect-fields predicate-clause))))
+	        		     (set rdf:type 'gn:dump)
+	        		     (set gn:createsPredicate 'predicate)
+	        		     (filter-set gn:forSubjectType #,subject-type)
+	        		     (multiset gn:dependsOn
+	        			       '#,(map (lambda (field)
+	        					 (match (syntax->datum field)
+	        					   ((table-name column-name _ ...)
+	        					    (datum->syntax
+	        					     x (column-id (symbol->string table-name)
+	        							  (symbol->string column-name))))
+	        					   (((query alias))
+	        					    (datum->syntax
+	        					     x (column-id query (symbol->string alias))))))
+	        				       (collect-fields predicate-clause))))
                                    #,(dump-id dump-table (syntax->datum #'predicate)))
                                   ;; Automatically create domain triples
                                   ;; for predicates.
@@ -441,22 +443,21 @@ must be remedied."
                                     (triple 'predicate 'rdfs:domain #,subject-type))))
                              (_ (error "Invalid predicate clause:" predicate-clause))))
                          #'(predicate-clauses ...))))
-             (when (dump-configuration-path dump-configuration)
-               (let ((out
-                      (dump-configuration-path
-                       dump-configuration)))
-                 (format out "# '~a' Metadata~%~%" (syntax->datum #'name))
-                 #,(syntax-case #'schema-triples-clause (schema-triples)
-                     ((schema-triples (triple-subject triple-predicate triple-object) ...)
-                      #`(begin
-                          (format out "## Schema Triples for '~a'~%~%" (syntax->datum #'name))
-                          (for-each (lambda (s p o)
-                                      (format out "~a -> ~a -> ~a~%" s p o))
-                                    (list 'triple-subject ...)
-                                    (list 'triple-predicate ...)
-                                    (list 'triple-object ...))))
-                     (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
-                 (format out "
+             
+             (when dump-documentation?
+               (format #t "~%## '~a'~%~%" (syntax->datum #'name))
+               #,(syntax-case #'schema-triples-clause (schema-triples)
+                   ((schema-triples (triple-subject triple-predicate triple-object) ...)
+                    #`(begin
+                        (format #t "## Schema Triples:~%~%```text~%")
+                        (for-each (lambda (s p o)
+                                    (format #t "~a -> ~a -> ~a~%" s p o))
+                                  (list 'triple-subject ...)
+                                  (list 'triple-predicate ...)
+                                  (list 'triple-object ...))
+                        (format #t "```")))
+                   (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
+               (format #t "
 ## Generated Triples:
 
 The following SQL query was executed:
@@ -467,61 +468,109 @@ The following SQL query was executed:
 
 The above query results to triples that have the form:
 
+```text
 "
-                         (select-query #,(collect-fields #'(subject predicate-clauses ...))
-                                       (primary-table other-tables ...)
-                                       tables-raw ...))
+                       (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                     (primary-table other-tables ...)
+                                     tables-raw ...))
+               (for-each (match-lambda
+                           ((predicate . object)
+                            (format #t "~a -> ~a -> ~a ~%"
+                                    #,(field->datum #'subject)
+                                    predicate object)))
+                         (map-alist
+                             '()
+                           #,@(field->datum #'(predicate-clauses ...))))
+               (format #t "```~%Here's an example query:~%~%```sparql~%")
+               (dump-documentation?)
+               (newline)
+               (let* ((result
+                       (map-alist (sql-find
+                                   db
+                                   (format #f "~a LIMIT 1"
+                                           (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                                         (primary-table other-tables ...)
+                                                         tables-raw ...)))
+        		 #,@(field->key #'(predicate-clauses ...))))
+                      (first-n (list-head result
+                                          (let ((n (truncate
+                                                    (+ (max (exact-integer-sqrt (length result))) 1))))
+                                            (if (< n 3)
+                                              (truncate (/ (length result) 2))
+                                              n)))))
+                 (format #t "SELECT ?s ?p ?o WHERE { ~%")
                  (for-each (match-lambda
                              ((predicate . object)
-                              (format out "~a -> ~a -> ~a ~%"
-                                      #,(field->datum #'subject)
-                                      predicate object)))
-                           (map-alist
-                               '()
-                             #,@(field->datum #'(predicate-clauses ...))))
-                 (format out "~%Here's an example query:~%~%")
-                 (let* ((result
-                         (map-alist (sql-find
-                                     db
-                                     (format #f "~a LIMIT 1"
-                                             (select-query #,(collect-fields #'(subject predicate-clauses ...))
-                                                           (primary-table other-tables ...)
-                                                           tables-raw ...)))
-                           #,@(field->key #'(predicate-clauses ...))))
-                        (first-n (list-head result (truncate (/ (length result) 2)))))
-                   (format out "SELECT ?s ?p ?o WHERE { ~%")
-                   (for-each (match-lambda
-                               ((predicate . object)
-                                (format out
-                                        (match object
-                                          ((or (?  symbol? object)
-                                               (?  (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
-                                           "    ?s ~a ~a .~%")
-                                          (_ "    ?s ~a \"~a\" .~%"))
-                                        predicate object)))
-                             first-n)
-                   (format out "    ?s ?p ?o .~%}~%"))
-                 (format out "~%Expected Result:~%~%")
-                 (sql-for-each (lambda (row)
-                                 (scm->triples
-                                  (map-alist row #,@(field->key #'(predicate-clauses ...)))
-                                  #,(field->assoc-ref #'row #'subject)
-                                  (lambda (s p o)
-                                    (triple s p o out))))
-                               db
-                               (format #f "~a LIMIT 1"
-                                       (select-query #,(collect-fields #'(subject predicate-clauses ...))
-                                                     (primary-table other-tables ...)
-                                                     tables-raw ...)))
-                 ;; To clear the buffer
-                 (force-output out)))
-             (when (dump-configuration-triples? dump-configuration)
+                              (match object
+                                        ((or (?  symbol? object)
+                                             (?  (lambda (el) (string-match "^\\[ .* \\]$" el)) object))
+                                         (format #t "    ?s ~a ~a .~%" predicate object))
+                                        ((and (? string? object)
+                                              (? (lambda (el) (not (string-null? el))) object))
+                                         (format #t "    ?s ~a \"~a\" .~%" predicate object))
+                                        (_ ""))))
+                           first-n)
+                 (format #t "    ?s ?p ?o .~%}~%```~%"))
+               (format #t "~%Expected Result:~%~%```rdf~%")
                (sql-for-each (lambda (row)
+                               (scm->triples
+                                (map-alist row #,@(field->key #'(predicate-clauses ...)))
+                                #,(field->assoc-ref #'row #'subject)
+                                (lambda (s p o)
+                                  (triple s p o))))
+                             db
+                             (format #f "~a LIMIT 1"
+                                     (select-query #,(collect-fields #'(subject predicate-clauses ...))
+                                                   (primary-table other-tables ...)
+                                                   tables-raw ...)))
+               (format #t "```~%~%"))
+             (when dump-data?
+	       (sql-for-each (lambda (row)
                                (scm->triples
                                 (map-alist row #,@(field->key #'(predicate-clauses ...)))
                                 #,(field->assoc-ref #'row #'subject)))
                              db
                              (select-query #,(collect-fields #'(subject predicate-clauses ...))
                                            (primary-table other-tables ...)
-                                           tables-raw ...))))))
+                                           tables-raw ...)))
+             )))
       (_ (error "Invalid define-dump syntax:" (syntax->datum x))))))
+
+(define (get-keyword-value args keyword default)
+  (let ((kv (memq keyword args)))
+    (if (and kv (>= (length kv) 2))
+        (cadr kv)
+        default)))
+
+(define-syntax dump-with-documentation
+  (syntax-rules ()
+    ((_ (name n)
+        (connection conn)
+        (table-metadata? t?)
+        (prefixes ((pref uri) ...))
+        (inputs (in ...))
+        (outputs out))
+     (let ((rdf-path
+            (get-keyword-value `out #:rdf ""))
+           (doc-path
+            (get-keyword-value `out #:documentation "")))
+       ;; Dumping documentation
+       (call-with-target-database
+        conn
+        (lambda (db)
+          (with-output-to-file		;
+              doc-path
+            (lambda ()
+              (format #t "# ~a" n)
+              (in db #f #f
+                  (lambda () (prefix pref uri #f) ...)) ...)
+            #:encoding "utf8")
+          ;; Dumping the actual data
+          (with-output-to-file
+              rdf-path
+            (lambda ()
+              ;; Add the prefixes
+              (prefix pref uri) ...
+              (newline)
+              (in db #f #t #f) ...)
+            #:encoding "utf8")))))))
