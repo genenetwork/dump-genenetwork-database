@@ -16,9 +16,6 @@
   (call-with-input-file (list-ref (command-line) 1)
     read))
 
-(define %dump-directory
-  (list-ref (command-line) 2))
-
 
 
 (define-dump dump-species
@@ -34,11 +31,11 @@
     (set gn:displayName (field Species MenuName))
     (set gn:binomialName (field Species FullName))
     (set gn:family (field Species Family))
-    (set gn:organism (ontology 'ncbiTaxon: (field Species TaxonomyId)))))
+    (set gn:organism (ontology 'taxon: (field Species TaxonomyId)))))
 
 (define-dump dump-strain
   (tables (Strain
-           (join Species "ON Strain.SpeciesId = Species.SpeciesId")))
+           (left-join Species "ON Strain.SpeciesId = Species.SpeciesId")))
   (schema-triples
    (gn:strainOfSpecies rdfs:domain gn:strain)
    (gn:strainOfSpecies rdfs:range gn:species)
@@ -106,36 +103,20 @@
 
 
 
-(call-with-target-database
- %connection-settings
- (lambda (db)
-   (with-output-to-file (string-append %dump-directory "dump-species-metadata.ttl")
-     (lambda ()
-       (prefix "chebi:" "<http://purl.obolibrary.org/obo/CHEBI_>")
-       (prefix "dct:" "<http://purl.org/dc/terms/>")
-       (prefix "foaf:" "<http://xmlns.com/foaf/0.1/>")
-       (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
-       (prefix "gn:" "<http://genenetwork.org/>")
-       (prefix "hgnc:" "<http://bio2rdf.org/hgnc:>")
-       (prefix "homologene:" "<https://bio2rdf.org/homologene:>")
-       (prefix "kegg:" "<http://bio2rdf.org/ns/kegg#>")
-       (prefix "molecularTrait:" "<http://genenetwork.org/molecular-trait/>")
-       (prefix "nuccore:" "<https://www.ncbi.nlm.nih.gov/nuccore/>")
-       (prefix "omim:" "<https://www.omim.org/entry/>")
-       (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
-       (prefix "phenotype:" "<http://genenetwork.org/phenotype/>")
-       (prefix "pubchem:" "<https://pubchem.ncbi.nlm.nih.gov/>")
-       (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
-       (prefix "rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
-       (prefix "rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
-       (prefix "ncbiTaxon:" "<https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=>")
-       (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
-       (prefix "up:" "<http://purl.uniprot.org/core/>")
-       (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
-       (newline)
-       (dump-species db)
-       (dump-strain db)
-       (dump-mapping-method db)
-       (dump-inbred-set db)
-       (dump-avg-method db))
-     #:encoding "utf8")))
+(dump-with-documentation
+ (name "Species Metadata")
+ (connection %connection-settings)
+ (table-metadata? #f)
+ (prefixes
+  (("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+   ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
+   ("gn:" "<http://genenetwork.org/terms/>")
+   ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
+ (inputs
+  (dump-species
+   dump-strain
+   dump-mapping-method
+   dump-avg-method))
+ (outputs
+  (#:documentation "docs/dump-species-metadata.md"
+   #:rdf "./verified-data/dump-species-metadata.ttl")))
