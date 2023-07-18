@@ -124,10 +124,10 @@
     ("gn:species:" "<http://genenetwork.org/terms/species/>")
     ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
  (inputs
-  (dump-species
-   dump-strain
-   dump-mapping-method
-   dump-avg-method))
+  (list dump-species
+        dump-strain
+        dump-mapping-method
+        dump-avg-method))
  (outputs
-  (#:documentation "docs/dump-species-metadata.md"
-   #:rdf "./verified-data/dump-species-metadata.ttl")))
+  '(#:documentation "./docs/dump-species-metadata.md"
+    #:rdf "./verified-data/dump-species-metadata.ttl")))
