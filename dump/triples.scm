@@ -23,7 +23,7 @@
 
 (define* (string->identifier prefix str
                              #:optional #:key
-                             (ontology "gn:")
+                             (ontology "gn-id:")
                              (separator "_")
                              (proc string-downcase))
   "Convert STR to a turtle identifier after replacing illegal
