@@ -21,19 +21,27 @@
         (string->symbol
          (format #f "~s~a" string-field schema)))))
 
-(define (string->identifier prefix str)
+(define* (string->identifier prefix str
+                             #:optional #:key
+                             (ontology "gn:")
+                             (separator "_")
+                             (proc string-downcase))
   "Convert STR to a turtle identifier after replacing illegal
 characters with an underscore and prefixing with gn:PREFIX."
   (if (string-null? str)
       ""
       (string->symbol
-       (string-append "gn:" prefix "_"
-                      (string-map (lambda (c)
-                                    (case c
-                                      ((#\/ #\< #\> #\+ #\( #\) #\space #\@) #\_)
-                                      (else c)))
-                                  (string-downcase
-                                   (string-trim-right str #\.)))))))
+       (string-append ontology prefix separator
+                      (string-delete
+                       (lambda (c)
+                         (eq? c #\)))
+                       (string-map (lambda (c)
+                                     (case c
+                                       ((#\/ #\< #\> #\+ #\( #\space #\@) #\_)
+                                       (else c)))
+                                   (proc
+                                    (string-trim-right str #\.))))))))
+
 
 (define* (prefix prefix iri #:optional (ttl? #t))
   (format #t
