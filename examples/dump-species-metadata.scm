@@ -25,7 +25,11 @@
    (gn:displayName rdfs:range rdfs:Literal)
    (gn:binomialName rdfs:range rdfs:Literal)
    (gn:family rdfs:range rdfs:Literal))
-  (triples (string->identifier "species" (field Species FullName))
+  (triples
+      (string->identifier "" (field Species FullName)
+                          #:ontology "gn:species:"
+                          #:separator ""
+                          #:proc string-capitalize-first)
     (set rdf:type 'gn:species)
     (set gn:name (field Species SpeciesName))
     (set gn:displayName (field Species MenuName))
@@ -50,7 +54,10 @@
              'pre "_" 'post))
     (set rdf:type 'gn:strain)
     (set gn:strainOfSpecies
-         (string->identifier "species" (field Species FullName)))
+         (string->identifier "" (field Species FullName)
+                          #:ontology "gn:species:"
+                          #:separator ""
+                          #:proc string-capitalize-first))
     ;; Name, and maybe a second name
     (set gn:name (sanitize-rdf-string (field Strain Name)))
     (set gn:name (sanitize-rdf-string (field Strain Name2)))
@@ -85,7 +92,10 @@
     (set gn:inbredSetOfMappingMethod (field MappingMethod Name))
     (set gn:inbredSetCode (field InbredSet InbredSetCode))
     (set gn:inbredSetOfSpecies
-         (string->identifier "species" (field Species FullName BinomialName)))
+         (string->identifier "" (field Species FullName BinomialName)
+                             #:ontology "gn:species:"
+                             #:separator ""
+                             #:proc string-capitalize-first))
     (set gn:genotype
          (field ("IF ((SELECT PublishFreeze.Name FROM PublishFreeze WHERE PublishFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'Traits and Cofactors', '')" genotypeP)))
     (set gn:phenotype
