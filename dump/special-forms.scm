@@ -476,7 +476,10 @@ The above query results to triples that have the form:
                            ((predicate . object)
                             (format #t "~a -> ~a -> ~a ~%"
                                     #,(field->datum #'subject)
-                                    predicate object)))
+                                    predicate
+                                    (if (symbol? object)
+                                        (symbol->string object)
+                                        object))))
                          (map-alist
                              '()
                            #,@(field->datum #'(predicate-clauses ...))))
