@@ -422,10 +422,10 @@ must be remedied."
                               #`(begin
                                   (scm->triples
                                    (map-alist '()
-	        		     (set rdf:type 'gn:dump)
-	        		     (set gn:createsPredicate 'predicate)
-	        		     (filter-set gn:forSubjectType #,subject-type)
-	        		     (multiset gn:dependsOn
+	        		     (set rdf:type 'gn-id:dump)
+	        		     (set gn-term:createsPredicate 'predicate)
+	        		     (filter-set gn-term:forSubjectType #,subject-type)
+	        		     (multiset gn-term:dependsOn
 	        			       '#,(map (lambda (field)
 	        					 (match (syntax->datum field)
 	        					   ((table-name column-name _ ...)
