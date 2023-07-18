@@ -27,7 +27,7 @@
    (gn:family rdfs:range rdfs:Literal))
   (triples
       (string->identifier "" (field Species FullName)
-                          #:ontology "gn:species:"
+                          #:ontology "gn-species:"
                           #:separator ""
                           #:proc string-capitalize-first)
     (set rdf:type 'gn:species)
@@ -55,7 +55,7 @@
     (set rdf:type 'gn:strain)
     (set gn:strainOfSpecies
          (string->identifier "" (field Species FullName)
-                          #:ontology "gn:species:"
+                          #:ontology "gn-species:"
                           #:separator ""
                           #:proc string-capitalize-first))
     ;; Name, and maybe a second name
@@ -93,7 +93,7 @@
     (set gn:inbredSetCode (field InbredSet InbredSetCode))
     (set gn:inbredSetOfSpecies
          (string->identifier "" (field Species FullName BinomialName)
-                             #:ontology "gn:species:"
+                             #:ontology "gn-species:"
                              #:separator ""
                              #:proc string-capitalize-first))
     (set gn:genotype
@@ -121,7 +121,7 @@
   '(("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("gn:" "<http://genenetwork.org/terms/>")
-    ("gn:species:" "<http://genenetwork.org/terms/species/>")
+    ("gn-species:" "<http://genenetwork.org/terms/species/>")
     ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
  (inputs
   (list dump-species
