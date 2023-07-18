@@ -398,7 +398,7 @@ must be remedied."
          #`(define* (name db
 			  #:optional
                           (dump-metadata? #f)
-                          (dump-data? #f)
+                          (dump-data? #t)
                           (dump-documentation? #f))
              (when dump-data?
                #,(syntax-case #'schema-triples-clause (schema-triples)
@@ -443,7 +443,6 @@ must be remedied."
                                     (triple 'predicate 'rdfs:domain #,subject-type))))
                              (_ (error "Invalid predicate clause:" predicate-clause))))
                          #'(predicate-clauses ...))))
-             
              (when dump-documentation?
                (format #t "~%## '~a'~%~%" (syntax->datum #'name))
                #,(syntax-case #'schema-triples-clause (schema-triples)
