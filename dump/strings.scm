@@ -10,7 +10,8 @@
             delete-substrings
             replace-substrings
             sanitize-rdf-string
-            snake->lower-camel))
+            snake->lower-camel
+            string-capitalize-first))
 
 (define (time-unix->string seconds . maybe-format)
   "Given an integer saying the number of seconds since the Unix
@@ -92,3 +93,8 @@ association list mapping substrings to their replacements."
                                     char))))
              (drop char-list 1)
              char-list)))))
+
+(define (string-capitalize-first string)
+  (string-titlecase
+   (string-downcase string) 0 1))
+
