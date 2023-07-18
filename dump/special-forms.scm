@@ -544,33 +544,60 @@ The above query results to triples that have the form:
 
 (define-syntax dump-with-documentation
   (syntax-rules ()
-    ((_ (name n)
-        (connection conn)
-        (table-metadata? t?)
-        (prefixes ((pref uri) ...))
-        (inputs (in ...))
-        (outputs out))
-     (let ((rdf-path
-            (get-keyword-value `out #:rdf ""))
-           (doc-path
-            (get-keyword-value `out #:documentation "")))
-       ;; Dumping documentation
-       (call-with-target-database
-        conn
-        (lambda (db)
-          (with-output-to-file		;
-              doc-path
-            (lambda ()
-              (format #t "# ~a" n)
-              (in db #f #f
-                  (lambda () (prefix pref uri #f) ...)) ...)
-            #:encoding "utf8")
-          ;; Dumping the actual data
-          (with-output-to-file
-              rdf-path
-            (lambda ()
-              ;; Add the prefixes
-              (prefix pref uri) ...
-              (newline)
-              (in db #f #t #f) ...)
-            #:encoding "utf8")))))))
+    ((_ (key value) ...)
+     (let ((name "")
+           (connection "")
+           (table-metadata? "")
+           (prefixes "")
+           (inputs "")
+           (outputs ""))
+       (for-each
+        (match-lambda
+          (('name n)
+           (set! name n))
+          (('connection conn)
+           (set! connection conn))
+          (('table-metadata? t-metadata?)
+           (set! table-metadata? t-metadata?))
+          (('prefixes p)
+           (set! prefixes p))
+          (('inputs i)
+           (set! inputs i))
+          (('outputs o)
+           (set! outputs o)))
+        (list (list 'key value) ...))
+       (let ((rdf-path (get-keyword-value outputs #:rdf ""))
+             (doc-path (get-keyword-value outputs #:documentation ""))
+             (prefix-thunk (lambda ()  (for-each
+                                        (match-lambda
+                                          ((k v)
+                                           (begin
+                                             (prefix k v))))
+                                        prefixes))))
+          ;; Dumping the documentation first
+          (call-with-target-database
+           connection
+           (lambda (db)
+             (with-output-to-file       ;
+                 doc-path
+               (lambda ()
+                 (format #t "# ~a" name)
+                 (for-each
+                  (lambda (proc)
+                    (proc db #f #f prefix-thunk))
+                  inputs))
+               #:encoding "utf8")
+
+             ;; Dumping the actual data
+             (with-output-to-file
+                 rdf-path
+               (lambda ()
+                 ;; Add the prefixes
+                 (prefix-thunk)
+                 (newline)
+                 (for-each
+                  (lambda (proc)
+                    (proc db #f #t #f))
+                  inputs))
+               #:encoding "utf8"))))))))
+
