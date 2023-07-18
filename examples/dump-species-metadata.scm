@@ -21,53 +21,54 @@
 (define-dump dump-species
   (tables (Species))
   (schema-triples
-   (gn:name rdfs:range rdfs:Literal)
-   (gn:displayName rdfs:range rdfs:Literal)
-   (gn:binomialName rdfs:range rdfs:Literal)
-   (gn:family rdfs:range rdfs:Literal))
+   (gn-term:name rdfs:range rdfs:Literal)
+   (gn-term:displayName rdfs:range rdfs:Literal)
+   (gn-term:binomialName rdfs:range rdfs:Literal)
+   (gn-term:family rdfs:range rdfs:Literal))
   (triples
       (string->identifier "" (field Species FullName)
-                          #:ontology "gn-species:"
                           #:separator ""
                           #:proc string-capitalize-first)
-    (set rdf:type 'gn:species)
-    (set gn:name (field Species SpeciesName))
-    (set gn:displayName (field Species MenuName))
-    (set gn:binomialName (field Species FullName))
-    (set gn:family (field Species Family))
-    (set gn:organism (ontology 'taxon: (field Species TaxonomyId)))))
+    (set rdf:type 'gn-id:species)
+    (set gn-term:name (field Species SpeciesName))
+    (set gn-term:displayName (field Species MenuName))
+    (set gn-term:binomialName (field Species FullName))
+    (set gn-term:family (field Species Family))
+    (set gn-term:organism (ontology 'taxon: (field Species TaxonomyId)))))
 
 (define-dump dump-strain
   (tables (Strain
            (left-join Species "ON Strain.SpeciesId = Species.SpeciesId")))
   (schema-triples
-   (gn:strainOfSpecies rdfs:domain gn:strain)
-   (gn:strainOfSpecies rdfs:range gn:species)
-   (gn:name rdfs:range rdfs:Literal)
-   (gn:alias rdfs:range rdfs:Literal)
-   (gn:symbol rdfs:range rdfs:Literal))
+   (gn-term:strainOfSpecies rdfs:domain gn-term:strain)
+   (gn-term:strainOfSpecies rdfs:range gn-term:species)
+   (gn-term:name rdfs:range rdfs:Literal)
+   (gn-term:alias rdfs:range rdfs:Literal)
+   (gn-term:symbol rdfs:range rdfs:Literal))
   (triples (string->identifier
-            "strain"
+            ""
             (regexp-substitute/global
              #f "[^A-Za-z0-9:]"
              (field ("CAST(CONVERT(BINARY CONVERT(Strain.Name USING latin1) USING utf8) AS VARCHAR(15000))" StrainName))
-             'pre "_" 'post))
-    (set rdf:type 'gn:strain)
-    (set gn:strainOfSpecies
+             'pre "_" 'post)
+            #:separator ""
+            #:proc string-capitalize-first)
+    (set rdf:type 'gn-id:strain)
+    (set gn-term:strainOfSpecies
          (string->identifier "" (field Species FullName)
-                          #:ontology "gn-species:"
                           #:separator ""
                           #:proc string-capitalize-first))
     ;; Name, and maybe a second name
-    (set gn:name (sanitize-rdf-string (field Strain Name)))
-    (set gn:name (sanitize-rdf-string (field Strain Name2)))
-    (set gn:alias (sanitize-rdf-string (field Strain Alias)))
-    (set gn:symbol (field Strain Symbol))))
+    (set gn-term:name (sanitize-rdf-string (field Strain Name)))
+    (set gn-term:name2 (sanitize-rdf-string (field Strain Name2)))
+    (set gn-term:alias (sanitize-rdf-string (field Strain Alias)))
+    (set gn-term:symbol (field Strain Symbol))))
 
 (define-dump dump-mapping-method
   (tables (MappingMethod))
-  (triples (string->identifier "mappingMethod" (field MappingMethod Name))
-    (set rdf:type 'gn:mappingMethod)))
+  (triples
+      (string->identifier "mappingMethod" (field MappingMethod Name))
+    (set rdf:type 'gn-id:mappingMethod)))
 
 (define-dump dump-inbred-set
   (tables (InbredSet
@@ -75,30 +76,33 @@
            (left-join MappingMethod
                        "ON InbredSet.MappingMethodId=MappingMethod.Id")))
   (schema-triples
-   (gn:fullName rdfs:range rdfs:Literal)
-   (gn:geneticType rdfs:range rdfs:Literal)
-   (gn:inbredSetCode rdfs:range rdfs:Literal)
-   (gn:inbredFamily rdfs:range rdfs:Literal)
-   (gn:inbredSetOfSpecies rdfs:range gn:species)
-   (gn:inbredSetType rdfs:range rdfs:Literal)
-   (gn:phenotype rdfs:range gn:inbredSetType)
-   (gn:genotype rdfs:range gn:inbredSetType)
-   (gn:inbredSetOfMappingMethod rdfs:range gn:mappingMethod))
-  (triples (string->identifier "inbredSet" (field InbredSet Name))
-    (set rdf:type 'gn:inbredSet)
-    (set gn:binomialName (field InbredSet FullName))
-    (set gn:geneticType (field InbredSet GeneticType))
-    (set gn:inbredFamily (field InbredSet Family))
-    (set gn:inbredSetOfMappingMethod (field MappingMethod Name))
-    (set gn:inbredSetCode (field InbredSet InbredSetCode))
-    (set gn:inbredSetOfSpecies
+   (gn-term:fullName rdfs:range rdfs:Literal)
+   (gn-term:geneticType rdfs:range rdfs:Literal)
+   (gn-term:inbredSetCode rdfs:range rdfs:Literal)
+   (gn-term:inbredFamily rdfs:range rdfs:Literal)
+   (gn-term:inbredSetOfSpecies rdfs:range gn:species)
+   (gn-term:inbredSetType rdfs:range rdfs:Literal)
+   (gn-term:phenotype rdfs:range gn-term:inbredSetType)
+   (gn-term:genotype rdfs:range gn-term:inbredSetType)
+   (gn-term:inbredSetOfMappingMethod rdfs:range gn-term:mappingMethod))
+  (triples (string->identifier
+            "" (field InbredSet Name)
+            #:separator ""
+            #:proc string-capitalize-first)
+    (set rdf:type 'gn-id:inbredSet)
+    (set gn-term:binomialName (field InbredSet FullName))
+    (set gn-term:geneticType (field InbredSet GeneticType))
+    (set gn-term:inbredFamily (field InbredSet Family))
+    (set gn-term:inbredSetOfMappingMethod (field MappingMethod Name))
+    (set gn-term:inbredSetCode (field InbredSet InbredSetCode))
+    (set gn-term:inbredSetOfSpecies
          (string->identifier "" (field Species FullName BinomialName)
-                             #:ontology "gn-species:"
+                             #:ontology "gn-id:"
                              #:separator ""
                              #:proc string-capitalize-first))
-    (set gn:genotype
+    (set gn-term:genotype
          (field ("IF ((SELECT PublishFreeze.Name FROM PublishFreeze WHERE PublishFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'Traits and Cofactors', '')" genotypeP)))
-    (set gn:phenotype
+    (set gn-term:phenotype
          (field ("IF ((SELECT GenoFreeze.Name FROM GenoFreeze WHERE GenoFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'DNA Markers and SNPs', '')" phenotypeP)))))
 
 (define-dump dump-avg-method
@@ -106,10 +110,10 @@
   ;; the Name field.
   (tables (AvgMethod))
   (schema-triples
-   (gn:name rdfs:range rdfs:Literal))
+   (gn-term:normalization rdfs:range rdfs:Literal))
   (triples (string->identifier "avgmethod" (field AvgMethod Name))
-    (set rdf:type 'gn:avgMethod)
-    (set gn:name (field AvgMethod Name))))
+    (set rdf:type 'gn-id:avgMethod)
+    (set gn-term:normalization (field AvgMethod Normalization))))
 
 
 
@@ -118,10 +122,10 @@
  (connection %connection-settings)
  (table-metadata? #f)
  (prefixes
-  '(("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+  '(("gn-id:" "<http://genenetwork.org/terms/>")
+    ("gn-term:" "<http://genenetwork.org/terms/>")
+    ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
-    ("gn:" "<http://genenetwork.org/terms/>")
-    ("gn-species:" "<http://genenetwork.org/terms/species/>")
     ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
  (inputs
   (list dump-species
