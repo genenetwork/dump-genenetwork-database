@@ -498,8 +498,8 @@ The above query results to triples that have the form:
                                           (let ((n (truncate
                                                     (+ (max (exact-integer-sqrt (length result))) 1))))
                                             (if (< n 3)
-                                              (truncate (/ (length result) 2))
-                                              n)))))
+                                                (length result)
+                                                n)))))
                  (format #t "SELECT ?s ?p ?o WHERE { ~%")
                  (for-each (match-lambda
                              ((predicate . object)
