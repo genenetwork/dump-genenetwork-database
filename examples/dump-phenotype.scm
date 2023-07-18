@@ -111,34 +111,22 @@
                (ontology 'publication: pmid))))))
 
 
-(call-with-target-database
- %connection-settings
- (lambda (db)
-   (with-output-to-file (string-append %dump-directory "dump-phenotype.ttl")
-     (lambda ()
-       (prefix "chebi:" "<http://purl.obolibrary.org/obo/CHEBI_>")
-       (prefix "dct:" "<http://purl.org/dc/terms/>")
-       (prefix "foaf:" "<http://xmlns.com/foaf/0.1/>")
-       (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
-       (prefix "gn:" "<http://genenetwork.org/>")
-       (prefix "hgnc:" "<http://bio2rdf.org/hgnc:>")
-       (prefix "homologene:" "<https://bio2rdf.org/homologene:>")
-       (prefix "kegg:" "<http://bio2rdf.org/ns/kegg#>")
-       (prefix "molecularTrait:" "<http://genenetwork.org/molecular-trait/>")
-       (prefix "nuccore:" "<https://www.ncbi.nlm.nih.gov/nuccore/>")
-       (prefix "omim:" "<https://www.omim.org/entry/>")
-       (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
-       (prefix "phenotype:" "<http://genenetwork.org/phenotype/>")
-       (prefix "pubchem:" "<https://pubchem.ncbi.nlm.nih.gov/>")
-       (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
-       (prefix "rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
-       (prefix "rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
-       (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
-       (prefix "up:" "<http://purl.uniprot.org/core/>")
-       (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
-       (prefix "dataset:" "<http://genenetwork.org/dataset/>")
-       (prefix "publication:" "<http://genenetwork.org/publication/>")
-       (newline)
-       (dump-publishfreeze db)
-       (dump-phenotypes db))
-     #:encoding "utf8")))
+(dump-with-documentation
+ (name "Phenotypes Metadata")
+ (connection %connection-settings)
+ (table-metadata? #f)
+ (prefixes
+  '(("gn-id:" "<http://genenetwork.org/terms/>")
+    ("gn-term:" "<http://genenetwork.org/terms/>")
+    ("phenotype:" "<http://genenetwork.org/phenotype/>")
+    ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+    ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
+    ("xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+    ("dataset:" "<http://genenetwork.org/dataset/>")
+    ("publication:" "<http://genenetwork.org/publication/>")))
+ (inputs
+  (list dump-publishfreeze
+        dump-phenotype))
+ (outputs
+  '(#:documentation "./docs/dump-phenotype.md"
+    #:rdf "./verified-data/dump-phenotype.ttl")))
