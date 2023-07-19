@@ -448,13 +448,14 @@ must be remedied."
                #,(syntax-case #'schema-triples-clause (schema-triples)
                    ((schema-triples (triple-subject triple-predicate triple-object) ...)
                     #`(begin
-                        (format #t "## Schema Triples:~%~%```text~%")
-                        (for-each (lambda (s p o)
-                                    (format #t "~a -> ~a -> ~a~%" s p o))
-                                  (list 'triple-subject ...)
-                                  (list 'triple-predicate ...)
-                                  (list 'triple-object ...))
-                        (format #t "```")))
+                        (when (not (list 'triple-subject ...))
+                          (format #t "## Schema Triples:~%~%```text~%")
+                          (for-each (lambda (s p o)
+                                      (format #t "~a -> ~a -> ~a~%" s p o))
+                                    (list 'triple-subject ...)
+                                    (list 'triple-predicate ...)
+                                    (list 'triple-object ...))
+                          (format #t "```"))))
                    (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
                (format #t "
 ## Generated Triples:
