@@ -29,7 +29,7 @@
       (string->identifier "" (field Species FullName)
                           #:separator ""
                           #:proc string-capitalize-first)
-    (set rdf:type 'gn-id:species)
+    (set rdf:type 'gn:species)
     (set gn-term:name (field Species SpeciesName))
     (set gn-term:displayName (field Species MenuName))
     (set gn-term:binomialName (field Species FullName))
@@ -53,7 +53,7 @@
              'pre "_" 'post)
             #:separator ""
             #:proc string-capitalize-first)
-    (set rdf:type 'gn-id:strain)
+    (set rdf:type 'gn:strain)
     (set gn-term:strainOfSpecies
          (string->identifier "" (field Species FullName)
                           #:separator ""
@@ -68,7 +68,7 @@
   (tables (MappingMethod))
   (triples
       (string->identifier "mappingMethod" (field MappingMethod Name))
-    (set rdf:type 'gn-id:mappingMethod)))
+    (set rdf:type 'gn:mappingMethod)))
 
 (define-dump dump-inbred-set
   (tables (InbredSet
@@ -89,7 +89,7 @@
             "" (field InbredSet Name)
             #:separator ""
             #:proc string-capitalize-first)
-    (set rdf:type 'gn-id:inbredSet)
+    (set rdf:type 'gn:inbredSet)
     (set gn-term:binomialName (field InbredSet FullName))
     (set gn-term:geneticType (field InbredSet GeneticType))
     (set gn-term:inbredFamily (field InbredSet Family))
@@ -97,7 +97,7 @@
     (set gn-term:inbredSetCode (field InbredSet InbredSetCode))
     (set gn-term:inbredSetOfSpecies
          (string->identifier "" (field Species FullName BinomialName)
-                             #:ontology "gn-id:"
+                             #:ontology "gn:"
                              #:separator ""
                              #:proc string-capitalize-first))
     (set gn-term:genotype
@@ -112,7 +112,7 @@
   (schema-triples
    (gn-term:normalization rdfs:range rdfs:Literal))
   (triples (string->identifier "avgmethod" (field AvgMethod Name))
-    (set rdf:type 'gn-id:avgMethod)
+    (set rdf:type 'gn:avgMethod)
     (set gn-term:normalization (field AvgMethod Normalization))))
 
 
@@ -122,9 +122,9 @@
  (connection %connection-settings)
  (table-metadata? #f)
  (prefixes
-  '(("gn-id:" "<http://genenetwork.org/terms/>")
-    ("gn-term:" "<http://genenetwork.org/terms/>")
-    ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+  '(("gn:" "<http://genenetwork.org/id/>")
+    ("gn-term:" "<http://genenetwork.org/term/>")
+    ("rdf:" "<https://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
  (inputs
