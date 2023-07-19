@@ -68,11 +68,12 @@
  (connection %connection-settings)
  (table-metadata? #f)
  (prefixes
-  (("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
-   ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
-   ("gn:" "<http://genenetwork.org/terms/>")
-   ("publication:" "<http://genenetwork.org/publication/>")
-   ("pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")))
+  '(("gn-term:" "<http://genenetwork.org/terms/>")
+    ("gn:" "<http://genenetwork.org/id/>")
+    ("publication:" "<http://genenetwork.org/publication/>")
+    ("pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
+    ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
+    ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")))
  (inputs
   (dump-publication))
  (outputs
