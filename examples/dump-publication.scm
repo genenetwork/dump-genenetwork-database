@@ -38,7 +38,7 @@
         (if (string-null? pmid)
             (string->identifier "unpublished"
                                 (number->string publication-id))
-            (ontology 'publication: pmid)))
+            (ontology 'pubmed: pmid)))
     (set rdf:type 'gn:publication)
     (set gn-term:pubMedId
          (ontology 'pubmed: (field ("IFNULL(PubMed_ID, '')" pubmedId))))
@@ -70,7 +70,6 @@
  (prefixes
   '(("gn-term:" "<http://genenetwork.org/terms/>")
     ("gn:" "<http://genenetwork.org/id/>")
-    ("publication:" "<http://genenetwork.org/publication/>")
     ("pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")))
