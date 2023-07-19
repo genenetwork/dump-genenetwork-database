@@ -496,8 +496,9 @@ The above query results to triples that have the form:
                                                          tables-raw ...)))
         		 #,@(field->key #'(predicate-clauses ...))))
                       (first-n (list-head result
-                                          (let ((n (truncate
-                                                    (+ (max (exact-integer-sqrt (length result))) 1))))
+                                          (let ((n
+                                                 (min 4 (truncate
+                                                         (+ (exact-integer-sqrt (length result)) 1)))))
                                             (if (< n 3)
                                                 (length result)
                                                 n)))))
