@@ -21,15 +21,15 @@
 (define-dump dump-publication
   (tables (Publication))
   (schema-triples
-   (gn:pubMedId rdfs:range rdfs:Literal)
-   (gn:title rdfs:range rdfs:Literal)
-   (gn:journal rdfs:range rdfs:Literal)
-   (gn:volume rdfs:range rdfs:Literal)
-   (gn:pages rdfs:range rdfs:Literal)
-   (gn:month rdfs:range rdfs:Literal)
-   (gn:year rdfs:range rdfs:Literal)
-   (gn:author rdfs:range rdfs:Literal)
-   (gn:abstract rdfs:range rdfs:Literal))
+   (gn-term:pubMedId rdfs:range rdfs:Literal)
+   (gn-term:title rdfs:range rdfs:Literal)
+   (gn-term:journal rdfs:range rdfs:Literal)
+   (gn-term:volume rdfs:range rdfs:Literal)
+   (gn-term:pages rdfs:range rdfs:Literal)
+   (gn-term:month rdfs:range rdfs:Literal)
+   (gn-term:year rdfs:range rdfs:Literal)
+   (gn-term:author rdfs:range rdfs:Literal)
+   (gn-term:abstract rdfs:range rdfs:Literal))
   (triples
       (let ((pmid (field
                    ("IF(Publication.PubMed_ID IS NULL, '', CONVERT(Publication.PubMed_Id, INT))"
@@ -40,18 +40,19 @@
                                 (number->string publication-id))
             (ontology 'publication: pmid)))
     (set rdf:type 'gn:publication)
-    (set gn:pubMedId (ontology 'pubmed: (field ("IFNULL(PubMed_ID, '')" pubmedId))))
-    (set gn:title (delete-substrings (field Publication Title)
-                                     "Unknown"))
-    (set gn:journal (delete-substrings (field Publication Journal)
-                                       "Unknown"))
-    (set gn:volume (delete-substrings (field Publication Volume)
-                                      "Unknown"))
-    (set gn:pages (delete-substrings (field Publication Pages)
-                                     "Unknown"))
-    (set gn:month (delete-substrings (field Publication Month)
-                                     "Unknown"))
-    (set gn:year (field Publication Year))
+    (set gn-term:pubMedId
+         (ontology 'pubmed: (field ("IFNULL(PubMed_ID, '')" pubmedId))))
+    (set gn-term:title (delete-substrings (field Publication Title)
+                                          "Unknown"))
+    (set gn-term:journal (delete-substrings (field Publication Journal)
+                                            "Unknown"))
+    (set gn-term:volume (delete-substrings (field Publication Volume)
+                                           "Unknown"))
+    (set gn-term:pages (delete-substrings (field Publication Pages)
+                                          "Unknown"))
+    (set gn-term:month (delete-substrings (field Publication Month)
+                                          "Unknown"))
+    (set gn-term:year (field Publication Year))
     (multiset gn:author
               ;; The authors field is a comma
               ;; separated list. Split it.
