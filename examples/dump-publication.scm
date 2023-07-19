@@ -75,7 +75,7 @@
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")))
  (inputs
-  (dump-publication))
+  (list dump-publication))
  (outputs
-  (#:documentation "./docs/dump-publication.md"
-   #:rdf "./verified-data/dump-publication.md")))
+  '(#:documentation "./docs/dump-publication.md"
+    #:rdf "./verified-data/dump-publication.md")))
