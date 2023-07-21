@@ -588,7 +588,13 @@ The above query results to triples that have the form:
                  (format #t "# ~a" name)
                  (for-each
                   (lambda (proc)
-                    (proc db #f #f prefix-thunk))
+                    (proc db #f #f
+                          (lambda ()  (for-each
+                                        (match-lambda
+                                          ((k v)
+                                           (begin
+                                             (prefix k v #f))))
+                                        prefixes))))
                   inputs))
                #:encoding "utf8")
 
