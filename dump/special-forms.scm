@@ -435,7 +435,7 @@ must be remedied."
                              (_ (error "Invalid predicate clause:" predicate-clause))))
                          #'(predicate-clauses ...))))
              (when dump-documentation?
-               (format #t "~%## '~a'~%~%" (syntax->datum #'name))
+               (format #t "## '~a'~%~%" (syntax->datum #'name))
                #,(syntax-case #'schema-triples-clause (schema-triples)
                    ((schema-triples (triple-subject triple-predicate triple-object) ...)
                     #`(begin
