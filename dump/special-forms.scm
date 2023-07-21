@@ -467,7 +467,9 @@ The above query results to triples that have the form:
                (for-each (match-lambda
                            ((predicate . object)
                             (format #t "~a -> ~a -> ~a ~%"
-                                    #,(field->datum #'subject)
+                                    (if (symbol? #,(field->datum #'subject))
+                                        (symbol->string #,(field->datum #'subject))
+                                        #,(field->datum #'subject))
                                     predicate
                                     (if (symbol? object)
                                         (symbol->string object)
