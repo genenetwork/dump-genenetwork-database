@@ -495,7 +495,7 @@ The above query results to triples that have the form:
                                             (if (< n 3)
                                                 (length result)
                                                 n)))))
-                 (format #t "SELECT ?s ?p ?o WHERE { ~%")
+                 (format #t "SELECT * WHERE { ~%")
                  (for-each (match-lambda
                              ((predicate . object)
                               (match object
