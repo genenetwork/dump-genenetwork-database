@@ -395,19 +395,10 @@ must be remedied."
                                                #'(schema-triples)))
                     ((triples subject predicate-clauses ...) (triples)
                      (find-clause #'(clauses ...) 'triples)))
-         #`(define* (name db
-			  #:optional
+         #`(define* (name db #:key
                           (dump-metadata? #f)
                           (dump-data? #t)
                           (dump-documentation? #f))
-             (when dump-data?
-               #,(syntax-case #'schema-triples-clause (schema-triples)
-                   ((schema-triples (triple-subject triple-predicate triple-object) ...)
-                    #`(for-each triple
-                                (list 'triple-subject ...)
-                                (list 'triple-predicate ...)
-                                (list 'triple-object ...)))
-                   (_ (error "Invalid schema triples clause:" #'schema-triples-clause))))
              (when dump-metadata?
                #,@(let ((dump-table (symbol->string (syntax->datum #'primary-table)))
                         (subject-type (any (lambda (predicate)
@@ -529,6 +520,13 @@ The above query results to triples that have the form:
                                                    tables-raw ...)))
                (format #t "```~%~%"))
              (when dump-data?
+               #,(syntax-case #'schema-triples-clause (schema-triples)
+                   ((schema-triples (triple-subject triple-predicate triple-object) ...)
+                    #`(for-each triple
+                                (list 'triple-subject ...)
+                                (list 'triple-predicate ...)
+                                (list 'triple-object ...)))
+                   (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
 	       (sql-for-each (lambda (row)
                                (scm->triples
                                 (map-alist row #,@(field->key #'(predicate-clauses ...)))
@@ -571,43 +569,44 @@ The above query results to triples that have the form:
            (set! outputs o)))
         (list (list 'key value) ...))
        (let ((rdf-path (get-keyword-value outputs #:rdf ""))
-             (doc-path (get-keyword-value outputs #:documentation ""))
-             (prefix-thunk (lambda ()  (for-each
-                                        (match-lambda
-                                          ((k v)
-                                           (begin
-                                             (prefix k v))))
-                                        prefixes))))
-          ;; Dumping the documentation first
-          (call-with-target-database
-           connection
-           (lambda (db)
-             (with-output-to-file       ;
-                 doc-path
-               (lambda ()
-                 (format #t "# ~a" name)
-                 (for-each
-                  (lambda (proc)
-                    (proc db #f #f
-                          (lambda ()  (for-each
-                                        (match-lambda
-                                          ((k v)
-                                           (begin
-                                             (prefix k v #f))))
-                                        prefixes))))
-                  inputs))
-               #:encoding "utf8")
+             (doc-path (get-keyword-value outputs #:documentation "")))
+         ;; Dumping the documentation first
+         (call-with-target-database
+          connection
+          (lambda (db)
+            (with-output-to-file        ;
+                doc-path
+              (lambda ()
+                (format #t "# ~a" name)
+                (for-each
+                 (lambda (proc)
+                   (proc db
+                         #:dump-metadata? #f
+                         #:dump-data? #f
+                         #:dump-documentation?
+                         (lambda () (for-each
+                                     (match-lambda
+                                       ((k v)
+                                        (begin
+                                          (prefix k v #f))))
+                                     prefixes))))
+                 inputs))
+              #:encoding "utf8")
 
-             ;; Dumping the actual data
-             (with-output-to-file
-                 rdf-path
-               (lambda ()
-                 ;; Add the prefixes
-                 (prefix-thunk)
-                 (newline)
-                 (for-each
-                  (lambda (proc)
-                    (proc db #f #t #f))
-                  inputs))
-               #:encoding "utf8"))))))))
-
+            ;; Dumping the actual data
+            (with-output-to-file
+                rdf-path
+              (lambda ()
+                ;; Add the prefixes
+                (for-each
+                 (match-lambda
+                   ((k v)
+                    (begin
+                      (prefix k v))))
+                 prefixes)
+                (newline)
+                (for-each
+                 (lambda (proc)
+                   (proc db #:dump-metadata? table-metadata?))
+                 inputs))
+              #:encoding "utf8"))))))))
