@@ -31,7 +31,6 @@
    (gn-term:name rdfs:range rdfs:Literal)
    (gn-term:fullName rdfs:range rdfs:Literal)
    (gn-term:shortName rdfs:range rdfs:Literal)
-   (gn-term:createTime rdfs:range rdfs:Literal)
    (gn:phenotypeDataset rdf:subClassOf gn:dataset))
   (triples
       (string->identifier
@@ -45,7 +44,7 @@
     (set gn-term:name (field PublishFreeze Name))
     (set gn-term:fullName (field PublishFreeze FullName))
     (set gn-term:shortName (field PublishFreeze ShortName))
-    (set dc-termt:created (annotate-field
+    (set dct:created (annotate-field
                       (field PublishFreeze CreateTime)
                       '^^xsd:date))
     (set gn-term:datasetOfInbredSet
@@ -58,7 +57,20 @@
            (left-join PublishFreeze "ON PublishFreeze.InbredSetId = PublishXRef.InbredSetId")
            (left-join InfoFiles "ON InfoFiles.InfoPageName = PublishFreeze.Name")))
   (schema-triples
-   (gn:phenotypeDataset rdfs:subPropertyOf gn:dataset))
+   (gn:phenotypeDataset rdfs:subPropertyOf gn:dataset)
+   (gn-term:publicationDescription rdfs:range rdfs:Literal)
+   (gn-term:originalDescription rdfs:range rdfs:Literal)
+   (gn-term:prePublicationDescription rdfs:range rdfs:Literal)
+   (gn-term:postPublicationAbbreviation rdfs:range rdfs:Literal)
+   (gn-term:labCode rdfs:range rdfs:Literal)
+   (gn-term:submitter rdfs:range rdfs:Literal)
+   (gn-term:owner rdfs:range rdfs:Literal)
+   (gn-term:mean rdfs:range xsd:double)
+   (gn-term:LRS rdfs:range xsd:float)
+   (gn-term:locus rdfs:range rdfs:Literal)
+   (gn-term:additive rdfs:range xsd:decimal)
+   (gn-term:sequence rdfs:range rdfs:Literal)
+   (gn-term:phenotypeOfPublication rdfs:range gn-term:pubMedId))
   (triples (string->identifier
             ""
             (regexp-substitute/global #f "[^A-Za-z0-9:]"
@@ -120,7 +132,8 @@
  (connection %connection-settings)
  (table-metadata? #f)
  (prefixes
-  '(("gn:" "<http://genenetwork.org/id/>")
+  '(("dct:" "<http://purl.org/dc/terms/>")
+    ("gn:" "<http://genenetwork.org/id/>")
     ("gn-term:" "<http://genenetwork.org/terms/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
