@@ -103,7 +103,8 @@
  (connection %connection-settings)
  (table-metadata? #f)
  (prefixes
-  '(("gn:" "<http://genenetwork.org/id/>")
+  '(("dct:" "<http://purl.org/dc/terms/>")
+    ("gn:" "<http://genenetwork.org/id/>")
     ("gn-term:" "<http://genenetwork.org/term/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
