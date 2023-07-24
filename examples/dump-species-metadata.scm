@@ -124,7 +124,7 @@
  (prefixes
   '(("gn:" "<http://genenetwork.org/id/>")
     ("gn-term:" "<http://genenetwork.org/term/>")
-    ("rdf:" "<https://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+    ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
  (inputs
