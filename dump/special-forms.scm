@@ -549,66 +549,52 @@ The above query results to triples that have the form:
 (define-syntax dump-with-documentation
   (syntax-rules ()
     ((_ (key value) ...)
-     (let ((name "")
-           (connection "")
-           (table-metadata? "")
-           (prefixes "")
-           (inputs "")
-           (outputs ""))
-       (for-each
-        (match-lambda
-          (('name n)
-           (set! name n))
-          (('connection conn)
-           (set! connection conn))
-          (('table-metadata? t-metadata?)
-           (set! table-metadata? t-metadata?))
-          (('prefixes p)
-           (set! prefixes p))
-          (('inputs i)
-           (set! inputs i))
-          (('outputs o)
-           (set! outputs o)))
-        (list (list 'key value) ...))
-       (let ((rdf-path (get-keyword-value outputs #:rdf ""))
-             (doc-path (get-keyword-value outputs #:documentation "")))
-         ;; Dumping the documentation first
-         (call-with-target-database
-          connection
-          (lambda (db)
-            (with-output-to-file        ;
-                doc-path
-              (lambda ()
-                (format #t "# ~a" name)
-                (for-each
-                 (lambda (proc)
-                   (proc db
-                         #:dump-metadata? #f
-                         #:dump-data? #f
-                         #:dump-documentation?
-                         (lambda () (for-each
-                                     (match-lambda
-                                       ((k v)
-                                        (begin
-                                          (prefix k v #f))))
-                                     prefixes))))
-                 inputs))
-              #:encoding "utf8")
+     (let* ((alist `((key . ,value) ...))
+            (name (assoc-ref alist 'name))
+            (connection (assoc-ref alist 'connection))
+            (table-metadata? (assoc-ref alist 'table-metadata?))
+            (prefixes (assoc-ref alist 'prefixes))
+            (inputs (assoc-ref alist 'inputs))
+            (outputs (assoc-ref alist 'outputs))
+            (rdf-path (get-keyword-value outputs #:rdf ""))
+            (doc-path (get-keyword-value outputs #:documentation "")))
+       (call-with-target-database
+        connection
+        (lambda (db)
+          (with-output-to-file        ;
+              doc-path
+            (lambda ()
+              (format #t "# ~a" name)
+              (for-each
+               (lambda (proc)
+                 (proc db
+                       #:dump-metadata? #f
+                       #:dump-data? #f
+                       #:dump-documentation?
+                       (lambda () (for-each
+                                   (match-lambda
+                                     ((k v)
+                                      (begin
+                                        (prefix k v #f))))
+                                   prefixes))))
+               inputs))
+            #:encoding "utf8")
 
-            ;; Dumping the actual data
-            (with-output-to-file
-                rdf-path
-              (lambda ()
-                ;; Add the prefixes
-                (for-each
-                 (match-lambda
-                   ((k v)
-                    (begin
-                      (prefix k v))))
-                 prefixes)
-                (newline)
-                (for-each
-                 (lambda (proc)
-                   (proc db #:dump-metadata? table-metadata?))
-                 inputs))
-              #:encoding "utf8"))))))))
+          ;; Dumping the actual data
+          (with-output-to-file
+              rdf-path
+            (lambda ()
+              ;; Add the prefixes
+              (for-each
+               (match-lambda
+                 ((k v)
+                  (begin
+                    (prefix k v))))
+               prefixes)
+              (newline)
+              (for-each
+               (lambda (proc)
+                 (proc db #:dump-metadata? table-metadata?))
+               inputs))
+            #:encoding "utf8")))))))
+
