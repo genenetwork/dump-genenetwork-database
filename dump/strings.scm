@@ -3,6 +3,7 @@
   #:use-module (srfi srfi-19)
   #:use-module (ice-9 match)
   #:use-module (ice-9 string-fun)
+  #:use-module (ice-9 textual-ports)
   #:export (string-blank?
             time-unix->string
             string-blank?
