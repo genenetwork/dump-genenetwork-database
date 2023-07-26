@@ -7,7 +7,8 @@
             prefix
             triple
             scm->triples
-            annotate-field))
+            annotate-field
+            string->binomial-name))
 
 (define (annotate-field field schema)
   (let ([schema (cond ((symbol? schema)
@@ -89,3 +90,19 @@ characters with an underscore and prefixing with gn:PREFIX."
                       (else object))
                  (fn id predicate object))))
             alist))
+
+(define (string->binomial-name name)
+  (let ((binomial?
+         (string-match
+          "\\\(.+\\)"
+          name)))
+    (string->identifier
+     ""
+     (if binomial?
+         (regexp-substitute/global
+          #f "[^[:space:]A-Za-z0-9:]"
+          (match:substring binomial?)
+          'pre "" 'post)
+         name)
+     #:separator ""
+     #:proc string-capitalize-first)))
