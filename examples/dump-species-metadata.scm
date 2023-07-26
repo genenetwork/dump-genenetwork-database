@@ -26,9 +26,7 @@
    (gn-term:binomialName rdfs:range rdfs:Literal)
    (gn-term:family rdfs:range rdfs:Literal))
   (triples
-      (string->identifier "" (field Species FullName)
-                          #:separator ""
-                          #:proc string-capitalize-first)
+      (string->binomial-name (field Species FullName))
     (set rdf:type 'gn:species)
     (set gn-term:name (field Species SpeciesName))
     (set gn-term:displayName (field Species MenuName))
@@ -55,9 +53,7 @@
             #:proc string-capitalize-first)
     (set rdf:type 'gn:strain)
     (set gn-term:strainOfSpecies
-         (string->identifier "" (field Species FullName)
-                          #:separator ""
-                          #:proc string-capitalize-first))
+         (string->binomial-name (field Species FullName)))
     ;; Name, and maybe a second name
     (set gn-term:name (sanitize-rdf-string (field Strain Name)))
     (set gn-term:name2 (sanitize-rdf-string (field Strain Name2)))
@@ -96,10 +92,8 @@
     (set gn-term:inbredSetOfMappingMethod (field MappingMethod Name))
     (set gn-term:inbredSetCode (field InbredSet InbredSetCode))
     (set gn-term:inbredSetOfSpecies
-         (string->identifier "" (field Species FullName BinomialName)
-                             #:ontology "gn:"
-                             #:separator ""
-                             #:proc string-capitalize-first))
+         (string->binomial-name
+          (field Species FullName BinomialName)))
     (set gn-term:genotype
          (field ("IF ((SELECT PublishFreeze.Name FROM PublishFreeze WHERE PublishFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'Traits and Cofactors', '')" genotypeP)))
     (set gn-term:phenotype
