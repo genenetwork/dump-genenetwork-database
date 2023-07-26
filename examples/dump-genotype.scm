@@ -26,9 +26,9 @@
            (left-join InbredSet "ON GenoFreeze.InbredSetId = InbredSet.InbredSetId"))
           "WHERE GenoFreeze.public > 0 AND GenoFreeze.confidentiality < 1 AND InfoFiles.InfoPageName IS NULL")
   (schema-triples
-   (gn-term:datasetOfInbredSet rdfs:range gn:inbredSet)
+   (gnt:datasetOfInbredSet rdfs:range gn:inbredSet)
    (gn:genotypeDataset rdfs:subPropertyOf gn:dataset)
-   (gn-term:shortName rdfs:range rdfs:Literal))
+   (gnt:shortName rdfs:range rdfs:Literal))
   (triples
       (string->identifier
        ""
@@ -42,13 +42,13 @@
        #:separator ""
        #:proc string-capitalize-first)
     (set rdf:type 'gn:genotypeDataset)
-    (set gn-term:name (field GenoFreeze Name))
-    (set gn-term:fullName (field GenoFreeze FullName))
-    (set gn-term:shortName (field GenoFreeze ShortName))
+    (set gnt:name (field GenoFreeze Name))
+    (set gnt:fullName (field GenoFreeze FullName))
+    (set gnt:shortName (field GenoFreeze ShortName))
     (set dct:created (annotate-field
                       (field GenoFreeze CreateTime)
                       '^^xsd:date))
-    (set gn-term:datasetOfInbredSet
+    (set gnt:datasetOfInbredSet
          (string->identifier "" (field InbredSet Name InbredSetName)))))
 
 (define-dump dump-genotypes
@@ -58,7 +58,7 @@
            (left-join InfoFiles "ON InfoFiles.InfoPageName = GenoFreeze.Name")))
   (schema-triples
    (gn:genotype rdfs:range rdfs:Literal)
-   (gn-term:genotypeDataset rdfs:subPropertyOf gn:dataset))
+   (gnt:genotypeDataset rdfs:subPropertyOf gn:dataset))
   (triples
       (string->identifier
        ""
@@ -69,14 +69,14 @@
        #:separator ""
        #:proc string-capitalize-first)
     (set rdf:type 'gn:genotype)
-    (set gn-term:name (sanitize-rdf-string (field Geno Name)))
-    (set gn-term:markerName (sanitize-rdf-string (field Geno Marker_Name)))
-    (set gn-term:chr (field Geno Chr))
-    (set gn-term:mb (annotate-field (field ("IFNULL(Geno.Mb, '')" Mb)) '^^xsd:double))
-    (set gn-term:sequence (field Geno Sequence))
-    (set gn-term:source (field Geno Source))
-    (set gn-term:source2 (field Geno Source2))
-    (set gn-term:genotypeOfDataset
+    (set gnt:name (sanitize-rdf-string (field Geno Name)))
+    (set gnt:markerName (sanitize-rdf-string (field Geno Marker_Name)))
+    (set gnt:chr (field Geno Chr))
+    (set gnt:mb (annotate-field (field ("IFNULL(Geno.Mb, '')" Mb)) '^^xsd:double))
+    (set gnt:sequence (field Geno Sequence))
+    (set gnt:source (field Geno Source))
+    (set gnt:source2 (field Geno Source2))
+    (set gnt:genotypeOfDataset
          (string->identifier
           ""
           (regexp-substitute/global
@@ -86,12 +86,12 @@
           #:separator ""
           #:proc string-capitalize-first)
          )
-    (set gn-term:chrNum
+    (set gnt:chrNum
          (annotate-field
           (field ("IFNULL(Geno.chr_num, '')" chr_num))
           '^^xsd:int))
     (set gn:comments (field ("CAST(CONVERT(BINARY CONVERT(Geno.Comments USING latin1) USING utf8) AS VARCHAR(255))" Comments)))
-    (set gn-term:cM
+    (set gnt:cM
          (annotate-field
           (field ("IFNULL(GenoXRef.cM, '')" Chr_mm8))
           '^^xsd:int))))
@@ -105,7 +105,7 @@
  (prefixes
   '(("dct:" "<http://purl.org/dc/terms/>")
     ("gn:" "<http://genenetwork.org/id/>")
-    ("gn-term:" "<http://genenetwork.org/term/>")
+    ("gnt:" "<http://genenetwork.org/term/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("xsd:" "<http://www.w3.org/2001/XMLSchema#>")))

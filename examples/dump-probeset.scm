@@ -21,8 +21,8 @@
   (tables (ProbeSet
            (left-join GeneChip "ON GeneChip.Id = ProbeSet.ChipId")))
   (schema-triples
-   (gn-term:name rdfs:range rdfs:Literal)
-   (gn-term:probeset rdfs:range rdfs:Literal))
+   (gnt:name rdfs:range rdfs:Literal)
+   (gnt:probeset rdfs:range rdfs:Literal))
   (triples (ontology
             'probeset:
             (string-trim-both
@@ -32,17 +32,17 @@
                       name))
               'pre "_" 'post)))
     (set rdf:type 'gn-id:probeset)
-    (set gn-term:chipOf (string->identifier "platform" (field GeneChip Name)))
-    (set gn-term:name (field ProbeSet Name))
-    (set gn-term:symbol (delete-substrings (field ProbeSet Symbol) "\""))
-    (set gn-term:description (sanitize-rdf-string
+    (set gnt:chipOf (string->identifier "platform" (field GeneChip Name)))
+    (set gnt:name (field ProbeSet Name))
+    (set gnt:symbol (delete-substrings (field ProbeSet Symbol) "\""))
+    (set gnt:description (sanitize-rdf-string
                               (field ProbeSet description)))
-    (set gn-term:chr (field ProbeSet Chr))
-    (set gn-term:mb (annotate-field (field ("IFNULL(ProbeSet.Mb, '')" Mb)) '^^xsd:double))
-    (set gn-term:blatSeq (sanitize-rdf-string
+    (set gnt:chr (field ProbeSet Chr))
+    (set gnt:mb (annotate-field (field ("IFNULL(ProbeSet.Mb, '')" Mb)) '^^xsd:double))
+    (set gnt:blatSeq (sanitize-rdf-string
                           (string-trim-both (field ProbeSet BlatSeq))))
-    (set gn-term:targetSeq (sanitize-rdf-string (field ProbeSet TargetSeq)))
-    (set gn-term:uniProtReference (ontology 'uniprot:
+    (set gnt:targetSeq (sanitize-rdf-string (field ProbeSet TargetSeq)))
+    (set gnt:uniProtReference (ontology 'uniprot:
                                             (field ProbeSet UniProtID)))))
 
 

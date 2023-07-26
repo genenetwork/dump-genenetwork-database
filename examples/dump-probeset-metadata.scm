@@ -24,14 +24,14 @@
           "WHERE ProbeSetFreeze.public > 0 AND ProbeSetFreeze.confidentiality < 1")
   (schema-triples
    (gn:probesetData rdfs:range gn:probeset)
-   (gn-term:hasProbeset rdfs:range rdfs:Literal))
+   (gnt:hasProbeset rdfs:range rdfs:Literal))
   (triples
       (string->identifier
        "probesetData"
        (field ("CONCAT(ProbeSetFreeze.Name,':',IFNULL(ProbeSet.Name, ProbeSet.Id))"
                ProbeSetName)))
     (set rdf:type 'gn:probesetData)
-    (set gn-term:hasProbeset
+    (set gnt:hasProbeset
          (ontology
           'probeset:
           (regexp-substitute/global
@@ -39,34 +39,34 @@
            (field ("IFNULL(ProbeSet.Name, ProbeSet.Id)"
                    name))
            'pre "_" 'post)))
-    (set gn-term:probesetOfDataset
+    (set gnt:probesetOfDataset
          (ontology
           'probeset:
           (regexp-substitute/global #f "[^A-Za-z0-9:]"
                                     (field ProbeSetFreeze Name)
                                     'pre "_" 'post)))
-    (set gn-term:mean
+    (set gnt:mean
          (annotate-field
           (field ("IFNULL(ProbeSetXRef.mean, '')" mean))
           '^^xsd:double))
-    (set gn-term:se
+    (set gnt:se
          (annotate-field
           (field ("IFNULL(ProbeSetXRef.se, '')" se))
           '^^xsd:double))
-    (set gn-term:locus (field ProbeSetXRef Locus))
+    (set gnt:locus (field ProbeSetXRef Locus))
     (set gn:LRS
          (annotate-field
           (field ("IFNULL(ProbeSetXRef.LRS, '')" LRS))
           '^^xsd:double))
-    (set gn-term:pValue
+    (set gnt:pValue
          (annotate-field
           (field ("IFNULL(ProbeSetXRef.pValue, '')" pValue))
           '^^xsd:double))
-    (set gn-term:additive
+    (set gnt:additive
          (annotate-field
           (field ("IFNULL(ProbeSetXRef.additive, '')" additive))
           '^^xsd:double))
-    (set gn-term:h2
+    (set gnt:h2
          (annotate-field
           (field ("IFNULL(ProbeSetXRef.h2, '')" h2))
           '^^xsd:float))))
@@ -79,7 +79,7 @@
  (table-metadata? #f)
  (prefixes
   '(("gn:" "<http://genenetwork.org/id/>")
-    ("gn-term:" "<http://genenetwork.org/id/>")
+    ("gnt:" "<http://genenetwork.org/id/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("xsd:" "<http://www.w3.org/2001/XMLSchema#>")))

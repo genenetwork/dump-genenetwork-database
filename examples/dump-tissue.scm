@@ -23,12 +23,12 @@
     ;; and BIRN_lex_Name are mostly NULL.
     (tables (Tissue))
   (schema-triples
-   (gn-term:name rdfs:range rdfs:Literal))
+   (gnt:name rdfs:range rdfs:Literal))
   ;; Hopefully the Short_Name field is distinct and can be used as an
   ;; identifier.
   (triples (string->identifier "tissue" (field Tissue Short_Name))
 	   (set rdf:type 'gn:tissue)
-	   (set gn-term:name (field Tissue Name))))
+	   (set gnt:name (field Tissue Name))))
 
 
 
@@ -38,7 +38,7 @@
  (table-metadata? #f)
  (prefixes
   '(("gn:" "<http://genenetwork.org/id/>")
-    ("gn-term:" "<http://genenetwork.org/terms/>")
+    ("gnt:" "<http://genenetwork.org/terms/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")))
  (inputs
