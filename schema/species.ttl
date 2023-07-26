@@ -6,14 +6,14 @@
 @prefix gn: <http://genenetwork.org/id/> .
 
 gn:Arabidopsis_thaliana rdf:isDefinedBy wd:Q158695 .
-gn:Bat__glossophaga_soricina_ rdf:isDefinedBy wd:Q304929 .
-gn:Fly__drosophila_melanogaster_dm6_ rdf:isDefinedBy wd:Q130888 .
+gn:Glossophaga_soricina rdf:isDefinedBy wd:Q304929 .
+gn:Drosophila_melanogaster_dm6 rdf:isDefinedBy wd:Q130888 .
 gn:Glycine_max rdf:isDefinedBy wd:Q11006 .
 gn:Homo_sapiens rdf:isDefinedBy wd:Q15978631 .
 gn:Hordeum_vulgare rdf:isDefinedBy wd:Q11577 .
 gn:Macaca_mulatta rdf:isDefinedBy wd:Q177601 .
 gn:Mus_musculus rdf:isDefinedBy wd:Q83310 .
-gn:Oryzias_latipes__japanese_medaka_ rdf:isDefinedBy wd:Q1142975 .
+gn:Japanese_medaka rdf:isDefinedBy wd:Q1142975 .
 gn:Populus_trichocarpa rdf:isDefinedBy wd:Q149382 .
 gn:Rattus_norvegicus rdf:isDefinedBy wd:Q184224 .
 gn:Solanum_lycopersicum rdf:isDefinedBy wd:Q23501 .
