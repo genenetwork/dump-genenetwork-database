@@ -20,11 +20,11 @@
 (define-dump dump-gene-chip
   (tables (GeneChip))
   (schema-triples
-   (gn-term:name rdfs:range rdfs:Literal))
+   (gnt:name rdfs:range rdfs:Literal))
   (triples (string->identifier "platform" (field GeneChip Name))
     (set rdf:type 'gn:platform)
-    (set gn-term:name (field GeneChip GeneChipName))
-    (set gn-term:geoPlatform
+    (set gnt:name (field GeneChip GeneChipName))
+    (set gnt:geoPlatform
          (ontology 'geoSeries:
                    (string-trim-both (field GeneChip GeoPlatform))))))
 
@@ -38,8 +38,8 @@
            (left-join Tissue "ON ProbeFreeze.TissueId = Tissue.TissueId"))
           "WHERE ProbeSetFreeze.public > 0 AND InfoFiles.InfoPageName IS NULL GROUP BY ProbeFreeze.Id")
   (schema-triples
-   (gn-term:avgMethod rdfs:range rdfs:Literal)
-   (gn-term:dataScale rdfs:range rdfs:Literal)
+   (gnt:avgMethod rdfs:range rdfs:Literal)
+   (gnt:dataScale rdfs:range rdfs:Literal)
    (gn:probesetDataset rdf:subClassOf gn:dataset))
   (triples
       (string->identifier
@@ -51,15 +51,15 @@
        #:separator ""
        #:proc string-capitalize-first)
     (set rdf:type 'gn:probesetDataset)
-    (set gn-term:avgMethod (string->identifier "avgmethod" (field AvgMethod Name)))
-    (set gn-term:fullName (field ProbeSetFreeze FullName))
-    (set gn-term:shortName (field ProbeSetFreeze ShortName))
+    (set gnt:avgMethod (string->identifier "avgmethod" (field AvgMethod Name)))
+    (set gnt:fullName (field ProbeSetFreeze FullName))
+    (set gnt:shortName (field ProbeSetFreeze ShortName))
     (set dct:created (annotate-field
                       (field ProbeSetFreeze CreateTime)
                       '^^xsd:datetime))
-    (set gn-term:dataScale (field ProbeSetFreeze DataScale))
-    (set gn-term:tissueName (string->identifier "tissue" (field Tissue Short_Name)))
-    (set gn-term:datasetOfInbredSet
+    (set gnt:dataScale (field ProbeSetFreeze DataScale))
+    (set gnt:tissueName (string->identifier "tissue" (field Tissue Short_Name)))
+    (set gnt:datasetOfInbredSet
          (string->identifier "inbredSet" (field InbredSet Name InbredSetName)))))
 
 
@@ -71,7 +71,8 @@
  (prefixes
   '(("geoSeries:" "<http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=>")
     ("gn:" "<http://genenetwork.org/id/>")
-    ("gn-term:" "<http://genenetwork.org/term/>")
+    ("dct:" "<>")
+    ("gnt:" "<http://genenetwork.org/term/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("xsd:" "<http://www.w3.org/2001/XMLSchema#>")))

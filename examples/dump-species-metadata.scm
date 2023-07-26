@@ -31,27 +31,25 @@
 (define-dump dump-species
   (tables (Species))
   (schema-triples
-   (gn-term:name rdfs:range rdfs:Literal)
-   (gn-term:displayName rdfs:range rdfs:Literal)
-   (gn-term:binomialName rdfs:range rdfs:Literal)
-   (gn-term:family rdfs:range rdfs:Literal))
+   (gnt:name rdfs:range rdfs:Literal)
+   (gnt:displayName rdfs:range rdfs:Literal)
+   (gnt:binomialName rdfs:range rdfs:Literal)
+   (gnt:family rdfs:range rdfs:Literal))
   (triples
-      (string->identifier "" (remap-species-identifiers (field Species Fullname))
-                             #:separator ""
-                             #:proc string-capitalize-first)
-    (set rdf:type 'gn:species)
-    (set gn-term:name (field Species SpeciesName))
-    (set gn-term:displayName (field Species MenuName))
-    (set gn-term:binomialName (remap-species-identifiers (field Species FullName)))
-    (set gn-term:family (field Species Family))
-    (set gn-term:organism (ontology 'taxon: (field Species TaxonomyId)))))
+      (string->binomial-name (field Species FullName))
+    (set rdf:type 'gnc:species)
+    (set gnt:name (field Species SpeciesName))
+    (set gnt:displayName (field Species MenuName))
+    (set gnt:binomialName (field Species FullName))
+    (set gnt:family (field Species Family))
+    (set gnt:organism (ontology 'taxon: (field Species TaxonomyId)))))
 
 (define-dump dump-strain
   (tables (Strain
            (left-join Species "ON Strain.SpeciesId = Species.SpeciesId")))
   (schema-triples
-   (gn-term:strainOfSpecies rdfs:domain gn-term:strain)
-   (gn-term:strainOfSpecies rdfs:range gn-term:species)
+   (gnt:strainOfSpecies rdfs:domain gnt:strain)
+   (gnt:strainOfSpecies rdfs:range gn-term:species)
    (gn-term:name rdfs:range rdfs:Literal)
    (gn-term:alias rdfs:range rdfs:Literal)
    (gn-term:symbol rdfs:range rdfs:Literal))
@@ -63,7 +61,7 @@
              'pre "_" 'post)
             #:separator ""
             #:proc string-capitalize-first)
-    (set rdf:type 'gn:strain)
+    (set rdf:type 'gnc:strain)
     (set gn-term:strainOfSpecies
          (string->identifier "" (remap-species-identifiers (field Species FullName))
                           #:separator ""
@@ -78,7 +76,7 @@
   (tables (MappingMethod))
   (triples
       (string->identifier "mappingMethod" (field MappingMethod Name))
-    (set rdf:type 'gn:mappingMethod)))
+    (set rdf:type 'gnc:mappingMethod)))
 
 (define-dump dump-inbred-set
   (tables (InbredSet
@@ -99,7 +97,7 @@
             "" (field InbredSet Name)
             #:separator ""
             #:proc string-capitalize-first)
-    (set rdf:type 'gn:inbredSet)
+    (set rdf:type 'gnc:inbredSet)
     (set gn-term:binomialName (field InbredSet FullName))
     (set gn-term:geneticType (field InbredSet GeneticType))
     (set gn-term:inbredFamily (field InbredSet Family))
@@ -120,7 +118,7 @@
   (schema-triples
    (gn-term:normalization rdfs:range rdfs:Literal))
   (triples (string->identifier "avgmethod" (field AvgMethod Name))
-    (set rdf:type 'gn:avgMethod)
+    (set rdf:type 'gnc:avgMethod)
     (set gn-term:normalization (field AvgMethod Normalization))))
 
 
@@ -131,7 +129,8 @@
  (table-metadata? #f)
  (prefixes
   '(("gn:" "<http://genenetwork.org/id/>")
-    ("gn-term:" "<http://genenetwork.org/term/>")
+    ("gnc:" "<http://genenetwork.org/category/>")
+    ("gnt:" "<http://genenetwork.org/term/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
