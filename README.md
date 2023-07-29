@@ -3,9 +3,7 @@ badge](https://ci.genenetwork.org/badge/dump-genenetwork-database-tests.svg)](ht
 [![dump-genenetwork-database CI
 badge](https://ci.genenetwork.org/badge/dump-genenetwork-database.svg)](https://ci.genenetwork.org/jobs/dump-genenetwork-database)
 
-The GeneNetwork database is being migrated from a relational database to
-a plain text and RDF database. This repository contains code to dump the
-relational database to plain text.
+This repository contains code to dump the metadata in the GeneNetwork relational database to RDF. It requires a connection to a SQL server.
 
 # Using
 
@@ -13,6 +11,12 @@ Drop into a development environment with
 
 ``` shell
 $ guix shell -m manifest.scm
+```
+
+If the path is not picked up add
+
+```
+export PATH=$GUIX_ENVIRONMENT/bin:$PATH
 ```
 
 Build the sources.
@@ -79,17 +83,12 @@ Then, to dump the database to \~/data/dump, run
 ``` shell
 $ guix shell -m manifest.scm -- ./pre-inst-env ./examples/dump-dataset-metadata.scm conn.scm ~/data/dump-data/
 ```
-
-Make sure there is enough free space! It\'s best to dump the database on
-penguin2 where disk space and bandwidth are not significant
-constraints.
-
 ## Validate and load dump
 
 Then, validate the dumped RDF using `rapper` and load it into
 virtuoso. This will load the dumped RDF into the
 `http://genenetwork.org` graph, and will delete all pre-existing data
-in that graph.
+in that graph (FIXME)
 
 ``` shell
 $ guix shell -m manifest.scm -- rapper --input turtle --count ~/data/dump/dump.ttl
