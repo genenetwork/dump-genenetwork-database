@@ -78,11 +78,16 @@ Here's a sample *conn.scm*.
 
 ## Dump the database
 
-Then, to dump the database to \~/data/dump, run
+Then, to dump the database to \~/data/dump, run inside shell
+
+```sh
+./pre-inst-env ./examples/dump-species-metadata.scm ../conn.scm ~/tmp
+```
 
 ``` shell
-$ guix shell -m manifest.scm -- ./pre-inst-env ./examples/dump-dataset-metadata.scm conn.scm ~/data/dump-data/
+$ guix shell -m manifest.scm -- ./pre-inst-env ./examples/dump-dataset-metadata.scm ../conn.scm ~/tmp
 ```
+
 ## Validate and load dump
 
 Then, validate the dumped RDF using `rapper` and load it into
