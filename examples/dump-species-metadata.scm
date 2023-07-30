@@ -20,11 +20,12 @@
 
 (define (remap-species-identifiers str)
   "This procedure remaps identifiers to standard binominal. Obviously this should
-   be sorted in a different way!"
+   be sorted by correcting the database!"
   (match str
-    ["Fly (Drosophila melanogaster, dm6)" "Drosophila melanogaster"]
+    ["Fly (Drosophila melanogaster dm6)" "Drosophila melanogaster"]
     ["Oryzias latipes (Japanese medaka)" "Oryzias latipes"]
     ["Monkey (Macaca nemestrina)" "Macaca nemestrina"]
+    ["Bat (Glossophaga soricina)" "Glossophaga soricina"]
     [str str]))
 
 (define-dump dump-species
@@ -41,7 +42,7 @@
     (set rdf:type 'gn:species)
     (set gn-term:name (field Species SpeciesName))
     (set gn-term:displayName (field Species MenuName))
-    (set gn-term:binomialName (field Species FullName))
+    (set gn-term:binomialName (remap-species-identifiers (field Species FullName)))
     (set gn-term:family (field Species Family))
     (set gn-term:organism (ontology 'taxon: (field Species TaxonomyId)))))
 
@@ -64,7 +65,7 @@
             #:proc string-capitalize-first)
     (set rdf:type 'gn:strain)
     (set gn-term:strainOfSpecies
-         (string->identifier "" (field Species FullName)
+         (string->identifier "" (remap-species-identifiers (field Species FullName))
                           #:separator ""
                           #:proc string-capitalize-first))
     ;; Name, and maybe a second name
@@ -140,7 +141,8 @@
   (list dump-species
         dump-strain
         dump-mapping-method
-        dump-avg-method))
+        dump-avg-method
+	))
  (outputs
   '(#:documentation "./docs/dump-species-metadata.md"
     #:rdf "./verified-data/dump-species-metadata.ttl")))
