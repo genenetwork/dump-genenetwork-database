@@ -27,7 +27,7 @@
   ;; Hopefully the Short_Name field is distinct and can be used as an
   ;; identifier.
   (triples (string->identifier "tissue" (field Tissue Short_Name))
-	   (set rdf:type 'gn:tissue)
+	   (set rdf:type 'gnc:tissue)
 	   (set gnt:name (field Tissue Name))))
 
 
@@ -39,6 +39,7 @@
  (prefixes
   '(("gn:" "<http://genenetwork.org/id/>")
     ("gnt:" "<http://genenetwork.org/terms/>")
+    ("gnc:" "<http://genenetwork.org/category/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")))
  (inputs

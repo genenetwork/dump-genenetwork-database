@@ -30,7 +30,7 @@
        "probesetData"
        (field ("CONCAT(ProbeSetFreeze.Name,':',IFNULL(ProbeSet.Name, ProbeSet.Id))"
                ProbeSetName)))
-    (set rdf:type 'gn:probesetData)
+    (set rdf:type 'gnc:probesetData)
     (set gnt:hasProbeset
          (ontology
           'probeset:
@@ -79,6 +79,7 @@
  (table-metadata? #f)
  (prefixes
   '(("gn:" "<http://genenetwork.org/id/>")
+    ("gnc:" "<http://genenetwork.org/category/>")
     ("gnt:" "<http://genenetwork.org/id/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
