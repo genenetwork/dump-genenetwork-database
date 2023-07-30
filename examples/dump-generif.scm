@@ -16,9 +16,6 @@
   (call-with-input-file (list-ref (command-line) 1)
     read))
 
-(define %dump-directory
-  (list-ref (command-line) 2))
-
 
 
 (define-dump dump-genewiki-symbols
@@ -26,17 +23,17 @@
            (left-join Species "USING (SpeciesId)"))
           "GROUP BY GeneId ORDER BY BINARY symbol")
   (schema-triples
-   (gn:symbol rdfs:domain gn:geneWikiEntry)
-   (gn:wikiEntryOfSpecies rdfs:range gn:species)
-   (gn:taxid rdfs:domain gn:geneWikiEntry))
+   (gnt:symbol rdfs:domain gn-term:geneWikiEntry)
+   (gnt:wikiEntryOfSpecies rdfs:range gn:species)
+   (gnt:taxid rdfs:domain gn-term:geneWikiEntry))
   (triples (ontology 'generif: (field GeneRIF_BASIC GeneId))
-    (multiset gn:symbol (string-split (field ("GROUP_CONCAT(DISTINCT symbol)" symbol))
+    (multiset gnt:symbol (string-split (field ("GROUP_CONCAT(DISTINCT symbol)" symbol))
                                       #\,))
-    (multiset gn:wikiEntryOfSpecies
+    (multiset gnt:wikiEntryOfSpecies
               (string-split
                (field ("GROUP_CONCAT(DISTINCT Species.SpeciesName)" species))
                #\,))
-    (multiset gn:taxId (map (cut ontology 'ncbiTaxon: <>)
+    (multiset gnt:taxId (map (cut ontology 'ncbiTaxon: <>)
                             (string-split (field ("GROUP_CONCAT(DISTINCT TaxID)" taxId))
                                           #\,)))))
 
@@ -48,16 +45,16 @@
            (left-join GeneCategory "ON GeneRIFXRef.GeneCategoryId = GeneCategory.Id"))
           "WHERE GeneRIF.display > 0 AND GeneRIF.VersionId = 0 GROUP BY GeneRIF.symbol")
   (schema-triples
-   (gn:geneWikiEntry a rdfs:Class)
-   (gn:geneWikiEntry a owl:Class)
-   (gn:geneWikiEntry rdfs:comment "Represents GeneRIF Entries")
-   (gn:geneCategory rdfs:domain gn:geneWikiEntry)
-   (gn:geneWikiEntryOfGn rdfs:domain gn:geneWikiEntry)
-   (gn:geneWikiEntry rdfs:domain gn:geneWikiEntry))
+   (gnt:geneWikiEntry a rdfs:Class)
+   (gnt:geneWikiEntry a owl:Class)
+   (gnt:geneWikiEntry rdfs:comment "Represents GeneRIF Entries")
+   (gnt:geneCategory rdfs:domain gn:geneWikiEntry)
+   (gnt:geneWikiEntryOfGn rdfs:domain gn:geneWikiEntry)
+   (gnt:geneWikiEntry rdfs:domain gn:geneWikiEntry))
   (triples
       (let ([geneid (field GeneRIF_BASIC GeneId)])
         (if (eq? geneid 0)
-            (ontology 'gn:anonSymbol_
+            (ontology 'gnt:anonSymbol_
                       (field GeneRIF symbol))
             (ontology 'generif:
                       geneid)))
@@ -65,14 +62,14 @@
          (if (string-null? (field ("IFNULL(GeneRIF_BASIC.GeneId, '')" geneWikiEntryP)))
              ""
              'gn:geneWikiEntry))
-    (set gn:wikiEntryOfSpecies
-         (field Species SpeciesName))
+    (set gnt:wikiEntryOfSpecies
+         (string->binomial-name (field Species FullName)))
     ;; This only dumps symbols not present in the GeneRIF_BASIC table
-    (set gn:symbol (let ([geneid (field GeneRIF_BASIC GeneId)])
+    (set gnt:symbol (let ([geneid (field GeneRIF_BASIC GeneId)])
                      (if (eq? geneid 0)
                          (field GeneRIF symbol)
                          "")))
-    (multiset gn:geneWikiEntryOfGn
+    (multiset gnt:geneWikiEntryOfGn
               (let* ([entries
                       (sanitize-rdf-string
                        (field
@@ -83,7 +80,7 @@
                  (match-lambda
                    ((genecategory pmid email text createtime weburl)
                     (blank-node
-                     (set gn:geneCategory genecategory)
+                     (set gnt:geneCategory genecategory)
                      (multiset dct:source
                                (map (lambda (el) (if (string-null? el)
                                                      ""
@@ -94,7 +91,7 @@
                                                                 'pre
                                                                 ""
                                                                 'post))
-                     (set gn:geneWikiEntry
+                     (set gnt:geneWikiEntry
                           (annotate-field text '^^xsd:string))
                      (set dct:created (annotate-field
                                        createtime
@@ -108,12 +105,12 @@
   (tables (GeneRIF_BASIC)
           "GROUP BY GeneId, comment, createtime")
   (schema-triples
-   (gn:geneWikiEntryofNCBI rdfs:domain gn:geneWikiEntry))
+   (gnt:geneWikiEntryofNCBI rdfs:domain gn:geneWikiEntry))
   (triples (ontology 'generif:
                      (field GeneRIF_BASIC GeneId))
-    (set gn:geneWikiEntryOfNCBI
+    (set gnt:geneWikiEntryOfNCBI
          (blank-node
-          (set gn:geneWikiEntry
+          (set gnt:geneWikiEntry
                (annotate-field (field GeneRIF_BASIC comment)
                                '^^xsd:string))
           (multiset dct:source (map (lambda (el) (if (string-null? el)
@@ -127,34 +124,27 @@
 
 
 
-(call-with-target-database
- %connection-settings
- (lambda (db)
-   (with-output-to-file (string-append %dump-directory "dump-generif.ttl")
-     (lambda ()
-       (prefix "rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
-       (prefix "rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
-       (prefix "foaf:" "<http://xmlns.com/foaf/0.1/>")
-       (prefix "gn:" "<http://genenetwork.org/>")
-       (prefix "dct:" "<http://purl.org/dc/terms/>")
-       (prefix "pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
-       (prefix "up:" "<http://purl.uniprot.org/core/>")
-       (prefix "ncbiTaxon:" "<https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=>")
-       (prefix "generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
-       (prefix "xsd:" "<http://www.w3.org/2001/XMLSchema#>")
-       (prefix "owl:" "<http://www.w3.org/2002/07/owl#>")
-       (prefix "phenotype:" "<http://genenetwork.org/phenotype/>")
-       (prefix "molecularTrait:" "<http://genenetwork.org/molecular-trait/>")
-       (prefix "nuccore:" "<https://www.ncbi.nlm.nih.gov/nuccore/>")
-       (prefix "omim:" "<https://www.omim.org/entry/>")
-       (prefix "pubchem:" "<https://pubchem.ncbi.nlm.nih.gov/>")
-       (prefix "uniprot:" "<http://purl.uniprot.org/uniprot/>")
-       (prefix "hgnc:" "<http://bio2rdf.org/hgnc:>")
-       (prefix "homologene:" "<https://bio2rdf.org/homologene:>")
-       (prefix "chebi:" "<http://purl.obolibrary.org/obo/CHEBI_>")
-       (prefix "kegg:" "<http://bio2rdf.org/ns/kegg#>")
-       (newline)
-       (dump-genewiki-symbols db)
-       (dump-gn-genewiki-entries db)
-       (dump-ncbi-genewiki-entries db))
-     #:encoding "utf8")))
+(dump-with-documentation
+ (name "GeneRIF Metadata")
+ (connection %connection-settings)
+ (table-metadata? #f)
+ (prefixes
+  '(("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
+    ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
+    ("gn:" "<http://genenetwork.org/id/>")
+    ("gnc:" "<http://genenetwork.org/category/>")
+    ("gnt:" "<http://genenetwork.org/term/>")
+    ("dct:" "<http://purl.org/dc/terms/>")
+    ("pubmed:" "<http://rdf.ncbi.nlm.nih.gov/pubmed/>")
+    ("ncbiTaxon:" "<https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=>")
+    ("generif:" "<http://www.ncbi.nlm.nih.gov/gene?cmd=Retrieve&dopt=Graphics&list_uids=>")
+    ("xsd:" "<http://www.w3.org/2001/XMLSchema#>")
+    ("owl:" "<http://www.w3.org/2002/07/owl#>")))
+ (inputs
+  (list ;; dump-genewiki-symbols
+        dump-gn-genewiki-entries
+        ;; dump-ncbi-genewiki-entries
+        ))
+ (outputs
+   '(#:documentation "./docs/dump-generif.md"
+     #:rdf "./verified-data/dump-generif.ttl")))
