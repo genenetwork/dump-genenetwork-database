@@ -94,8 +94,9 @@ is a <table> object."
                             (table-columns table))))
               tables)))
 
-(define (dump-data-table db table-name data-field)
-  (let ((dump-directory (string-append %dump-directory "/" table-name))
+(define* (dump-data-table db table-name data-field
+                          #:optional (default-dump-directory ""))
+  (let ((dump-directory (string-append default-dump-directory "/" table-name))
         (port #f)
         (current-strain-id #f))
     (unless (file-exists? dump-directory)
