@@ -18,6 +18,15 @@
 
 
 
+(define (remap-species-identifiers str)
+  "This procedure remaps identifiers to standard binominal. Obviously this should
+   be sorted in a different way!"
+  (match str
+    ["Fly (Drosophila melanogaster, dm6)" "Drosophila melanogaster"]
+    ["Oryzias latipes (Japanese medaka)" "Oryzias latipes"]
+    ["Monkey (Macaca nemestrina)" "Macaca nemestrina"]
+    [str str]))
+
 (define-dump dump-species
   (tables (Species))
   (schema-triples
@@ -26,9 +35,9 @@
    (gn-term:binomialName rdfs:range rdfs:Literal)
    (gn-term:family rdfs:range rdfs:Literal))
   (triples
-      (string->identifier "" (field Species FullName)
-                          #:separator ""
-                          #:proc string-capitalize-first)
+      (string->identifier "" (remap-species-identifiers (field Species Fullname))
+                             #:separator ""
+                             #:proc string-capitalize-first)
     (set rdf:type 'gn:species)
     (set gn-term:name (field Species SpeciesName))
     (set gn-term:displayName (field Species MenuName))
