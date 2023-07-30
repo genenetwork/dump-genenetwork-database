@@ -1,6 +1,10 @@
 (define-module (dump schema)
   #:use-module (ice-9 match)
-  #:use-module (dump sql))
+  #:use-module (ice-9 srfi-26)
+  #:use-module (dump sql)
+  #:use-module (dump triples)
+  #:use-module (dump strings)
+  #:use-module (dump table))
 
 
 (define (dump-table-fields db table)
