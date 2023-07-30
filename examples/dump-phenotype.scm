@@ -40,7 +40,7 @@
                                  'pre "_" 'post)
        #:separator ""
        #:proc string-capitalize-first)
-    (set rdf:type 'gn:phenotypeDataset)
+    (set rdf:type 'gnc:phenotypeDataset)
     (set gnt:name (field PublishFreeze Name))
     (set gnt:fullName (field PublishFreeze FullName))
     (set gnt:shortName (field PublishFreeze ShortName))
@@ -78,7 +78,7 @@
                                         'pre "_" 'post)
             #:separator ""
             #:proc string-capitalize-first)
-    (set rdf:type 'gn:phenotype)
+    (set rdf:type 'gnc:phenotype)
     (set gnt:name (sanitize-rdf-string
                   (field
                    ("CAST(CONVERT(BINARY CONVERT(IF(Phenotype.Post_publication_abbreviation IS NULL, IF(Phenotype.Pre_publication_abbreviation IS NULL, Phenotype.Id, Phenotype.Pre_publication_abbreviation), Phenotype.Post_publication_abbreviation) USING latin1) USING utf8) AS VARCHAR(100))"
@@ -134,6 +134,7 @@
  (prefixes
   '(("dct:" "<http://purl.org/dc/terms/>")
     ("gn:" "<http://genenetwork.org/id/>")
+    ("gnc:" "<http://genenetwork.org/category/>")
     ("gnt:" "<http://genenetwork.org/terms/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")

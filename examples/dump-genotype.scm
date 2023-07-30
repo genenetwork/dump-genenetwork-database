@@ -26,9 +26,9 @@
            (left-join InbredSet "ON GenoFreeze.InbredSetId = InbredSet.InbredSetId"))
           "WHERE GenoFreeze.public > 0 AND GenoFreeze.confidentiality < 1 AND InfoFiles.InfoPageName IS NULL")
   (schema-triples
-   (gnt:datasetOfInbredSet rdfs:range gn:inbredSet)
-   (gn:genotypeDataset rdfs:subPropertyOf gn:dataset)
-   (gnt:shortName rdfs:range rdfs:Literal))
+   (gnt:datasetOfInbredSet rdfs:subPropertyOf gnc:inbredSet)
+   (gnc:genotypeDataset rdfs:subPropertyOf gnc:dataset)
+   (gnt:shortName rdfs:subPropertyOf gnc:genotypeDataset))
   (triples
       (string->identifier
        ""
@@ -41,7 +41,7 @@
         'pre "_" 'post)
        #:separator ""
        #:proc string-capitalize-first)
-    (set rdf:type 'gn:genotypeDataset)
+    (set rdf:type 'gnc:genotypeDataset)
     (set gnt:name (field GenoFreeze Name))
     (set gnt:fullName (field GenoFreeze FullName))
     (set gnt:shortName (field GenoFreeze ShortName))
@@ -57,7 +57,7 @@
            (left-join GenoFreeze "ON GenoFreeze.Id = GenoXRef.GenoFreezeId")
            (left-join InfoFiles "ON InfoFiles.InfoPageName = GenoFreeze.Name")))
   (schema-triples
-   (gn:genotype rdfs:range rdfs:Literal)
+   (gnc:genotype rdfs:range rdfs:Literal)
    (gnt:genotypeDataset rdfs:subPropertyOf gn:dataset))
   (triples
       (string->identifier
@@ -68,7 +68,7 @@
         'pre "_" 'post)
        #:separator ""
        #:proc string-capitalize-first)
-    (set rdf:type 'gn:genotype)
+    (set rdf:type 'gnc:genotype)
     (set gnt:name (sanitize-rdf-string (field Geno Name)))
     (set gnt:markerName (sanitize-rdf-string (field Geno Marker_Name)))
     (set gnt:chr (field Geno Chr))
@@ -105,6 +105,7 @@
  (prefixes
   '(("dct:" "<http://purl.org/dc/terms/>")
     ("gn:" "<http://genenetwork.org/id/>")
+    ("gnc:" "<http://genenetwork.org/category/>")
     ("gnt:" "<http://genenetwork.org/term/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")

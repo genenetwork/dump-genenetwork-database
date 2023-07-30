@@ -22,7 +22,7 @@
   (schema-triples
    (gnt:name rdfs:range rdfs:Literal))
   (triples (string->identifier "platform" (field GeneChip Name))
-    (set rdf:type 'gn:platform)
+    (set rdf:type 'gnc:platform)
     (set gnt:name (field GeneChip GeneChipName))
     (set gnt:geoPlatform
          (ontology 'geoSeries:
@@ -50,7 +50,7 @@
         'pre "_" 'post)
        #:separator ""
        #:proc string-capitalize-first)
-    (set rdf:type 'gn:probesetDataset)
+    (set rdf:type 'gnc:probesetDataset)
     (set gnt:avgMethod (string->identifier "avgmethod" (field AvgMethod Name)))
     (set gnt:fullName (field ProbeSetFreeze FullName))
     (set gnt:shortName (field ProbeSetFreeze ShortName))
@@ -71,6 +71,7 @@
  (prefixes
   '(("geoSeries:" "<http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=>")
     ("gn:" "<http://genenetwork.org/id/>")
+    ("gnc:" "<http://genenetwork.org/category/>")
     ("dct:" "<>")
     ("gnt:" "<http://genenetwork.org/term/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
