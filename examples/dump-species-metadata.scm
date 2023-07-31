@@ -63,9 +63,7 @@
             #:proc string-capitalize-first)
     (set rdf:type 'gnc:strain)
     (set gn-term:strainOfSpecies
-         (string->identifier "" (remap-species-identifiers (field Species FullName))
-                          #:separator ""
-                          #:proc string-capitalize-first))
+         (string->binomial-name (field Species FullName)))
     ;; Name, and maybe a second name
     (set gn-term:name (sanitize-rdf-string (field Strain Name)))
     (set gn-term:name2 (sanitize-rdf-string (field Strain Name2)))
@@ -138,8 +136,7 @@
   (list dump-species
         dump-strain
         dump-mapping-method
-        dump-avg-method
-	))
+        dump-avg-method))
  (outputs
   '(#:documentation "./docs/dump-species-metadata.md"
     #:rdf "./verified-data/dump-species-metadata.ttl")))
