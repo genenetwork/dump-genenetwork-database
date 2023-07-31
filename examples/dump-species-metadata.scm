@@ -31,17 +31,18 @@
 (define-dump dump-species
   (tables (Species))
   (schema-triples
-   (gnt:name rdfs:range rdfs:Literal)
-   (gnt:displayName rdfs:range rdfs:Literal)
-   (gnt:binomialName rdfs:range rdfs:Literal)
-   (gnt:family rdfs:range rdfs:Literal))
+   (gnc:species rdf:type owl:Class)
+   (gnt:name rdfs:range gnc:species)
+   (gnt:binomialName rdfs:range gnc:species)
+   (gnt:family rdfs:range gnc:species)
+   (gnt:organism rdfs:range gnc:species))
   (triples
       (string->identifier "" (remap-species-identifiers (field Species Fullname))
                           #:separator ""
                           #:proc string-capitalize-first)
     (set rdf:type 'gnc:species)
     (set gnt:name (field Species SpeciesName))
-    (set gnt:displayName (field Species MenuName))
+    (set rdfs:label (field Species MenuName))
     (set gnt:binomialName (field Species FullName))
     (set gnt:family (field Species Family))
     (set gnt:organism (ontology 'taxon: (field Species TaxonomyId)))))
