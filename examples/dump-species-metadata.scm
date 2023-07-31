@@ -76,9 +76,12 @@
 
 (define-dump dump-mapping-method
   (tables (MappingMethod))
+  (schema-triples
+   (gnc:mappingMethod rdf:type owl:Class))
   (triples
       (string->identifier "mappingMethod" (field MappingMethod Name))
-    (set rdf:type 'gnc:mappingMethod)))
+    (set rdf:type 'gnc:mappingMethod)
+    (set rdfs:label (field MappingMethod Name))))
 
 (define-dump dump-inbred-set
   (tables (InbredSet
@@ -86,31 +89,31 @@
            (left-join MappingMethod
                        "ON InbredSet.MappingMethodId=MappingMethod.Id")))
   (schema-triples
-   (gn-term:fullName rdfs:range rdfs:Literal)
-   (gn-term:geneticType rdfs:range rdfs:Literal)
-   (gn-term:inbredSetCode rdfs:range rdfs:Literal)
-   (gn-term:inbredFamily rdfs:range rdfs:Literal)
-   (gn-term:inbredSetOfSpecies rdfs:range gn:species)
-   (gn-term:inbredSetType rdfs:range rdfs:Literal)
-   (gn-term:phenotype rdfs:range gn-term:inbredSetType)
-   (gn-term:genotype rdfs:range gn-term:inbredSetType)
-   (gn-term:inbredSetOfMappingMethod rdfs:range gn-term:mappingMethod))
+   (gnc:inbredSet rdf:subClassOf gnc:species)
+   (gnt:geneticType rdfs:domain gnc:inbredSet)
+   (gnt:code rdfs:domain gnc:inbredSet)
+   (gnt:family rdfs:domain gnc:inbredSet)
+   (gnt:type rdfs:domain gnc:inbredSet)
+   (gnt:phenotype rdfs:domain gnc:inbredSet)
+   (gnt:genotype rdfs:domain gnt:inbredSet)
+   (gnt:mappingMethod rdfs:domain gnc:inbredSet))
   (triples (string->identifier
             "" (field InbredSet Name)
             #:separator ""
             #:proc string-capitalize-first)
     (set rdf:type 'gnc:inbredSet)
-    (set gn-term:binomialName (field InbredSet FullName))
-    (set gn-term:geneticType (field InbredSet GeneticType))
-    (set gn-term:inbredFamily (field InbredSet Family))
-    (set gn-term:inbredSetOfMappingMethod (field MappingMethod Name))
-    (set gn-term:inbredSetCode (field InbredSet InbredSetCode))
-    (set gn-term:inbredSetOfSpecies
-         (string->binomial-name
-          (field Species FullName BinomialName)))
-    (set gn-term:genotype
+    (set rdfs:label (field InbredSet FullName))
+    (set gnt:geneticType (field InbredSet GeneticType))
+    (set gnt:inbredFamily (field InbredSet Family))
+    (set gnt:inbredSetOfMappingMethod (field MappingMethod Name))
+    (set gnt:inbredSetCode (field InbredSet InbredSetCode))
+    (set gnt:species
+         (string->identifier "" (remap-species-identifiers (field Species Fullname))
+                          #:separator ""
+                          #:proc string-capitalize-first))
+    (set gnt:genotype
          (field ("IF ((SELECT PublishFreeze.Name FROM PublishFreeze WHERE PublishFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'Traits and Cofactors', '')" genotypeP)))
-    (set gn-term:phenotype
+    (set gnt:phenotype
          (field ("IF ((SELECT GenoFreeze.Name FROM GenoFreeze WHERE GenoFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'DNA Markers and SNPs', '')" phenotypeP)))))
 
 (define-dump dump-avg-method
@@ -118,10 +121,10 @@
   ;; the Name field.
   (tables (AvgMethod))
   (schema-triples
-   (gn-term:normalization rdfs:range rdfs:Literal))
+   (gnc:avgMethod rdf:type owl:Class))
   (triples (string->identifier "avgmethod" (field AvgMethod Name))
     (set rdf:type 'gnc:avgMethod)
-    (set gn-term:normalization (field AvgMethod Normalization))))
+    (set rdfs:label (field AvgMethod Normalization))))
 
 
 
@@ -132,6 +135,7 @@
  (prefixes
   '(("gn:" "<http://genenetwork.org/id/>")
     ("gnc:" "<http://genenetwork.org/category/>")
+    ("owl:" "<http://www.w3.org/2002/07/owl#>")
     ("gnt:" "<http://genenetwork.org/term/>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
