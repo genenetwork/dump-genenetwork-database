@@ -36,7 +36,9 @@
    (gnt:binomialName rdfs:range rdfs:Literal)
    (gnt:family rdfs:range rdfs:Literal))
   (triples
-      (string->binomial-name (field Species FullName))
+      (string->identifier "" (remap-species-identifiers (field Species Fullname))
+                          #:separator ""
+                          #:proc string-capitalize-first)
     (set rdf:type 'gnc:species)
     (set gnt:name (field Species SpeciesName))
     (set gnt:displayName (field Species MenuName))
