@@ -51,11 +51,10 @@
   (tables (Strain
            (left-join Species "ON Strain.SpeciesId = Species.SpeciesId")))
   (schema-triples
-   (gnt:strainOfSpecies rdfs:domain gnt:strain)
-   (gnt:strainOfSpecies rdfs:range gn-term:species)
-   (gn-term:name rdfs:range rdfs:Literal)
-   (gn-term:alias rdfs:range rdfs:Literal)
-   (gn-term:symbol rdfs:range rdfs:Literal))
+   (gnc:strain rdf:subClassOf gnc:species)
+   (gnt:species rdfs:domain gnc:strain)
+   (gnt:alias rdfs:range gnc:strain)
+   (gnt:symbol rdfs:range gnc:strain))
   (triples (string->identifier
             ""
             (regexp-substitute/global
@@ -65,13 +64,15 @@
             #:separator ""
             #:proc string-capitalize-first)
     (set rdf:type 'gnc:strain)
-    (set gn-term:strainOfSpecies
-         (string->binomial-name (field Species FullName)))
+    (set gnt:species
+         (string->identifier "" (remap-species-identifiers (field Species Fullname))
+                          #:separator ""
+                          #:proc string-capitalize-first))
     ;; Name, and maybe a second name
-    (set gn-term:name (sanitize-rdf-string (field Strain Name)))
-    (set gn-term:name2 (sanitize-rdf-string (field Strain Name2)))
-    (set gn-term:alias (sanitize-rdf-string (field Strain Alias)))
-    (set gn-term:symbol (field Strain Symbol))))
+    (set rdfs:label (sanitize-rdf-string (field Strain Name)))
+    (set rdfs:label (sanitize-rdf-string (field ("IF ((Strain.Name2 != Strain.Name), Strain.Name2, '')" Name2))))
+    (set gnt:alias (sanitize-rdf-string (field Strain Alias)))
+    (set gnt:symbol (field Strain Symbol))))
 
 (define-dump dump-mapping-method
   (tables (MappingMethod))
