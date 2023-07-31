@@ -45,18 +45,6 @@
   ;; deduplicate.
   (tables (Investigators)
           "GROUP BY Email")
-  (schema-triples
-   ;; TODO: Are ranges required for FOAF predicates? Can they not be
-   ;; obtained from the FOAF spec?
-   (foaf:name rdfs:range rdfs:Literal)
-   (foaf:givenName rdfs:range rdfs:Literal)
-   (foaf:familyName rdfs:range rdfs:Literal)
-   (foaf:homepage rdfs:range rdfs:Literal)
-   (gnt:address rdfs:range rdfs:Literal)
-   (gnt:city rdfs:range rdfs:Literal)
-   (gnt:state rdfs:range rdfs:Literal)
-   (gnt:zipCode rdfs:range rdfs:Literal)
-   (gnt:country rdfs:range rdfs:Literal))
   (triples (investigator-attributes->id (field Investigators FirstName)
                                         (field Investigators LastName)
                                         (field Investigators Email))
@@ -70,11 +58,11 @@
     (set foaf:familyName
          (field ("CAST(CONVERT(BINARY CONVERT(LastName USING latin1) USING utf8) AS VARCHAR(100))" LastName)))
     (set foaf:homepage (field Investigators Url))
-    (set gnt:address (field Investigators Address))
-    (set gnt:city (field Investigators City))
-    (set gnt:state (field Investigators State))
-    (set gnt:zipCode (field Investigators ZipCode))
-    (set gnt:country (field Investigators Country))))
+    (set v:adr (field Investigators Address))
+    (set v:locality (field Investigators City))
+    (set v:region (field Investigators State))
+    (set v:postal-code (field Investigators ZipCode))
+    (set v:country-name (field Investigators Country))))
 
 (define-dump dump-info-files
   (tables (InfoFiles
@@ -237,7 +225,8 @@
  (connection %connection-settings)
  (table-metadata? #f)
  (prefixes
-  '(("foaf:" "<http://xmlns.com/foaf/0.1/>")
+  '(("v:" "<http://www.w3.org/2006/vcard/ns#>")
+    ("foaf:" "<http://xmlns.com/foaf/0.1/>")
     ("geoSeries:" "<http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=>")
     ("gnt:" "<http://genenetwork.org/term/>")
     ("gn:" "<http://genenetwork.org/id/>")
