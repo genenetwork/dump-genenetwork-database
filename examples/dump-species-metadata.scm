@@ -24,7 +24,7 @@
   (match str
     ["Fly (Drosophila melanogaster dm6)" "Drosophila melanogaster"]
     ["Oryzias latipes (Japanese medaka)" "Oryzias latipes"]
-    ["Monkey (Macaca nemestrina)" "Macaca nemestrina"]
+    ["Macaca mulatta" "Macaca nemestrina"]
     ["Bat (Glossophaga soricina)" "Glossophaga soricina"]
     [str str]))
 
