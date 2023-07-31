@@ -66,13 +66,13 @@
     (set rdf:type 'gnc:strain)
     (set gnt:species
          (string->identifier "" (remap-species-identifiers (field Species Fullname))
-                          #:separator ""
-                          #:proc string-capitalize-first))
+                             #:separator ""
+                             #:proc string-capitalize-first))
     ;; Name, and maybe a second name
     (set rdfs:label (sanitize-rdf-string (field Strain Name)))
     (set rdfs:label (sanitize-rdf-string (field ("IF ((Strain.Name2 != Strain.Name), Strain.Name2, '')" Name2))))
-    (set gnt:alias (sanitize-rdf-string (field Strain Alias)))
-    (set gnt:symbol (field Strain Symbol))))
+    (set gnt:alias (sanitize-rdf-string (field ("IF ((Strain.Alias != Strain.Name), Strain.Alias, '')" Alias))))
+    (set gnt:symbol (field ("IF ((Strain.Symbol != Strain.Name), Strain.Symbol, '')" Symbol)))))
 
 (define-dump dump-mapping-method
   (tables (MappingMethod))
