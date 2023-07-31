@@ -93,7 +93,6 @@
    (gnt:geneticType rdfs:domain gnc:inbredSet)
    (gnt:code rdfs:domain gnc:inbredSet)
    (gnt:family rdfs:domain gnc:inbredSet)
-   (gnt:type rdfs:domain gnc:inbredSet)
    (gnt:phenotype rdfs:domain gnc:inbredSet)
    (gnt:genotype rdfs:domain gnt:inbredSet)
    (gnt:mappingMethod rdfs:domain gnc:inbredSet))
@@ -104,9 +103,9 @@
     (set rdf:type 'gnc:inbredSet)
     (set rdfs:label (field InbredSet FullName))
     (set gnt:geneticType (field InbredSet GeneticType))
-    (set gnt:inbredFamily (field InbredSet Family))
-    (set gnt:inbredSetOfMappingMethod (field MappingMethod Name))
-    (set gnt:inbredSetCode (field InbredSet InbredSetCode))
+    (set gnt:family (field InbredSet Family))
+    (set gnt:mappingMethod (field MappingMethod Name))
+    (set gnt:code (field InbredSet InbredSetCode))
     (set gnt:species
          (string->identifier "" (remap-species-identifiers (field Species Fullname))
                           #:separator ""
