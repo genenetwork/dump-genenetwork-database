@@ -100,6 +100,11 @@ $ guix shell -m manifest.scm -- rapper --input turtle --count ~/data/dump/dump.t
 $ guix shell -m manifest.scm -- ./pre-inst-env ./load-rdf.scm conn.scm ~/data/dump/dump.ttl
 ```
 
+
+## Upload data to virtuoso
+
+See https://issues.genenetwork.org/topics/systems/virtuoso
+
 ## Visualize schema
 
 Now, you may query virtuoso to visualize the SQL and RDF schema.
