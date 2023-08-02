@@ -4,6 +4,7 @@
 
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix gn: <http://genenetwork.org/id/> .
+@prefix gnt: <http://genenetwork.org/term/> .
 
 gn:Arabidopsis_thaliana rdf:isDefinedBy wd:Q158695 ;
                         gnt:shortName "arabidopsis" .
