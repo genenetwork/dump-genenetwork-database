@@ -12,6 +12,7 @@ gn:Drosophila_melanogaster rdf:isDefinedBy wd:Q130888 .
 gn:Glycine_max rdf:isDefinedBy wd:Q11006 .
 gn:Homo_sapiens rdf:isDefinedBy wd:Q15978631 .
 gn:Hordeum_vulgare rdf:isDefinedBy wd:Q11577 .
+# Monkey
 gn:Macaca_mulatta rdf:isDefinedBy wd:Q156606 .
 gn:Macaca_nemestrina rdf:isDefinedBy wd:Q618026 .
 gn:Mus_musculus rdf:isDefinedBy wd:Q83310 .
