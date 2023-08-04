@@ -42,6 +42,7 @@
                           #:proc string-capitalize-first)
     (set rdf:type 'gnc:species)
     (set gnt:name (field Species SpeciesName))
+    (set gnt:shortName (field Species Name))
     (set rdfs:label (field Species MenuName))
     (set gnt:binomialName (field Species FullName))
     (set gnt:family (field Species Family))
