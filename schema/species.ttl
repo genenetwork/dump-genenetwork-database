@@ -6,31 +6,44 @@
 @prefix gn: <http://genenetwork.org/id/> .
 @prefix gnt: <http://genenetwork.org/term/> .
 
+# sorted on short names:
+#
 gn:Arabidopsis_thaliana rdf:isDefinedBy wd:Q158695 ;
                         gnt:shortName "arabidopsis" .
-# Bat
-gn:Glossophaga_soricina gnt:shortName "bat" .
-gn:Drosophila_melanogaster rdf:isDefinedBy wd:Q130888 ;
-			   gnt:shortName "drosophila" .
-gn:Glycine_max rdf:isDefinedBy wd:Q11006 ;
-	       gnt:shortName "soybean" .
-gn:Homo_sapiens rdf:isDefinedBy wd:Q15978631 ;
-  	       gnt:shortName "human" .
+
 gn:Hordeum_vulgare rdf:isDefinedBy wd:Q11577 ;
                gnt:shortName "barley" .
+
+gn:Glossophaga_soricina rdf:isDefinedBy wd:Q304929 ;
+                        gnt:shortName "bat" .
+
+gn:Drosophila_melanogaster rdf:isDefinedBy wd:Q130888 ;
+			   gnt:shortName "drosophila" .
+
+gn:Homo_sapiens rdf:isDefinedBy wd:Q15978631 ;
+  	       gnt:shortName "human" .
+
 # Monkey
 # gn:Macaca_mulatta rdf:isDefinedBy wd:Q156606 ;
 # 		  gnt:shortName "macaca" .
 gn:Macaca_nemestrina rdf:isDefinedBy wd:Q618026 ;
   		     gnt:shortName "macaca" .
+
 gn:Mus_musculus rdf:isDefinedBy wd:Q83310 ;
 		gnt:shortName "mouse" .
-# Japanese Medaka
+
 gn:Oryzias_latipes rdf:isDefinedBy wd:Q1142975 ;
   		   gnt:shortName "medaka" .
+
 gn:Populus_trichocarpa rdf:isDefinedBy wd:Q149382 ;
 		       gnt:shortName "poplar" .
+
 gn:Rattus_norvegicus rdf:isDefinedBy wd:Q184224 ;
 		     gnt:shortName "rat" .
+
+gn:Glycine_max rdf:isDefinedBy wd:Q11006 ;
+	       gnt:shortName "soybean" .
+
 gn:Solanum_lycopersicum rdf:isDefinedBy wd:Q23501 ;
 			gnt:shortName "tomato" .
+
