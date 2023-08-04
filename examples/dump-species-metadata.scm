@@ -32,10 +32,16 @@
   (tables (Species))
   (schema-triples
    (gnc:species rdf:type owl:Class)
+   (gnt:name a owl:ObjectProperty)
    (gnt:name rdfs:domain gnc:species)
+   (gnt:binomialName a owl:ObjectProperty)
    (gnt:binomialName rdfs:domain gnc:species)
+   (gnt:family a owl:ObjectProperty)
    (gnt:family rdfs:domain gnc:species)
-   (gnt:organism rdfs:domain gnc:species))
+   (gnt:organism a owl:ObjectProperty)
+   (gnt:organism rdfs:domain gnc:species)
+   (gnt:shortName a owl:ObjectProperty)
+   (gnt:shortName rdfs:domain gnc:species))
   (triples
       (string->identifier "" (remap-species-identifiers (field Species Fullname))
                           #:separator ""
