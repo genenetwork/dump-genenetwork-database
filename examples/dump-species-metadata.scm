@@ -31,13 +31,16 @@
 (define-dump dump-species
   (tables (Species))
   (schema-triples
-   (gnc:species rdf:type owl:Class)
+   (gnc:species a skos:Concept)
+   (gnc:species skos:description "This is a set of controlled terms that are used to describe a given species")
+   (gnc:species skos:broader gnc:family)
    (gnt:name a owl:ObjectProperty)
    (gnt:name rdfs:domain gnc:species)
    (gnt:binomialName a owl:ObjectProperty)
    (gnt:binomialName rdfs:domain gnc:species)
    (gnt:family a owl:ObjectProperty)
    (gnt:family rdfs:domain gnc:species)
+   (gnt:family skos:definition "This resource belongs to this family")
    (gnt:organism a owl:ObjectProperty)
    (gnt:organism rdfs:domain gnc:species)
    (gnt:shortName a owl:ObjectProperty)
@@ -58,10 +61,15 @@
   (tables (Strain
            (left-join Species "ON Strain.SpeciesId = Species.SpeciesId")))
   (schema-triples
-   (gnc:strain rdf:subClassOf gnc:species)
+   (gnc:strain skos:broader gnc:species)
    (gnt:species rdfs:domain gnc:strain)
+   (gnt:species skos:definition "This resource belongs to this species")
+   (gnt:species a owl:ObjectProperty)
+   (gnt:species skos:definition "This resource belongs to this species")
    (gnt:alias rdfs:domain gnc:strain)
-   (gnt:symbol rdfs:domain gnc:strain))
+   (gnt:alias a owl:ObjectProperty)
+   (gnt:symbol rdfs:domain gnc:strain)
+   (gnt:symbol a owl:ObjectProperty))
   (triples (string->identifier
             ""
             (regexp-substitute/global
@@ -84,7 +92,8 @@
 (define-dump dump-mapping-method
   (tables (MappingMethod))
   (schema-triples
-   (gnc:mappingMethod rdf:type owl:Class))
+   (gnc:mappingMethod a skos:Concept)
+   (gnc:mappingMethod skos:definition "Terms that decribe mapping/normalization methods used in GeneNetwork"))
   (triples
       (string->identifier "mappingMethod" (field MappingMethod Name))
     (set rdf:type 'gnc:mappingMethod)
@@ -96,12 +105,19 @@
            (left-join MappingMethod
                        "ON InbredSet.MappingMethodId=MappingMethod.Id")))
   (schema-triples
-   (gnc:inbredSet rdf:subClassOf gnc:species)
+   (gnc:inbredSet skos:broader gnc:species)
+   (gnc:inbredSet skos:definition "A set of terms used to describe an inbred set")
+   (gnt:geneticType a owl:ObjectProperty)
    (gnt:geneticType rdfs:domain gnc:inbredSet)
+   (gnt:code a owl:ObjectProperty)
    (gnt:code rdfs:domain gnc:inbredSet)
+   ;; Already defined as an owl prop in dump-species
    (gnt:family rdfs:domain gnc:inbredSet)
+   (gnt:phenotype a owl:ObjectProperty)
    (gnt:phenotype rdfs:domain gnc:inbredSet)
+   (gnt:genotype a owl:ObjectProperty)
    (gnt:genotype rdfs:domain gnt:inbredSet)
+   (gnt:mappingMethod a owl:ObjectProperty)
    (gnt:mappingMethod rdfs:domain gnc:inbredSet))
   (triples (string->identifier
             "" (field InbredSet Name)
