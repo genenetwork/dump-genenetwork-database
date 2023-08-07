@@ -43,8 +43,9 @@
                       '^^xsd:date))
     (set gnt:belongsToInbredSet
          (string->identifier
-          "inbredSet"
-          (field InbredSet Name InbredSetName)))))
+            "" (field InbredSet Name)
+            #:separator ""
+            #:proc string-capitalize-first))))
 
 (define-dump dump-phenotypes
   (tables (Phenotype
