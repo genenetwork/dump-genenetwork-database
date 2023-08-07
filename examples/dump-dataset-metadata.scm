@@ -138,10 +138,10 @@
                      #f "^[Nn]one$"
                      (field InfoFiles InfoPageName)
                      ""))
-    (set gdmt:hasTitleInfo
+    (set skos:prefLabel
          (field ("IFNULL(GenoFreeze.FullName, IFNULL(PublishFreeze.FullName, ''))"
                  DatasetFullName)))
-    (set gdmt:hasTitleInfo (field Datasets DatasetName DatasetGroup))
+    (set skos:prefLabel (field Datasets DatasetName DatasetGroup))
     (set gdmt:hasTitleInfo
          (regexp-substitute/global
           #f "^[Nn]one$"
