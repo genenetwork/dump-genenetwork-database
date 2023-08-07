@@ -124,7 +124,7 @@
    (gnt:hasAcknowledgement rdfs:domain gnc:dataset)
    (gnt:hasAcknowledgement rdfs:label "Acknowledgement")
    (gnt:hasAcknowledgement a owl:ObjectProperty)
-   (gnt:hasAcknowledgement skos:definition "People to acknowledg"))
+   (gnt:hasAcknowledgement skos:definition "People to acknowledge"))
   (triples (string->identifier
             "" (regexp-substitute/global #f "[^A-Za-z0-9:]"
                                          (field InfoFiles InfoPageName)
