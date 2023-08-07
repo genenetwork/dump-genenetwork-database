@@ -23,12 +23,12 @@
     ;; and BIRN_lex_Name are mostly NULL.
     (tables (Tissue))
   (schema-triples
-   (gnt:name rdfs:range rdfs:Literal))
+   (gnc:tissue a skos:Concept))
   ;; Hopefully the Short_Name field is distinct and can be used as an
   ;; identifier.
   (triples (string->identifier "tissue" (field Tissue Short_Name))
 	   (set rdf:type 'gnc:tissue)
-	   (set gnt:name (field Tissue Name))))
+	   (set rdfs:label (field Tissue Name))))
 
 
 
