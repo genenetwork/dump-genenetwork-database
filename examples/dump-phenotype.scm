@@ -26,12 +26,6 @@
            (left-join InfoFiles "ON InfoFiles.InfoPageName = PublishFreeze.Name")
            (left-join InbredSet "ON PublishFreeze.InbredSetId = InbredSet.InbredSetId"))
           "WHERE PublishFreeze.public > 0 AND PublishFreeze.confidentiality < 1 AND InfoFiles.InfoPageName IS NULL")
-  (schema-triples
-   (gnt:datasetOfInbredSet rdfs:range gn:inbredSet)
-   (gnt:name rdfs:range rdfs:Literal)
-   (gnt:fullName rdfs:range rdfs:Literal)
-   (gnt:shortName rdfs:range rdfs:Literal)
-   (gn:phenotypeDataset rdf:subClassOf gn:dataset))
   (triples
       (string->identifier
        ""
@@ -40,15 +34,17 @@
                                  'pre "_" 'post)
        #:separator ""
        #:proc string-capitalize-first)
-    (set rdf:type 'gnc:phenotypeDataset)
-    (set gnt:name (field PublishFreeze Name))
-    (set gnt:fullName (field PublishFreeze FullName))
-    (set gnt:shortName (field PublishFreeze ShortName))
+    (set rdf:type 'gnc:phenotype)
+    (set rdfs:label (field PublishFreeze Name))
+    (set skos:prefLabel (field PublishFreeze FullName))
+    (set skos:altLabel (field PublishFreeze ShortName))
     (set dct:created (annotate-field
                       (field PublishFreeze CreateTime)
                       '^^xsd:date))
-    (set gnt:datasetOfInbredSet
-         (string->identifier "inbredSet" (field InbredSet Name InbredSetName)))))
+    (set gnt:belongsToInbredSet
+         (string->identifier
+          "inbredSet"
+          (field InbredSet Name InbredSetName)))))
 
 (define-dump dump-phenotypes
   (tables (Phenotype
@@ -136,6 +132,7 @@
     ("gn:" "<http://genenetwork.org/id/>")
     ("gnc:" "<http://genenetwork.org/category/>")
     ("gnt:" "<http://genenetwork.org/terms/>")
+    ("skos:" "<http://www.w3.org/2004/02/skos/core#>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("xsd:" "<http://www.w3.org/2001/XMLSchema#>")
