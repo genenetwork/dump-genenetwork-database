@@ -99,11 +99,12 @@
     (set rdf:type 'gnc:mappingMethod)
     (set rdfs:label (field MappingMethod Name))))
 
+
 (define-dump dump-inbred-set
   (tables (InbredSet
            (left-join Species "ON InbredSet.SpeciesId=Species.Id")
            (left-join MappingMethod
-                       "ON InbredSet.MappingMethodId=MappingMethod.Id")))
+                      "ON InbredSet.MappingMethodId=MappingMethod.Id")))
   (schema-triples
    (gnc:inbredSet skos:broader gnc:species)
    (gnc:inbredSet skos:definition "A set of terms used to describe an inbred set")
@@ -131,12 +132,21 @@
     (set gnt:code (field InbredSet InbredSetCode))
     (set gnt:species
          (string->identifier "" (remap-species-identifiers (field Species Fullname))
-                          #:separator ""
-                          #:proc string-capitalize-first))
+                             #:separator ""
+                             #:proc string-capitalize-first))
     (set gnt:genotype
          (field ("IF ((SELECT PublishFreeze.Name FROM PublishFreeze WHERE PublishFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'Traits and Cofactors', '')" genotypeP)))
     (set gnt:phenotype
-         (field ("IF ((SELECT GenoFreeze.Name FROM GenoFreeze WHERE GenoFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'DNA Markers and SNPs', '')" phenotypeP)))))
+         (field ("IF ((SELECT GenoFreeze.Name FROM GenoFreeze WHERE GenoFreeze.InbredSetId = InbredSet.Id LIMIT 1) IS NOT NULL, 'DNA Markers and SNPs', '')" phenotypeP)))
+    (multiset gnt:molecularTrait
+              (map
+               (lambda (x)
+                 (string->identifier "tissue"
+                                     x))
+               (string-split-substring
+                (field ("(SELECT GROUP_CONCAT(DISTINCT Tissue.Short_Name SEPARATOR'||') AS MolecularTraits FROM ProbeFreeze, ProbeSetFreeze, InbredSet, Tissue, Species WHERE ProbeFreeze.TissueId = Tissue.Id AND ProbeFreeze.InbredSetId = InbredSet.Id AND ProbeSetFreeze.ProbeFreezeId = ProbeFreeze.Id ORDER BY Tissue.Name)"
+                        molecularTrait))
+                "||")))))
 
 (define-dump dump-avg-method
   ;; The Name and Normalization fields seem to be the same. Dump only
@@ -159,14 +169,17 @@
     ("gnc:" "<http://genenetwork.org/category/>")
     ("owl:" "<http://www.w3.org/2002/07/owl#>")
     ("gnt:" "<http://genenetwork.org/term/>")
+    ("skos:" "<http://www.w3.org/2004/02/skos/core#>")
     ("rdf:" "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>")
     ("rdfs:" "<http://www.w3.org/2000/01/rdf-schema#>")
     ("taxon:" "<http://purl.uniprot.org/taxonomy/>")))
  (inputs
-  (list dump-species
-        dump-strain
-        dump-mapping-method
-        dump-avg-method))
+  (list
+   dump-inbred-set
+   dump-species
+   dump-strain
+   dump-mapping-method
+   dump-avg-method))
  (outputs
   '(#:documentation "./docs/dump-species-metadata.md"
     #:rdf "./verified-data/dump-species-metadata.ttl")))
