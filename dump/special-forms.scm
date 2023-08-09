@@ -435,7 +435,7 @@ must be remedied."
                              (_ (error "Invalid predicate clause:" predicate-clause))))
                          #'(predicate-clauses ...))))
              (when dump-documentation?
-               (format #t "## '~a'~%~%" (syntax->datum #'name))
+               (format #t "~%## '~a'~%~%" (syntax->datum #'name))
                #,(syntax-case #'schema-triples-clause (schema-triples)
                    ((schema-triples (triple-subject triple-predicate triple-object) ...)
                     #`(begin
@@ -448,8 +448,7 @@ must be remedied."
                                     (list 'triple-object ...))
                           (format #t "```"))))
                    (_ (error "Invalid schema triples clause:" #'schema-triples-clause)))
-               (format #t "
-## Generated Triples:
+               (format #t "## Generated Triples:
 
 The following SQL query was executed:
 
