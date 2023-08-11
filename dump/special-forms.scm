@@ -577,7 +577,7 @@ The above query results to triples that have the form:
                                         (prefix k v #f))))
                                    prefixes))))
                inputs))
-            #:encoding "utf8")
+            #:encoding "UTF-8")
 
           ;; Dumping the actual data
           (with-output-to-file
@@ -595,5 +595,5 @@ The above query results to triples that have the form:
                (lambda (proc)
                  (proc db #:dump-metadata? table-metadata?))
                inputs))
-            #:encoding "utf8")))))))
+            #:encoding "UTF-8")))))))
 
