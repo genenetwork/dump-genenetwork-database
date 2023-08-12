@@ -142,4 +142,8 @@ AGPLv3. See LICENSE.txt
 
 # Contributing
 
+```sh
+git remote add gn git.genenetwork.org:/home/git/public/gn-transform-databases
+```
+
 See bugs and tasks in BUGS.org.
