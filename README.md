@@ -142,6 +142,8 @@ AGPLv3. See LICENSE.txt
 
 # Contributing
 
+The main code tree is hosted at https://git.genenetwork.org/.
+
 ```sh
 git remote add gn git.genenetwork.org:/home/git/public/gn-transform-databases
 ```
