@@ -136,6 +136,10 @@ publishes its version of
 and
 [rdf.svg](https://ci.genenetwork.org/archive/dump-genenetwork-database/latest/rdf.svg).
 
+# LICENSE
+
+AGPLv3. See LICENSE.txt
+
 # Contributing
 
 See bugs and tasks in BUGS.org.
